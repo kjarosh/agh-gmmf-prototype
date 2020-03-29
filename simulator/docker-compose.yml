@@ -1,0 +1,22 @@
+version: '3'
+services:
+  node-0:
+    build: .
+    environment:
+      SERVICE_NAME: node-0
+
+  tester:
+    build: .
+    environment:
+      TESTED_SERVICE: node-0
+    depends_on:
+      - node-0
+
+  client:
+    build: .
+    stdin_open: true
+    tty: true
+    environment:
+      CLIENT_MODE: "true"
+    depends_on:
+      - node-0

@@ -1,0 +1,62 @@
+paris  : provider
+lisbon : provider
+krakow : provider
+
+datahub : space
+eo_data : space
+ceric   : space
+eosc    : space
+primage : space
+
+dhub_members : group
+ebi          : group
+cyfnet       : group
+dhub_mngrs   : group
+uber_admins  : group
+admins       : group
+audit        : group
+members      : group
+
+bob   : user
+alice : user
+jill  : user
+luke  : user
+anne  : user
+tom   : user
+
+-----
+
+datahub -> paris
+datahub -> lisbon
+eo_data -> paris
+eo_data -> lisbon
+eo_data -> krakow
+ceric -> krakow
+eosc -> paris
+eosc -> krakow
+primage -> krakow
+
+dhub_members -> datahub (10000)
+dhub_members -> eo_data (10000)
+dhub_mngrs -> dhub_members (11011)
+ebi -> ceric (10000)
+admins -> dhub_members (11111)
+admins -> eosc (11011)
+admins -> cyfnet (11111)
+uber_admins -> admins (11111)
+cyfnet -> eosc (11001)
+cyfnet -> primage (11000)
+audit -> cyfnet (11001)
+members -> cyfnet (10000)
+
+bob -> datahub (11111)
+bob -> dhub_mngrs (11110)
+alice -> eo_data (11001)
+alice -> ebi (11000)
+jill -> ebi (11111)
+luke -> uber_admins (10001)
+anne -> ceric (10001)
+anne -> audit (10001)
+anne -> members (00000)
+tom -> members (00000)
+tom -> primage (10011)
