@@ -23,6 +23,7 @@ def main():
     elif tested_service:
         print("Running tests...")
         tester.run_tests(tested_service)
+        print("Tests passed!")
     else:
         print("Starting REST application...")
         app.run(host='0.0.0.0', port=80)

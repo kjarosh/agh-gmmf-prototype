@@ -1,3 +1,7 @@
+import traceback
+from cmd import Cmd
+
+from graph import graph
 from query import query
 
 
@@ -8,15 +12,40 @@ class CliContext:
         self.used_service = 'unknown'
 
 
+class _DynamicStr:
+    def __init__(self, func) -> None:
+        self.func = func
+
+    def __str__(self) -> str:
+        return self.func()
+
+
+class CmdHandler(Cmd):
+    def __init__(self, context):
+        super().__init__()
+        self.context = context
+        self.prompt = _DynamicStr(lambda: self.context.used_service + ' > ')
+
+    def do_query(self, line):
+        try:
+            response = query(self.context.used_service, line)
+            print(response)
+        except KeyboardInterrupt:
+            print("Interrupted")
+        except Exception:
+            traceback.print_exc()
+            print("Exception occurred")
+
+    def do_use(self, line):
+        self.context.used_service = line.strip()
+
+    def do_print_graph(self, line):
+        print(graph)
+
+
 def run_cli():
     context = CliContext()
-    try:
-        while True:
-            query_line = input(context.used_service + " > ").strip()
-            if query_line:
-                process_query(context, query_line)
-    except KeyboardInterrupt:
-        print("Interrupted")
+    CmdHandler(context).cmdloop()
 
 
 def process_query(context, query_line):
@@ -26,6 +55,11 @@ def process_query(context, query_line):
     if command == 'use':
         context.used_service = rest
     elif command == 'query' or command == 'q':
-        print(query(context.used_service, rest))
+        response = query(context.used_service, rest)
+        print(response)
     else:
         print("Unknown command: {}".format(command))
+
+
+if __name__ == '__main__':
+    run_cli()
