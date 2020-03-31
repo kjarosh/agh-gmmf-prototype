@@ -72,4 +72,6 @@ def query(service, q):
 
 
 # noinspection PyUnresolvedReferences
+from queries import basic
+# noinspection PyUnresolvedReferences
 from queries import naive

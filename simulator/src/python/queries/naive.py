@@ -1,3 +1,4 @@
+from queries.basic import adjacent
 from query import graph_query
 
 
@@ -17,10 +18,18 @@ def handle_query_naive_reaches(graph, args):
     return reaches(graph, args.get('from'), args.get('to'))
 
 
-def adjacent(graph, from_name, to_name):
-    return to_name in [e.v_to for e in graph.get_edges_by_source(from_name)]
+def members(graph, of):
+    result = set()
+    for edge in graph.get_edges_by_destination(of):
+        v_from = graph.get_vertex(edge.v_from)
+        if v_from.type == 'user':
+            result.add(v_from.name)
+        else:
+            result = result.union(members(graph, v_from.name))
+
+    return result
 
 
-@graph_query('n_adj')
-def handle_query_naive_adjacent(graph, args):
-    return adjacent(graph, args.get('from'), args.get('to'))
+@graph_query('n_members')
+def handle_query_naive_members(graph, args):
+    return list(members(graph, args.get('of')))
