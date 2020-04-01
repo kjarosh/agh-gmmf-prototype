@@ -1,3 +1,4 @@
+from graph import combine_permissions
 from queries.basic import adjacent
 from query import graph_query
 
@@ -33,3 +34,21 @@ def members(graph, of):
 @graph_query('n_members')
 def handle_query_naive_members(graph, args):
     return list(members(graph, args.get('of')))
+
+
+def effective_permissions(graph, from_name, to_name):
+    permissions = None
+    for edge in graph.get_edges_by_source(from_name):
+        if edge.v_to == to_name:
+            permissions = combine_permissions(
+                permissions, edge.permissions)
+        else:
+            permissions = combine_permissions(
+                permissions, effective_permissions(graph, edge.v_to, to_name))
+
+    return permissions
+
+
+@graph_query('n_eperms')
+def handle_query_naive_eperms(graph, args):
+    return effective_permissions(graph, args.get('from'), args.get('to'))

@@ -50,8 +50,21 @@ def run_tests(service):
                  '11000')
     assert_equal(query(service, 'perms from=audit to=cyfnet')['result'],
                  '11001')
+    assert_equal(query(service, 'perms from=audit to=eosc')['result'],
+                 None)
 
     assert_equal(set(query(service, 'n_members of=admins')['result']),
                  {'luke'})
     assert_equal(set(query(service, 'n_members of=eo_data')['result']),
                  {'luke', 'bob', 'alice'})
+
+    assert_equal(query(service, 'n_eperms from=alice to=bob')['result'],
+                 None)
+    assert_equal(query(service, 'n_eperms from=alice to=ebi')['result'],
+                 '11000')
+    assert_equal(query(service, 'n_eperms from=audit to=cyfnet')['result'],
+                 '11001')
+    assert_equal(query(service, 'n_eperms from=audit to=eosc')['result'],
+                 '11001')
+    assert_equal(query(service, 'n_eperms from=tom to=primage')['result'],
+                 '11011')

@@ -5,7 +5,11 @@ from parse import parse
 
 
 def combine_permissions(perm_a, perm_b):
-    return ['1' if a == '1' or b == '1' else '0' for (a, b) in zip(perm_a, perm_b)]
+    if perm_a is None:
+        return perm_b
+    if perm_b is None:
+        return perm_a
+    return ''.join(['1' if a == '1' or b == '1' else '0' for (a, b) in zip(perm_a, perm_b)])
 
 
 class Vertex:
