@@ -5,7 +5,7 @@ import urllib
 import requests
 from flask import request
 
-from graph import graph
+from main import graph
 from rest import app
 
 

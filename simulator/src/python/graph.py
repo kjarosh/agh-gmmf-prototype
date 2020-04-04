@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from parse import parse
 
@@ -15,15 +15,21 @@ def combine_permissions(perm_a, perm_b):
 class Vertex:
     name: str
     type: str
+    zone: str
 
     def __str__(self) -> str:
-        return '{} : {}'.format(self.name, self.type)
+        return '{} : {} : {}'.format(self.name, self.type, self.zone)
 
 
 class Edge:
     v_from: str
     v_to: str
-    permissions: str
+    permissions: Optional[str]
+
+    def __init__(self) -> None:
+        self.v_from = ''
+        self.v_to = ''
+        self.permissions = None
 
     def reduce(self, other):
         if other.v_from != self.v_to:
@@ -89,6 +95,29 @@ class Graph:
         else:
             return []
 
+    def to_gml(self):
+        nodes = ''
+        edges = ''
+        for v in self.__vertices.values():
+            nodes += '  node [ id "{}" label "{} {}" ]\n'.format(v.name, v.name, v.type)
+
+        for e in self.__edges:
+            edges += '  edge [ source "{}" target "{}" label "{}" ]\n'.format(e.v_from, e.v_to, e.permissions)
+
+        return 'graph [\n{}{}]\n'.format(nodes, edges)
+
+    def to_dat(self):
+        nodes = ''
+        edges = ''
+
+        for v in self.__vertices.values():
+            nodes += '{}\n'.format(v)
+
+        for e in self.__edges:
+            edges += '{}\n'.format(e)
+
+        return '{}\n------\n\n{}'.format(nodes, edges)
+
 
 def load_graph(file):
     vertices = []
@@ -96,12 +125,13 @@ def load_graph(file):
     with open(file) as f:
         for vertex_line in f:
             if re.match("[-]+", vertex_line): break
-            if parse('{}:{}', vertex_line) is None: continue
+            if parse('{}:{}:{}', vertex_line) is None: continue
 
-            v_name, v_type = parse('{}:{}', vertex_line)
+            v_name, v_type, v_zone = parse('{}:{}:{}', vertex_line)
             v = Vertex()
             v.name = v_name.strip()
             v.type = v_type.strip()
+            v.zone = v_zone.strip()
             vertices.append(v)
 
         for edge_line in f:
@@ -121,6 +151,3 @@ def load_graph(file):
             edges.append(e)
 
     return Graph(vertices, edges)
-
-
-graph = load_graph('graph.dat')

@@ -4,9 +4,12 @@ from flask import json
 
 import cli
 import tester
+from graph import load_graph
 from rest import app
 
 companies = [{"id": 1, "name": "Company One"}, {"id": 2, "name": "Company Two"}]
+
+graph = load_graph('graph.dat')
 
 
 @app.route('/companies', methods=['GET'])
