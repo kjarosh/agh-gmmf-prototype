@@ -1,6 +1,6 @@
 from query import query
 
-test_passed = True
+test_failed = 0
 
 
 def assert_equal(a, b):
@@ -25,14 +25,14 @@ def assert_false(a):
 
 
 def fail_tests(msg):
-    global test_passed
-    test_passed = False
+    global test_failed
+    test_failed += 1
     print('! {}'.format(msg))
 
 
 def run_tests(zone_id):
-    global test_passed
-    test_passed = True
+    global test_failed
+    test_failed = 0
 
     test_is_adj(zone_id)
     test_list_adj(zone_id)
@@ -42,13 +42,13 @@ def run_tests(zone_id):
     test_n_members(zone_id)
     test_n_eperms(zone_id)
 
-    if not test_passed:
-        raise AssertionError('Failed tests')
+    if test_failed > 0:
+        raise AssertionError('Failed tests : {}'.format(test_failed))
 
 
 def test_is_adj(zone_id):
-    assert_true(query(zone_id, 'is_adj from=bob to=datahub')['result'])
-    assert_false(query(zone_id, 'is_adj from=bob to=alice')['result'])
+    assert_true(query(zone_id, 'is_adj src=bob dst=datahub')['result'])
+    assert_false(query(zone_id, 'is_adj src=bob dst=alice')['result'])
 
 
 def test_list_adj(zone_id):
@@ -66,23 +66,23 @@ def test_list_adj(zone_id):
 
 
 def test_perms(zone_id):
-    assert_equal(query(zone_id, 'perms from=alice to=bob')['result'],
+    assert_equal(query(zone_id, 'perms src=alice dst=bob')['result'],
                  None)
-    assert_equal(query(zone_id, 'perms from=alice to=ebi')['result'],
+    assert_equal(query(zone_id, 'perms src=alice dst=ebi')['result'],
                  '11000')
-    assert_equal(query(zone_id, 'perms from=audit to=cyfnet')['result'],
+    assert_equal(query(zone_id, 'perms src=audit dst=cyfnet')['result'],
                  '11001')
-    assert_equal(query(zone_id, 'perms from=audit to=eosc')['result'],
+    assert_equal(query(zone_id, 'perms src=audit dst=eosc')['result'],
                  None)
 
 
 def test_n_reaches(zone_id):
-    assert_true(query(zone_id, 'n_reaches from=bob to=datahub')['result'])
-    assert_false(query(zone_id, 'n_reaches from=bob to=alice')['result'])
-    assert_true(query(zone_id, 'n_reaches from=bob to=dhub_members')['result'])
-    assert_true(query(zone_id, 'n_reaches from=luke to=krakow')['result'])
-    assert_false(query(zone_id, 'n_reaches from=anne to=lisbon')['result'])
-    assert_true(query(zone_id, 'n_reaches from=luke to=dhub_members')['result'])
+    assert_true(query(zone_id, 'n_reaches src=bob dst=datahub')['result'])
+    assert_false(query(zone_id, 'n_reaches src=bob dst=alice')['result'])
+    assert_true(query(zone_id, 'n_reaches src=bob dst=dhub_members')['result'])
+    assert_true(query(zone_id, 'n_reaches src=luke dst=krakow')['result'])
+    assert_false(query(zone_id, 'n_reaches src=anne dst=lisbon')['result'])
+    assert_true(query(zone_id, 'n_reaches src=luke dst=dhub_members')['result'])
 
 
 def test_n_members(zone_id):
@@ -93,13 +93,13 @@ def test_n_members(zone_id):
 
 
 def test_n_eperms(zone_id):
-    assert_equal(query(zone_id, 'n_eperms from=alice to=bob')['result'],
+    assert_equal(query(zone_id, 'n_eperms src=alice dst=bob')['result'],
                  None)
-    assert_equal(query(zone_id, 'n_eperms from=alice to=ebi')['result'],
+    assert_equal(query(zone_id, 'n_eperms src=alice dst=ebi')['result'],
                  '11000')
-    assert_equal(query(zone_id, 'n_eperms from=audit to=cyfnet')['result'],
+    assert_equal(query(zone_id, 'n_eperms src=audit dst=cyfnet')['result'],
                  '11001')
-    assert_equal(query(zone_id, 'n_eperms from=audit to=eosc')['result'],
+    assert_equal(query(zone_id, 'n_eperms src=audit dst=eosc')['result'],
                  '11001')
-    assert_equal(query(zone_id, 'n_eperms from=tom to=primage')['result'],
+    assert_equal(query(zone_id, 'n_eperms src=tom dst=primage')['result'],
                  '11011')

@@ -1,25 +1,31 @@
+from app import zone_id
 from graph import combine_permissions
 from queries.basic import adjacent
-from query import graph_query
+from query import graph_query, query
 
 
-def reaches(graph, from_name, to_name):
-    if adjacent(graph, from_name, to_name):
+@graph_query('n_reaches')
+def reaches(graph, src, dst):
+    src_owner = graph.get_vertex_owner(src)
+    if src_owner != zone_id:
+        return query(src_owner, 'n_reaches src={} dst={}'.format(src, dst))
+
+    if adjacent(graph, src, dst):
         return True
 
-    for edge in graph.get_edges_by_source(from_name):
-        if reaches(graph, edge.v_to, to_name):
+    for edge in graph.get_edges_by_source(src):
+        if reaches(graph, edge.v_to, dst):
             return True
 
     return False
 
 
-@graph_query('n_reaches')
-def handle_query_naive_reaches(graph, args):
-    return reaches(graph, args.get('from'), args.get('to'))
-
-
+@graph_query('n_members')
 def members(graph, of):
+    owner = graph.get_vertex_owner(of)
+    if owner != zone_id:
+        return query(owner, 'n_members of={}'.format(of))
+
     result = set()
     for edge in graph.get_edges_by_destination(of):
         v_from = graph.get_vertex(edge.v_from)
@@ -28,27 +34,22 @@ def members(graph, of):
         else:
             result = result.union(members(graph, v_from.name))
 
-    return result
+    return list(result)
 
 
-@graph_query('n_members')
-def handle_query_naive_members(graph, args):
-    return list(members(graph, args.get('of')))
+@graph_query('n_eperms')
+def effective_permissions(graph, src, dst):
+    src_owner = graph.get_vertex_owner(src)
+    if src_owner != zone_id:
+        return query(src_owner, 'n_eperms src={} dst={}'.format(src, dst))
 
-
-def effective_permissions(graph, from_name, to_name):
     permissions = None
-    for edge in graph.get_edges_by_source(from_name):
-        if edge.v_to == to_name:
+    for edge in graph.get_edges_by_source(src):
+        if edge.v_to == dst:
             permissions = combine_permissions(
                 permissions, edge.permissions)
         else:
             permissions = combine_permissions(
-                permissions, effective_permissions(graph, edge.v_to, to_name))
+                permissions, effective_permissions(graph, edge.v_to, dst))
 
     return permissions
-
-
-@graph_query('n_eperms')
-def handle_query_naive_eperms(graph, args):
-    return effective_permissions(graph, args.get('from'), args.get('to'))

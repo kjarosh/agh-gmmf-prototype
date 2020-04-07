@@ -1,3 +1,4 @@
+import inspect
 import json
 import time
 import urllib
@@ -41,7 +42,10 @@ def handle_query():
         return response.to_json()
 
     start = time.time()
-    result = queries[query_type](graph, request.args)
+    func = queries[query_type]
+    argspec = inspect.getfullargspec(func)
+    arg_names = argspec[0][1:]
+    result = func(graph, *[request.args.get(a) for a in arg_names])
     end = time.time()
 
     response = QueryResponse()

@@ -6,4 +6,5 @@ from graph import load_graph
 
 app = Flask(__name__)
 
-graph = load_graph(os.getenv('GRAPH_PATH', 'graph.dat'), os.getenv('ZONE_ID'))
+zone_id = os.getenv('ZONE_ID')
+graph = load_graph(os.getenv('GRAPH_PATH', 'graph.dat'), zone_id)

@@ -46,12 +46,18 @@ class Edge:
 
 
 class Graph:
+    # vertex name -> zone id
+    __vertex_owners: Dict[str, str]
+
+    # vertex name -> vertex
     __vertices: Dict[str, Vertex]
+
     __edges: [Edge]
     __edges_by_src: Dict[str, List[Edge]]
     __edges_by_dst: Dict[str, List[Edge]]
 
-    def __init__(self, vertices, edges) -> None:
+    def __init__(self, vertices, edges, vertex_owners=None) -> None:
+        self.__vertex_owners = vertex_owners if vertex_owners else {}
         self.__edges = edges
         self.__vertices = {}
         self.__edges_by_src = {}
@@ -59,6 +65,7 @@ class Graph:
 
         for vertex in vertices:
             self.__vertices[vertex.name] = vertex
+            self.__vertex_owners[vertex.name] = vertex.zone
 
         for edge in edges:
             if edge.v_from in self.__edges_by_src:
@@ -82,6 +89,9 @@ class Graph:
 
     def get_vertex(self, name: str) -> Vertex:
         return self.__vertices[name]
+
+    def get_vertex_owner(self, name: str) -> str:
+        return self.__vertex_owners[name]
 
     def get_edges_by_source(self, source: str) -> [Vertex]:
         if source in self.__edges_by_src:
@@ -121,7 +131,7 @@ class Graph:
 
 def load_graph(file, zone_id=None):
     vertices = []
-    indexed_vertices = {}
+    all_vertices_by_name = {}
     edges = []
     with open(file) as f:
         for vertex_line in f:
@@ -134,7 +144,7 @@ def load_graph(file, zone_id=None):
             v.type = v_type.strip()
             v.zone = v_zone.strip()
 
-            indexed_vertices[v.name] = v
+            all_vertices_by_name[v.name] = v
             if zone_id is None or zone_id == v.zone:
                 vertices.append(v)
 
@@ -153,7 +163,8 @@ def load_graph(file, zone_id=None):
             e.v_to = v_to.strip()
             e.permissions = permissions
 
-            if zone_id is None or indexed_vertices[e.v_from].zone == zone_id:
+            if zone_id is None or all_vertices_by_name[e.v_from].zone == zone_id:
                 edges.append(e)
 
-    return Graph(vertices, edges)
+    vertex_owners = {name: v.zone for name, v in all_vertices_by_name.items()}
+    return Graph(vertices, edges, vertex_owners)
