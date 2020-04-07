@@ -1,3 +1,5 @@
+import inspect
+
 from query import query
 
 test_failed = 0
@@ -5,29 +7,39 @@ test_failed = 0
 
 def assert_equal(a, b):
     if a != b:
-        fail_tests('Expected {} to be equal to {}'.format(a, b))
-
-    print("Passed")
+        fail_test('Expected {} to be equal to {}'.format(a, b))
+    else:
+        pass_test()
 
 
 def assert_true(a):
     if a != True:
-        fail_tests('Expected {} to be true'.format(a))
-
-    print("Passed")
+        fail_test('Expected {} to be true'.format(a))
+    else:
+        pass_test()
 
 
 def assert_false(a):
     if a != False:
-        fail_tests('Expected {} to be false'.format(a))
+        fail_test('Expected {} to be false'.format(a))
+    else:
+        pass_test()
 
-    print("Passed")
 
-
-def fail_tests(msg):
+def fail_test(msg):
     global test_failed
     test_failed += 1
-    print('! {}'.format(msg))
+    print('{}: \t! {}'.format(__get_caller_line_no(), msg))
+
+
+def pass_test():
+    print('{}: \tPassed'.format(__get_caller_line_no()))
+
+
+def __get_caller_line_no():
+    frame = inspect.stack()[3][0]
+    info = inspect.getframeinfo(frame)
+    return info.lineno
 
 
 def run_tests(zone_id):

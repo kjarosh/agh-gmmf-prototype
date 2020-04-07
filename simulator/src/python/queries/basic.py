@@ -6,7 +6,7 @@ from query import graph_query, query
 def adjacent(graph, src, dst):
     src_owner = graph.get_vertex_owner(src)
     if src_owner != zone_id:
-        return query(src_owner, 'is_adj src={} dst={}'.format(src, dst))
+        return query(src_owner, 'is_adj src={} dst={}'.format(src, dst))['result']
 
     return dst in [e.v_to for e in graph.get_edges_by_source(src)]
 
@@ -15,7 +15,7 @@ def adjacent(graph, src, dst):
 def list_adjacent(graph, of):
     owner = graph.get_vertex_owner(of)
     if owner != zone_id:
-        return query(owner, 'list_adj of={}'.format(of))
+        return query(owner, 'list_adj of={}'.format(of))['result']
 
     return [e.v_to for e in graph.get_edges_by_source(of)]
 
@@ -24,7 +24,7 @@ def list_adjacent(graph, of):
 def list_adjacent_reverse(graph, of):
     owner = graph.get_vertex_owner(of)
     if owner != zone_id:
-        return query(owner, 'list_adj_rev of={}'.format(of))
+        return query(owner, 'list_adj_rev of={}'.format(of))['result']
 
     return [e.v_from for e in graph.get_edges_by_destination(of)]
 
@@ -33,7 +33,7 @@ def list_adjacent_reverse(graph, of):
 def permissions(graph, src, dst):
     src_owner = graph.get_vertex_owner(src)
     if src_owner != zone_id:
-        return query(src_owner, 'perms src={} dst={}'.format(src, dst))
+        return query(src_owner, 'perms src={} dst={}'.format(src, dst))['result']
 
     for e in graph.get_edges_by_source(src):
         if e.v_to == dst:

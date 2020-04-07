@@ -2,6 +2,7 @@ import inspect
 import json
 import time
 import urllib
+from collections import namedtuple
 
 import requests
 from flask import request
@@ -55,7 +56,7 @@ def handle_query():
     return response.to_json()
 
 
-def query(zone_id, q):
+def query(zone_id, q) -> dict:
     qtype, q = (q + ' ').split(' ', 1)
     q = q.strip()
 

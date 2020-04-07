@@ -8,7 +8,7 @@ from query import graph_query, query
 def reaches(graph, src, dst):
     src_owner = graph.get_vertex_owner(src)
     if src_owner != zone_id:
-        return query(src_owner, 'n_reaches src={} dst={}'.format(src, dst))
+        return query(src_owner, 'n_reaches src={} dst={}'.format(src, dst))['result']
 
     if adjacent(graph, src, dst):
         return True
@@ -24,7 +24,7 @@ def reaches(graph, src, dst):
 def members(graph, of):
     owner = graph.get_vertex_owner(of)
     if owner != zone_id:
-        return query(owner, 'n_members of={}'.format(of))
+        return query(owner, 'n_members of={}'.format(of))['result']
 
     result = set()
     for edge in graph.get_edges_by_destination(of):
@@ -41,7 +41,7 @@ def members(graph, of):
 def effective_permissions(graph, src, dst):
     src_owner = graph.get_vertex_owner(src)
     if src_owner != zone_id:
-        return query(src_owner, 'n_eperms src={} dst={}'.format(src, dst))
+        return query(src_owner, 'n_eperms src={} dst={}'.format(src, dst))['result']
 
     permissions = None
     for edge in graph.get_edges_by_source(src):
