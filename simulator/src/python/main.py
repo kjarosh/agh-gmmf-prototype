@@ -1,17 +1,8 @@
 import os
 
-from flask import json
-
 import cli
 import tester
 from app import app
-
-companies = [{"id": 1, "name": "Company One"}, {"id": 2, "name": "Company Two"}]
-
-
-@app.route('/companies', methods=['GET'])
-def get_companies():
-    return json.dumps(companies)
 
 
 def main():
