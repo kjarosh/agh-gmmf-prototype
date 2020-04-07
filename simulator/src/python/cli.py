@@ -1,7 +1,6 @@
 import traceback
 from cmd import Cmd
 
-from graph import graph
 from query import query
 
 
@@ -40,6 +39,7 @@ class CmdHandler(Cmd):
         self.context.used_service = line.strip()
 
     def do_print_graph(self, line):
+        from main import graph
         print(graph)
 
 

@@ -1,28 +1,28 @@
 paris  : provider : zone_0
 lisbon : provider : zone_0
-krakow : provider : zone_0
+krakow : provider : zone_1
 
 datahub : space : zone_0
 eo_data : space : zone_0
 ceric   : space : zone_0
-eosc    : space : zone_0
-primage : space : zone_0
+eosc    : space : zone_1
+primage : space : zone_1
 
 dhub_members : group : zone_0
 ebi          : group : zone_0
-cyfnet       : group : zone_0
 dhub_mngrs   : group : zone_0
 uber_admins  : group : zone_0
-admins       : group : zone_0
-audit        : group : zone_0
-members      : group : zone_0
+cyfnet       : group : zone_1
+admins       : group : zone_1
+audit        : group : zone_1
+members      : group : zone_1
 
 bob   : user : zone_0
 alice : user : zone_0
 jill  : user : zone_0
 luke  : user : zone_0
-anne  : user : zone_0
-tom   : user : zone_0
+anne  : user : zone_1
+tom   : user : zone_1
 
 -----
 

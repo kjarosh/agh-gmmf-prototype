@@ -4,12 +4,9 @@ from flask import json
 
 import cli
 import tester
-from graph import load_graph
-from rest import app
+from app import app
 
 companies = [{"id": 1, "name": "Company One"}, {"id": 2, "name": "Company Two"}]
-
-graph = load_graph('graph.dat')
 
 
 @app.route('/companies', methods=['GET'])
@@ -18,14 +15,14 @@ def get_companies():
 
 
 def main():
-    tested_service = os.getenv('TESTED_SERVICE')
+    tested_zone = os.getenv('TESTED_ZONE')
     client_mode = os.getenv('CLIENT_MODE')
     if client_mode:
         print("Client mode")
         cli.run_cli()
-    elif tested_service:
+    elif tested_zone:
         print("Running tests...")
-        tester.run_tests(tested_service)
+        tester.run_tests(tested_zone)
         print("Tests passed!")
     else:
         print("Starting REST application...")

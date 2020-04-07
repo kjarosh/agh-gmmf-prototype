@@ -1,16 +1,27 @@
 version: '3'
 services:
-  node-0:
+  zone_0:
     build: .
     environment:
-      SERVICE_NAME: node-0
+      ZONE_ID: zone_0
+      GRAPH_PATH: graph.dat
+    networks:
+      intranet:
+
+  zone_1:
+    build: .
+    environment:
+      ZONE_ID: zone_1
+      GRAPH_PATH: graph.dat
+    networks:
+      intranet:
 
   tester:
     build: .
     environment:
-      TESTED_SERVICE: node-0
-    depends_on:
-      - node-0
+      TESTED_ZONE: zone_0
+    networks:
+      intranet:
 
   client:
     build: .
@@ -18,5 +29,8 @@ services:
     tty: true
     environment:
       CLIENT_MODE: "true"
-    depends_on:
-      - node-0
+    networks:
+      intranet:
+
+networks:
+  intranet:

@@ -119,8 +119,9 @@ class Graph:
         return '{}\n------\n\n{}'.format(nodes, edges)
 
 
-def load_graph(file):
+def load_graph(file, zone_id=None):
     vertices = []
+    indexed_vertices = {}
     edges = []
     with open(file) as f:
         for vertex_line in f:
@@ -132,7 +133,10 @@ def load_graph(file):
             v.name = v_name.strip()
             v.type = v_type.strip()
             v.zone = v_zone.strip()
-            vertices.append(v)
+
+            indexed_vertices[v.name] = v
+            if zone_id is None or zone_id == v.zone:
+                vertices.append(v)
 
         for edge_line in f:
             if parse('{}->{}({})', edge_line) is not None:
@@ -148,6 +152,8 @@ def load_graph(file):
             e.v_from = v_from.strip()
             e.v_to = v_to.strip()
             e.permissions = permissions
-            edges.append(e)
+
+            if zone_id is None or indexed_vertices[e.v_from].zone == zone_id:
+                edges.append(e)
 
     return Graph(vertices, edges)

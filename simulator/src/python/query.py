@@ -5,8 +5,7 @@ import urllib
 import requests
 from flask import request
 
-from main import graph
-from rest import app
+from app import graph, app
 
 
 class QueryResponse:
@@ -52,7 +51,7 @@ def handle_query():
     return response.to_json()
 
 
-def query(service, q):
+def query(zone_id, q):
     qtype, q = (q + ' ').split(' ', 1)
     q = q.strip()
 
@@ -63,7 +62,7 @@ def query(service, q):
             params[param_pair[0]] = param_pair[1]
 
     url_params = urllib.parse.urlencode(params)
-    url = 'http://{}/query?type={}&{}'.format(service, qtype.strip(), url_params)
+    url = 'http://{}/query?type={}&{}'.format(zone_id, qtype.strip(), url_params)
     response = requests.post(url)
     if response.status_code == 200:
         return json.loads(response.text)
