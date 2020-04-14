@@ -6,7 +6,7 @@ import urllib
 import requests
 from flask import request
 
-from app import graph, app, zone_id
+from app import get_graph, app, zone_id
 from graph import Vertex, Edge
 
 
@@ -46,7 +46,7 @@ def handle_query():
     func = queries[query_type]
     argspec = inspect.getfullargspec(func)
     arg_names = argspec[0][1:]
-    result = func(graph, *[request.args.get(a) for a in arg_names])
+    result = func(get_graph(), *[request.args.get(a) for a in arg_names])
     end = time.time()
 
     response = QueryResponse()
@@ -68,7 +68,7 @@ def handle_add_entity():
     v.zone = zone_id
     v.name = v_name
     v.type = v_type
-    graph.add_vertex(v)
+    get_graph().add_vertex(v)
 
 
 @app.route('/relations', methods=['POST'])
@@ -77,17 +77,17 @@ def handle_add_relation():
     e_to = request.args.get('to')
     e_perms = request.args.get('permissions')
 
-    if graph.get_vertex(e_from) is None:
+    if get_graph().get_vertex(e_from) is None:
         raise Exception('Unknown vertex: {}'.format(e_from))
 
-    if graph.get_vertex_owner(e_to) is None:
+    if get_graph().get_vertex_owner(e_to) is None:
         raise Exception('Unknown vertex owner: {}'.format(e_to))
 
     e = Edge()
     e.v_from = e_from
     e.v_to = e_to
     e.permissions = e_perms
-    graph.add_edge(e)
+    get_graph().add_edge(e)
 
 
 def _parse_params(params_str):

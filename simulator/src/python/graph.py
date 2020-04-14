@@ -1,4 +1,6 @@
+import json
 import re
+from enum import Enum
 from typing import Dict, List, Optional
 
 from parse import parse
@@ -82,7 +84,7 @@ class Graph:
         from app import zone_id
 
         self.__vertex_owners[vertex.name] = vertex.zone
-        if vertex.zone == zone_id:
+        if zone_id is None or vertex.zone == zone_id:
             self.__vertices[vertex.name] = vertex
 
     def get_vertex(self, name: str) -> Vertex:
@@ -136,6 +138,34 @@ class Graph:
             edges += '{}\n'.format(e)
 
         return '{}\n------\n\n{}'.format(nodes, edges)
+
+    def edge_count(self):
+        return len(self.__edges)
+
+    def get_all_edges(self):
+        return self.__edges
+
+
+class GraphOperationType(Enum):
+    ADD_RELATION = 0
+    DELETE_RELATION = 1
+    ADD_ENTITY = 2
+    DELETE_ENTITY = 3
+
+
+class GraphOperation:
+    type: GraphOperationType
+    arg: object
+
+    def to_json(self):
+        d = {
+            'type': self.type.value,
+            'arg': {
+                'type': type(self.arg).__name__,
+                'value': self.arg.__dict__
+            }
+        }
+        return json.dumps(d, indent=2)
 
 
 def load_graph(file, zone_id=None):

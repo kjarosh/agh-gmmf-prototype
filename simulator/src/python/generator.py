@@ -1,11 +1,11 @@
 import random
-from typing import Dict, List
+from typing import Dict, List, Set
 
 import slug as slug
 import toml
 from faker import Faker
 
-from graph import Graph, Vertex, Edge
+from graph import Graph, Vertex, Edge, GraphOperation, GraphOperationType
 
 
 def choose_category(shares_by_category):
@@ -201,6 +201,41 @@ class Generator:
         return v
 
 
+class GraphOperationGenerator:
+    def __init__(self, graph: Graph, config) -> None:
+        self.graph = graph
+        self.config = config
+
+    def generate_edge_operations(self):
+        ops = []
+        current_edges: Set[Edge] = set()
+        remaining_edges: Set[Edge] = set(self.graph.get_all_edges())
+        deletion_prob = self.config['relation']['deletion']['prob']
+
+        while len(current_edges) != self.graph.edge_count():
+            is_deletion = len(current_edges) > 0 and \
+                          deletion_prob > random.random()
+
+            if is_deletion:
+                to_delete: Edge = random.choice(list(current_edges))
+                op = GraphOperation()
+                op.type = GraphOperationType.DELETE_RELATION
+                op.arg = to_delete
+                current_edges.remove(to_delete)
+                remaining_edges.add(to_delete)
+                ops.append(op)
+            else:
+                to_add: Edge = random.choice(list(remaining_edges))
+                op = GraphOperation()
+                op.type = GraphOperationType.ADD_RELATION
+                op.arg = to_add
+                current_edges.add(to_add)
+                remaining_edges.remove(to_add)
+                ops.append(op)
+
+        return ops
+
+
 def main():
     config = toml.load('config.toml')
 
@@ -212,6 +247,12 @@ def main():
 
     with open("generated_graph.dat", "w+") as f:
         f.write(graph.to_dat())
+
+    op_gen = GraphOperationGenerator(graph, config)
+    edge_ops = op_gen.generate_edge_operations()
+    with open("generated_edge_operations.dat", "w+") as f:
+        for edge_op in edge_ops:
+            f.write('{} {}\n'.format(edge_op.type.name, str(edge_op.arg)))
 
 
 if __name__ == '__main__':

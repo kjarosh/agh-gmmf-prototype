@@ -3,3 +3,4 @@ requests>=2.22.0
 parse>=1.15.0
 toml>=0.10.0
 faker>=4.0.0
+pickle

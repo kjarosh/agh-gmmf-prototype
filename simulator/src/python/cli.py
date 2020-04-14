@@ -61,8 +61,8 @@ class CmdHandler(Cmd):
         self.context.used_service = line.strip()
 
     def do_print_graph(self, line):
-        from main import graph
-        print(graph)
+        from app import get_graph
+        print(get_graph())
 
 
 def run_cli():

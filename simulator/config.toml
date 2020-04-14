@@ -1,3 +1,5 @@
+# graph generator config
+
 count.zone = 3
 count.entity = 100
 count.relation = 200
@@ -14,3 +16,7 @@ relation.user_group.share = 20
 relation.user_space.share = 10
 
 relation.inter_zone.prob = 0.10
+
+# operation generator config
+
+relation.deletion.prob = 0.05
