@@ -1,7 +1,7 @@
 import traceback
 from cmd import Cmd
 
-from query import query
+from rest import query, add_entity
 
 
 class CliContext:
@@ -19,6 +19,15 @@ class _DynamicStr:
         return self.func()
 
 
+def __parse_cli_params(line):
+    params = {}
+    for param_pair in line.split(' '):
+        if param_pair:
+            param_pair = param_pair.split('=', 1)
+            params[param_pair[0]] = param_pair[1]
+    return params
+
+
 class CmdHandler(Cmd):
     def __init__(self, context):
         super().__init__()
@@ -27,7 +36,20 @@ class CmdHandler(Cmd):
 
     def do_query(self, line):
         try:
-            response = query(self.context.used_service, line)
+            cmd, line = (line + ' ').split(' ')
+            params = __parse_cli_params(line)
+            response = query(self.context.used_service, cmd, **params)
+            print(response)
+        except KeyboardInterrupt:
+            print("Interrupted")
+        except Exception:
+            traceback.print_exc()
+            print("Exception occurred")
+
+    def do_add_entity(self, line):
+        try:
+            params = __parse_cli_params(line)
+            response = add_entity(self.context.used_service, params['name'], params['type'])
             print(response)
         except KeyboardInterrupt:
             print("Interrupted")
@@ -46,19 +68,6 @@ class CmdHandler(Cmd):
 def run_cli():
     context = CliContext()
     CmdHandler(context).cmdloop()
-
-
-def process_query(context, query_line):
-    (command, rest) = (query_line + ' ').split(' ', 1)
-    rest = rest.strip()
-
-    if command == 'use':
-        context.used_service = rest
-    elif command == 'query' or command == 'q':
-        response = query(context.used_service, rest)
-        print(response)
-    else:
-        print("Unknown command: {}".format(command))
 
 
 if __name__ == '__main__':
