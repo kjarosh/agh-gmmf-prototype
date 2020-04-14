@@ -151,6 +151,7 @@ class GraphOperationType(Enum):
     DELETE_RELATION = 1
     ADD_ENTITY = 2
     DELETE_ENTITY = 3
+    CHANGE_RELATION = 4
 
 
 class GraphOperation:

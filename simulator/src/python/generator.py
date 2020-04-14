@@ -1,3 +1,4 @@
+import copy
 import random
 from typing import Dict, List, Set
 
@@ -210,11 +211,17 @@ class GraphOperationGenerator:
         ops = []
         current_edges: Set[Edge] = set()
         remaining_edges: Set[Edge] = set(self.graph.get_all_edges())
-        deletion_prob = self.config['relation']['deletion']['prob']
+        edges_to_change: Set[Edge] = set()
+        deletion_prob = self.config['steps']['relation']['deletion']['prob']
+        change_prob = self.config['steps']['relation']['change']['prob']
 
         while len(current_edges) != self.graph.edge_count():
             is_deletion = len(current_edges) > 0 and \
                           deletion_prob > random.random()
+            is_change = len(current_edges) > 0 and \
+                        change_prob > random.random()
+            is_revert_change = len(edges_to_change) > 0 and \
+                               0.5 > random.random()
 
             if is_deletion:
                 to_delete: Edge = random.choice(list(current_edges))
@@ -223,6 +230,24 @@ class GraphOperationGenerator:
                 op.arg = to_delete
                 current_edges.remove(to_delete)
                 remaining_edges.add(to_delete)
+                ops.append(op)
+            elif is_change:
+                to_change = random.choice(list(current_edges))
+                edges_to_change.add(to_change)
+
+                changed: Edge = copy.deepcopy(to_change)
+                changed.permissions = generate_permissions()
+
+                op = GraphOperation()
+                op.type = GraphOperationType.CHANGE_RELATION
+                op.arg = changed
+                ops.append(op)
+            elif is_revert_change:
+                to_revert = random.choice(list(edges_to_change))
+                edges_to_change.remove(to_revert)
+                op = GraphOperation()
+                op.type = GraphOperationType.CHANGE_RELATION
+                op.arg = to_revert
                 ops.append(op)
             else:
                 to_add: Edge = random.choice(list(remaining_edges))

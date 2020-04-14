@@ -19,4 +19,5 @@ relation.inter_zone.prob = 0.10
 
 # operation generator config
 
-relation.deletion.prob = 0.05
+steps.relation.deletion.prob = 0.05
+steps.relation.change.prob = 0.1
