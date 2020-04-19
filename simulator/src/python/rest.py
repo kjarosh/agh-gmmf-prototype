@@ -102,6 +102,7 @@ def _parse_params(params_str):
 def query(zone, qtype, **other_params) -> dict:
     url_params = urllib.parse.urlencode(other_params)
     url = 'http://{}/query?type={}&{}'.format(zone, qtype.strip(), url_params)
+    print('Querying {}'.format(url))
     response = requests.post(url)
     if response.status_code == 200:
         return json.loads(response.text)
@@ -122,3 +123,5 @@ def add_entity(v_zone, v_name, v_type):
 from queries import basic
 # noinspection PyUnresolvedReferences
 from queries import naive
+# noinspection PyUnresolvedReferences
+from algo import queries as algo_queries

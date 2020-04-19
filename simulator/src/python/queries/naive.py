@@ -27,12 +27,13 @@ def members(graph, of):
         return query(owner, 'n_members', of=of)['result']
 
     result = set()
+
+    vertex = graph.get_vertex(of)
+    if vertex.type == 'user':
+        result.add(of)
+
     for edge in graph.get_edges_by_destination(of):
-        v_from = graph.get_vertex(edge.v_from)
-        if v_from.type == 'user':
-            result.add(v_from.name)
-        else:
-            result = result.union(members(graph, v_from.name))
+        result = result.union(members(graph, edge.v_from))
 
     return list(result)
 

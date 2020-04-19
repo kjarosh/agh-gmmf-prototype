@@ -14,5 +14,5 @@ __graph = None
 def get_graph():
     global __graph
     if __graph is None:
-        __graph = load_graph(os.getenv('GRAPH_PATH', 'graph.dat'), zone_id)
+        __graph = load_graph(os.getenv('GRAPH_PATH', 'graph.dat'))
     return __graph

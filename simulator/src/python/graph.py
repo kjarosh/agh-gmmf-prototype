@@ -87,6 +87,9 @@ class Graph:
         if zone_id is None or vertex.zone == zone_id:
             self.__vertices[vertex.name] = vertex
 
+    def has_vertex(self, name: str) -> bool:
+        return name in self.__vertices
+
     def get_vertex(self, name: str) -> Vertex:
         return self.__vertices[name]
 
@@ -94,6 +97,13 @@ class Graph:
         return self.__vertex_owners[name]
 
     def add_edge(self, edge: Edge) -> None:
+        from app import zone_id
+
+        if zone_id is not None and \
+                not self.has_vertex(edge.v_from) and \
+                not self.has_vertex(edge.v_to):
+            return
+
         if edge.v_from in self.__edges_by_src:
             self.__edges_by_src[edge.v_from].append(edge)
         else:
@@ -169,7 +179,7 @@ class GraphOperation:
         return json.dumps(d, indent=2)
 
 
-def load_graph(file, zone_id=None):
+def load_graph(file):
     vertices_by_name = {}
     edges = []
     with open(file) as f:
@@ -198,8 +208,6 @@ def load_graph(file, zone_id=None):
             e.v_from = v_from.strip()
             e.v_to = v_to.strip()
             e.permissions = permissions
-
-            if zone_id is None or vertices_by_name[e.v_from].zone == zone_id:
-                edges.append(e)
+            edges.append(e)
 
     return Graph(vertices_by_name.values(), edges)

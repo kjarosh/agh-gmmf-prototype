@@ -88,7 +88,7 @@ def test_perms(zone_id):
                  None)
 
 
-def test_reaches(cmd, zone_id):
+def test_reaches(zone_id, cmd):
     assert_true(query(zone_id, cmd, src='bob', dst='datahub')['result'])
     assert_false(query(zone_id, cmd, src='bob', dst='alice')['result'])
     assert_true(query(zone_id, cmd, src='bob', dst='dhub_members')['result'])
