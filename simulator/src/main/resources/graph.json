@@ -1,0 +1,276 @@
+{
+  "vertices": [
+    {
+      "id": "paris",
+      "type": "provider",
+      "zone": "zone0"
+    },
+    {
+      "id": "lisbon",
+      "type": "provider",
+      "zone": "zone0"
+    },
+    {
+      "id": "krakow",
+      "type": "provider",
+      "zone": "zone1"
+    },
+    {
+      "id": "datahub",
+      "type": "space",
+      "zone": "zone0"
+    },
+    {
+      "id": "eo_data",
+      "type": "space",
+      "zone": "zone0"
+    },
+    {
+      "id": "ceric",
+      "type": "space",
+      "zone": "zone0"
+    },
+    {
+      "id": "eosc",
+      "type": "space",
+      "zone": "zone1"
+    },
+    {
+      "id": "primage",
+      "type": "space",
+      "zone": "zone1"
+    },
+    {
+      "id": "dhub_members",
+      "type": "group",
+      "zone": "zone0"
+    },
+    {
+      "id": "ebi",
+      "type": "group",
+      "zone": "zone0"
+    },
+    {
+      "id": "dhub_mngrs",
+      "type": "group",
+      "zone": "zone0"
+    },
+    {
+      "id": "uber_admins",
+      "type": "group",
+      "zone": "zone0"
+    },
+    {
+      "id": "cyfnet",
+      "type": "group",
+      "zone": "zone1"
+    },
+    {
+      "id": "admins",
+      "type": "group",
+      "zone": "zone1"
+    },
+    {
+      "id": "audit",
+      "type": "group",
+      "zone": "zone1"
+    },
+    {
+      "id": "members",
+      "type": "group",
+      "zone": "zone1"
+    },
+    {
+      "id": "bob",
+      "type": "user",
+      "zone": "zone0"
+    },
+    {
+      "id": "alice",
+      "type": "user",
+      "zone": "zone0"
+    },
+    {
+      "id": "jill",
+      "type": "user",
+      "zone": "zone0"
+    },
+    {
+      "id": "luke",
+      "type": "user",
+      "zone": "zone0"
+    },
+    {
+      "id": "anne",
+      "type": "user",
+      "zone": "zone1"
+    },
+    {
+      "id": "tom",
+      "type": "user",
+      "zone": "zone1"
+    }
+  ],
+  "edges": [
+    {
+      "src": "datahub",
+      "dst": "paris",
+      "perms": null
+    },
+    {
+      "src": "datahub",
+      "dst": "lisbon",
+      "perms": null
+    },
+    {
+      "src": "eo_data",
+      "dst": "paris",
+      "perms": null
+    },
+    {
+      "src": "eo_data",
+      "dst": "lisbon",
+      "perms": null
+    },
+    {
+      "src": "eo_data",
+      "dst": "krakow",
+      "perms": null
+    },
+    {
+      "src": "ceric",
+      "dst": "krakow",
+      "perms": null
+    },
+    {
+      "src": "eosc",
+      "dst": "paris",
+      "perms": null
+    },
+    {
+      "src": "eosc",
+      "dst": "krakow",
+      "perms": null
+    },
+    {
+      "src": "primage",
+      "dst": "krakow",
+      "perms": null
+    },
+    {
+      "src": "dhub_members",
+      "dst": "datahub",
+      "perms": "10000"
+    },
+    {
+      "src": "dhub_members",
+      "dst": "eo_data",
+      "perms": "10000"
+    },
+    {
+      "src": "dhub_mngrs",
+      "dst": "dhub_members",
+      "perms": "11011"
+    },
+    {
+      "src": "ebi",
+      "dst": "ceric",
+      "perms": "10000"
+    },
+    {
+      "src": "admins",
+      "dst": "dhub_members",
+      "perms": "11111"
+    },
+    {
+      "src": "admins",
+      "dst": "eosc",
+      "perms": "11011"
+    },
+    {
+      "src": "admins",
+      "dst": "cyfnet",
+      "perms": "11111"
+    },
+    {
+      "src": "uber_admins",
+      "dst": "admins",
+      "perms": "11111"
+    },
+    {
+      "src": "cyfnet",
+      "dst": "eosc",
+      "perms": "11001"
+    },
+    {
+      "src": "cyfnet",
+      "dst": "primage",
+      "perms": "11000"
+    },
+    {
+      "src": "audit",
+      "dst": "cyfnet",
+      "perms": "11001"
+    },
+    {
+      "src": "members",
+      "dst": "cyfnet",
+      "perms": "10000"
+    },
+    {
+      "src": "bob",
+      "dst": "datahub",
+      "perms": "11111"
+    },
+    {
+      "src": "bob",
+      "dst": "dhub_mngrs",
+      "perms": "11110"
+    },
+    {
+      "src": "alice",
+      "dst": "eo_data",
+      "perms": "11001"
+    },
+    {
+      "src": "alice",
+      "dst": "ebi",
+      "perms": "11000"
+    },
+    {
+      "src": "jill",
+      "dst": "ebi",
+      "perms": "11111"
+    },
+    {
+      "src": "luke",
+      "dst": "uber_admins",
+      "perms": "10001"
+    },
+    {
+      "src": "anne",
+      "dst": "ceric",
+      "perms": "10001"
+    },
+    {
+      "src": "anne",
+      "dst": "audit",
+      "perms": "10001"
+    },
+    {
+      "src": "anne",
+      "dst": "members",
+      "perms": "00000"
+    },
+    {
+      "src": "tom",
+      "dst": "members",
+      "perms": "00000"
+    },
+    {
+      "src": "tom",
+      "dst": "primage",
+      "perms": "10011"
+    }
+  ]
+}

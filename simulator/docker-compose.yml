@@ -1,30 +1,33 @@
 version: '3'
 services:
-  zone_0:
+  zone0:
     build: .
     environment:
-      ZONE_ID: zone_0
+      ZONE_ID: zone0
       GRAPH_PATH: graph.dat
     networks:
       intranet:
+    command: [ 'server' ]
 
-  zone_1:
+  zone1:
     build: .
     environment:
-      ZONE_ID: zone_1
+      ZONE_ID: zone1
       GRAPH_PATH: graph.dat
     networks:
       intranet:
+    command: [ 'server' ]
 
   tester:
     build: .
     environment:
-      TESTED_ZONE: zone_0
+      TESTED_ZONE: zone0
     networks:
       intranet:
     depends_on:
-      - zone_0
-      - zone_1
+      - zone0
+      - zone1
+    command: [ 'test', 'zone0' ]
 
   client:
     build: .
