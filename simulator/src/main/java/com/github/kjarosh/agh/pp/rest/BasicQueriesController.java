@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.github.kjarosh.agh.pp.SpringApp.ZONE_ID;
+import static com.github.kjarosh.agh.pp.Config.ZONE_ID;
 
 /**
  * @author Kamil Jarosz

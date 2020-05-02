@@ -1,5 +1,7 @@
 package com.github.kjarosh.agh.pp.test;
 
+import com.github.kjarosh.agh.pp.graph.GraphLoader;
+import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.ZoneClient;
@@ -33,6 +35,8 @@ public class Tester {
             throw new RuntimeException("Got " + args.length + " args, expected 2");
 
         new Tester(new ZoneClient(), args[1]).test();
+
+        System.out.println("Failed assertions: " + Assert.failedAssertions);
     }
 
     private VertexId vid(String bob) {
@@ -44,12 +48,34 @@ public class Tester {
         while (!client.healthcheck(zone)) {
             Thread.sleep(200);
         }
+
+        buildGraph();
+
         testIsAdjacent();
         testListAdjacent();
         testPermissions();
+
         testReaches((f, t) -> client.naiveReaches(zone, f, t));
         testMembers((o) -> client.naiveMembers(zone, o));
         testEffectivePermissions((f, t) -> client.naiveEffectivePermissions(zone, f, t));
+
+        testReaches((f, t) -> client.indexedReaches(zone, f, t));
+        testMembers((o) -> client.indexedMembers(zone, o));
+        testEffectivePermissions((f, t) -> client.indexedEffectivePermissions(zone, f, t));
+    }
+
+    private void buildGraph() {
+        System.out.println("Building graph");
+
+        Graph model = GraphLoader.loadGraph("graph.json");
+        model.allVertices().forEach(v -> {
+            client.addVertex(v.zone(), v.id(), v.type());
+        });
+        model.allEdges().forEach(e -> {
+            client.addEdge(zone, e.src(), e.dst(), e.permissions());
+        });
+
+        System.out.println("Graph built");
     }
 
     private void testIsAdjacent() {

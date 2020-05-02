@@ -9,11 +9,17 @@ import java.util.Objects;
  * @author Kamil Jarosz
  */
 public class Permissions {
+    public static final Permissions NONE = new Permissions("00000");
+
     private final String value;
 
     @JsonCreator
     public Permissions(String value) {
         this.value = Objects.requireNonNull(value);
+
+        if (value.length() != 5) {
+            throw new IllegalStateException();
+        }
     }
 
     public static Permissions combine(Permissions a, Permissions b) {

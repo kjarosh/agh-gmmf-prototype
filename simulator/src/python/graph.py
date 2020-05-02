@@ -18,6 +18,13 @@ class Vertex:
     name: str
     type: str
     zone: str
+    ix: Dict[str, object]
+
+    def __init__(self) -> None:
+        self.name = ''
+        self.type = ''
+        self.zone = ''
+        self.ix = {}
 
     def __str__(self) -> str:
         return '{} : {} : {}'.format(self.name, self.type, self.zone)
@@ -151,6 +158,9 @@ class Graph:
 
     def edge_count(self):
         return len(self.__edges)
+
+    def get_all_vertices(self):
+        return self.__vertices.values()
 
     def get_all_edges(self):
         return self.__edges

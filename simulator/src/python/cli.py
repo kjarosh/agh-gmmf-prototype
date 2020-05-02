@@ -1,6 +1,7 @@
 import traceback
 from cmd import Cmd
 
+from algo.rest import index
 from rest import query, add_entity
 
 
@@ -50,6 +51,16 @@ class CmdHandler(Cmd):
         try:
             params = __parse_cli_params(line)
             response = add_entity(self.context.used_service, params['name'], params['type'])
+            print(response)
+        except KeyboardInterrupt:
+            print("Interrupted")
+        except Exception:
+            traceback.print_exc()
+            print("Exception occurred")
+
+    def do_index(self, line):
+        try:
+            response = index(self.context.used_service)
             print(response)
         except KeyboardInterrupt:
             print("Interrupted")

@@ -21,7 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static com.github.kjarosh.agh.pp.SpringApp.ZONE_ID;
+import static com.github.kjarosh.agh.pp.Config.ZONE_ID;
 
 /**
  * @author Kamil Jarosz

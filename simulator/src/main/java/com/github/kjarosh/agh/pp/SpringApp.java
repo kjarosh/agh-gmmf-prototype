@@ -14,10 +14,6 @@ import java.util.Optional;
  */
 @SpringBootApplication
 public class SpringApp {
-    public static ZoneId ZONE_ID = new ZoneId(System.getenv("ZONE_ID"));
-
-    public static ObjectMapper MAPPER = new ObjectMapper();
-
     public static void main(String[] args) {
         SpringApplication.run(SpringApp.class, args);
     }

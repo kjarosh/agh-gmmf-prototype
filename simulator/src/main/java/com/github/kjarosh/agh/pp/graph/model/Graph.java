@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.graph.model;
 
+import com.github.kjarosh.agh.pp.Config;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -15,8 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.github.kjarosh.agh.pp.SpringApp.MAPPER;
-import static com.github.kjarosh.agh.pp.SpringApp.ZONE_ID;
+import static com.github.kjarosh.agh.pp.Config.ZONE_ID;
 
 /**
  * @author Kamil Jarosz
@@ -28,15 +28,17 @@ public class Graph {
     private final Map<VertexId, Set<Edge>> edgesBySrc = new HashMap<>();
     private final Map<VertexId, Set<Edge>> edgesByDst = new HashMap<>();
 
-    public Graph(Iterable<Vertex> vertices, Iterable<Edge> edges) {
-        vertices.forEach(this::addVertex);
-        edges.forEach(this::addEdge);
+    public Graph() {
+
     }
 
     @SneakyThrows
     public static Graph deserialize(InputStream serialized) {
-        Json value = MAPPER.readValue(serialized, Json.class);
-        return new Graph(value.vertices, value.edges);
+        Json value = Config.MAPPER.readValue(serialized, Json.class);
+        Graph graph = new Graph();
+        value.vertices.forEach(graph::addVertex);
+        value.edges.forEach(graph::addEdge);
+        return graph;
     }
 
     public void addVertex(Vertex v) {
@@ -96,7 +98,7 @@ public class Graph {
         Json json = new Json();
         json.setEdges(new ArrayList<>(this.edges));
         json.setVertices(new ArrayList<>(this.vertices.values()));
-        MAPPER.writeValue(os, json);
+        Config.MAPPER.writeValue(os, json);
     }
 
     @Override

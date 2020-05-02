@@ -8,6 +8,8 @@ import java.util.Objects;
  * @author Kamil Jarosz
  */
 public class Assert {
+    public static int failedAssertions = 0;
+
     public static void assertTrue(boolean a) {
         if (!a) {
             failTest("Expected " + a + " to be true");
@@ -48,6 +50,7 @@ public class Assert {
     }
 
     private static void failTest(String message) {
+        ++failedAssertions;
         System.out.println("!!!!!!!!!!!!!!!!!!!!");
         System.out.println("! Failed: " + message);
         System.out.println("!!!!!!!!!!!!!!!!!!!!");

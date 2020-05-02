@@ -5,7 +5,7 @@ import com.github.kjarosh.agh.pp.graph.model.Graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -15,7 +15,7 @@ import java.io.UncheckedIOException;
 /**
  * @author Kamil Jarosz
  */
-@Component
+@Service
 @Scope("singleton")
 public class GraphLoader {
     private static final Logger logger = LoggerFactory.getLogger(GraphLoader.class);
@@ -24,11 +24,15 @@ public class GraphLoader {
 
     @PostConstruct
     public void init() {
+        graph = new Graph(); // loadGraph("graph.json");
+        logger.info("Graph loaded: " + graph);
+    }
+
+    public static Graph loadGraph(String path) {
         logger.debug("Loading graph");
-        try (InputStream is = SpringApp.class.getClassLoader()
-                .getResourceAsStream("graph.json")) {
-            graph = Graph.deserialize(is);
-            logger.info("Graph loaded: " + graph);
+        try (InputStream is = GraphLoader.class.getClassLoader()
+                .getResourceAsStream(path)) {
+            return Graph.deserialize(is);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

@@ -1,6 +1,8 @@
 package com.github.kjarosh.agh.pp.graph.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.kjarosh.agh.pp.index.VertexIndex;
 import lombok.ToString;
 
 /**
@@ -14,6 +16,9 @@ public class Vertex {
     private final Type type;
     @JsonProperty("zone")
     private final ZoneId zone;
+
+    @JsonIgnore
+    private final VertexIndex index = new VertexIndex();
 
     public Vertex(
             @JsonProperty("id") VertexId id,
@@ -34,6 +39,10 @@ public class Vertex {
 
     public ZoneId zone() {
         return zone;
+    }
+
+    public VertexIndex index() {
+        return index;
     }
 
     public enum Type {
