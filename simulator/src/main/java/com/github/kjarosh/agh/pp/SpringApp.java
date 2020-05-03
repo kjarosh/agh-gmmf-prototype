@@ -1,13 +1,9 @@
 package com.github.kjarosh.agh.pp;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
-
-import java.util.Optional;
 
 /**
  * @author Kamil Jarosz

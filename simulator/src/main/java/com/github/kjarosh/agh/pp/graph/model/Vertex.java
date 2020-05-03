@@ -14,19 +14,15 @@ public class Vertex {
     private final VertexId id;
     @JsonProperty("type")
     private final Type type;
-    @JsonProperty("zone")
-    private final ZoneId zone;
 
     @JsonIgnore
     private final VertexIndex index = new VertexIndex();
 
     public Vertex(
             @JsonProperty("id") VertexId id,
-            @JsonProperty("type") Type type,
-            @JsonProperty("zone") ZoneId zone) {
+            @JsonProperty("type") Type type) {
         this.id = id;
         this.type = type;
-        this.zone = zone;
     }
 
     public VertexId id() {
@@ -35,10 +31,6 @@ public class Vertex {
 
     public Type type() {
         return type;
-    }
-
-    public ZoneId zone() {
-        return zone;
     }
 
     public VertexIndex index() {

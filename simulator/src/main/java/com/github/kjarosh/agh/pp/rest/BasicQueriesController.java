@@ -38,7 +38,7 @@ public class BasicQueriesController {
         Graph graph = graphLoader.getGraph();
         VertexId from = new VertexId(fromId);
         VertexId to = new VertexId(toId);
-        ZoneId fromOwner = graph.getVertexOwner(from);
+        ZoneId fromOwner = from.owner();
 
         if (!fromOwner.equals(ZONE_ID)) {
             return new ZoneClient().isAdjacent(fromOwner, from, to);
@@ -56,7 +56,7 @@ public class BasicQueriesController {
             @RequestParam("of") String ofId) {
         Graph graph = graphLoader.getGraph();
         VertexId of = new VertexId(ofId);
-        ZoneId ofOwner = graph.getVertexOwner(of);
+        ZoneId ofOwner = of.owner();
 
         if (!ofOwner.equals(ZONE_ID)) {
             return new ZoneClient().listAdjacent(ofOwner, of);
@@ -65,7 +65,7 @@ public class BasicQueriesController {
         return graph.getEdgesBySource(of)
                 .stream()
                 .map(Edge::dst)
-                .map(VertexId::getId)
+                .map(VertexId::toString)
                 .collect(Collectors.toList());
     }
 
@@ -75,7 +75,7 @@ public class BasicQueriesController {
             @RequestParam("of") String ofId) {
         Graph graph = graphLoader.getGraph();
         VertexId of = new VertexId(ofId);
-        ZoneId ofOwner = graph.getVertexOwner(of);
+        ZoneId ofOwner = of.owner();
 
         if (!ofOwner.equals(ZONE_ID)) {
             return new ZoneClient().listAdjacentReversed(ofOwner, of);
@@ -84,7 +84,7 @@ public class BasicQueriesController {
         return graph.getEdgesByDestination(of)
                 .stream()
                 .map(Edge::src)
-                .map(VertexId::getId)
+                .map(VertexId::toString)
                 .collect(Collectors.toList());
     }
 
@@ -96,7 +96,7 @@ public class BasicQueriesController {
         Graph graph = graphLoader.getGraph();
         VertexId from = new VertexId(fromId);
         VertexId to = new VertexId(toId);
-        ZoneId fromOwner = graph.getVertexOwner(from);
+        ZoneId fromOwner = from.owner();
 
         if (!fromOwner.equals(ZONE_ID)) {
             return new ZoneClient().permissions(fromOwner, from, to);

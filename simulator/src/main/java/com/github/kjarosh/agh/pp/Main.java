@@ -8,21 +8,16 @@ import com.github.kjarosh.agh.pp.test.Tester;
  */
 public class Main {
     public static void main(String[] args) {
-        if (args.length == 0) {
+        if (System.getenv("TESTED_ZONE") != null) {
+            Tester.main(System.getenv("TESTED_ZONE"));
+            return;
+        }
+
+        if (System.getenv("CLIENT_MODE") != null) {
             Cmd.main(args);
             return;
         }
 
-        switch (args[0]) {
-            case "server":
-                SpringApp.main(args);
-                break;
-            case "test":
-                Tester.main(args);
-                break;
-            default:
-                Cmd.main(args);
-                return;
-        }
+        SpringApp.main(args);
     }
 }

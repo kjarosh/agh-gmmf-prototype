@@ -1,275 +1,253 @@
 {
   "vertices": [
     {
-      "id": "paris",
-      "type": "provider",
-      "zone": "zone0"
+      "id": "zone0:paris",
+      "type": "provider"
     },
     {
-      "id": "lisbon",
-      "type": "provider",
-      "zone": "zone0"
+      "id": "zone0:lisbon",
+      "type": "provider"
     },
     {
-      "id": "krakow",
-      "type": "provider",
-      "zone": "zone1"
+      "id": "zone1:krakow",
+      "type": "provider"
     },
     {
-      "id": "datahub",
-      "type": "space",
-      "zone": "zone0"
+      "id": "zone0:datahub",
+      "type": "space"
     },
     {
-      "id": "eo_data",
-      "type": "space",
-      "zone": "zone0"
+      "id": "zone0:eo_data",
+      "type": "space"
     },
     {
-      "id": "ceric",
-      "type": "space",
-      "zone": "zone0"
+      "id": "zone0:ceric",
+      "type": "space"
     },
     {
-      "id": "eosc",
-      "type": "space",
-      "zone": "zone1"
+      "id": "zone1:eosc",
+      "type": "space"
     },
     {
-      "id": "primage",
-      "type": "space",
-      "zone": "zone1"
+      "id": "zone1:primage",
+      "type": "space"
     },
     {
-      "id": "dhub_members",
-      "type": "group",
-      "zone": "zone0"
+      "id": "zone0:dhub_members",
+      "type": "group"
     },
     {
-      "id": "ebi",
-      "type": "group",
-      "zone": "zone0"
+      "id": "zone0:ebi",
+      "type": "group"
     },
     {
-      "id": "dhub_mngrs",
-      "type": "group",
-      "zone": "zone0"
+      "id": "zone0:dhub_mngrs",
+      "type": "group"
     },
     {
-      "id": "uber_admins",
-      "type": "group",
-      "zone": "zone0"
+      "id": "zone0:uber_admins",
+      "type": "group"
     },
     {
-      "id": "cyfnet",
-      "type": "group",
-      "zone": "zone1"
+      "id": "zone1:cyfnet",
+      "type": "group"
     },
     {
-      "id": "admins",
-      "type": "group",
-      "zone": "zone1"
+      "id": "zone1:admins",
+      "type": "group"
     },
     {
-      "id": "audit",
-      "type": "group",
-      "zone": "zone1"
+      "id": "zone1:audit",
+      "type": "group"
     },
     {
-      "id": "members",
-      "type": "group",
-      "zone": "zone1"
+      "id": "zone1:members",
+      "type": "group"
     },
     {
-      "id": "bob",
-      "type": "user",
-      "zone": "zone0"
+      "id": "zone0:bob",
+      "type": "user"
     },
     {
-      "id": "alice",
-      "type": "user",
-      "zone": "zone0"
+      "id": "zone0:alice",
+      "type": "user"
     },
     {
-      "id": "jill",
-      "type": "user",
-      "zone": "zone0"
+      "id": "zone0:jill",
+      "type": "user"
     },
     {
-      "id": "luke",
-      "type": "user",
-      "zone": "zone0"
+      "id": "zone0:luke",
+      "type": "user"
     },
     {
-      "id": "anne",
-      "type": "user",
-      "zone": "zone1"
+      "id": "zone1:anne",
+      "type": "user"
     },
     {
-      "id": "tom",
-      "type": "user",
-      "zone": "zone1"
+      "id": "zone1:tom",
+      "type": "user"
     }
   ],
   "edges": [
     {
-      "src": "datahub",
-      "dst": "paris",
+      "src": "zone0:datahub",
+      "dst": "zone0:paris",
       "perms": null
     },
     {
-      "src": "datahub",
-      "dst": "lisbon",
+      "src": "zone0:datahub",
+      "dst": "zone0:lisbon",
       "perms": null
     },
     {
-      "src": "eo_data",
-      "dst": "paris",
+      "src": "zone0:eo_data",
+      "dst": "zone0:paris",
       "perms": null
     },
     {
-      "src": "eo_data",
-      "dst": "lisbon",
+      "src": "zone0:eo_data",
+      "dst": "zone0:lisbon",
       "perms": null
     },
     {
-      "src": "eo_data",
-      "dst": "krakow",
+      "src": "zone0:eo_data",
+      "dst": "zone1:krakow",
       "perms": null
     },
     {
-      "src": "ceric",
-      "dst": "krakow",
+      "src": "zone0:ceric",
+      "dst": "zone1:krakow",
       "perms": null
     },
     {
-      "src": "eosc",
-      "dst": "paris",
+      "src": "zone1:eosc",
+      "dst": "zone0:paris",
       "perms": null
     },
     {
-      "src": "eosc",
-      "dst": "krakow",
+      "src": "zone1:eosc",
+      "dst": "zone1:krakow",
       "perms": null
     },
     {
-      "src": "primage",
-      "dst": "krakow",
+      "src": "zone1:primage",
+      "dst": "zone1:krakow",
       "perms": null
     },
     {
-      "src": "dhub_members",
-      "dst": "datahub",
+      "src": "zone0:dhub_members",
+      "dst": "zone0:datahub",
       "perms": "10000"
     },
     {
-      "src": "dhub_members",
-      "dst": "eo_data",
+      "src": "zone0:dhub_members",
+      "dst": "zone0:eo_data",
       "perms": "10000"
     },
     {
-      "src": "dhub_mngrs",
-      "dst": "dhub_members",
+      "src": "zone0:dhub_mngrs",
+      "dst": "zone0:dhub_members",
       "perms": "11011"
     },
     {
-      "src": "ebi",
-      "dst": "ceric",
+      "src": "zone0:ebi",
+      "dst": "zone0:ceric",
       "perms": "10000"
     },
     {
-      "src": "admins",
-      "dst": "dhub_members",
+      "src": "zone1:admins",
+      "dst": "zone0:dhub_members",
       "perms": "11111"
     },
     {
-      "src": "admins",
-      "dst": "eosc",
+      "src": "zone1:admins",
+      "dst": "zone1:eosc",
       "perms": "11011"
     },
     {
-      "src": "admins",
-      "dst": "cyfnet",
+      "src": "zone1:admins",
+      "dst": "zone1:cyfnet",
       "perms": "11111"
     },
     {
-      "src": "uber_admins",
-      "dst": "admins",
+      "src": "zone0:uber_admins",
+      "dst": "zone1:admins",
       "perms": "11111"
     },
     {
-      "src": "cyfnet",
-      "dst": "eosc",
+      "src": "zone1:cyfnet",
+      "dst": "zone1:eosc",
       "perms": "11001"
     },
     {
-      "src": "cyfnet",
-      "dst": "primage",
+      "src": "zone1:cyfnet",
+      "dst": "zone1:primage",
       "perms": "11000"
     },
     {
-      "src": "audit",
-      "dst": "cyfnet",
+      "src": "zone1:audit",
+      "dst": "zone1:cyfnet",
       "perms": "11001"
     },
     {
-      "src": "members",
-      "dst": "cyfnet",
+      "src": "zone1:members",
+      "dst": "zone1:cyfnet",
       "perms": "10000"
     },
     {
-      "src": "bob",
-      "dst": "datahub",
+      "src": "zone0:bob",
+      "dst": "zone0:datahub",
       "perms": "11111"
     },
     {
-      "src": "bob",
-      "dst": "dhub_mngrs",
+      "src": "zone0:bob",
+      "dst": "zone0:dhub_mngrs",
       "perms": "11110"
     },
     {
-      "src": "alice",
-      "dst": "eo_data",
+      "src": "zone0:alice",
+      "dst": "zone0:eo_data",
       "perms": "11001"
     },
     {
-      "src": "alice",
-      "dst": "ebi",
+      "src": "zone0:alice",
+      "dst": "zone0:ebi",
       "perms": "11000"
     },
     {
-      "src": "jill",
-      "dst": "ebi",
+      "src": "zone0:jill",
+      "dst": "zone0:ebi",
       "perms": "11111"
     },
     {
-      "src": "luke",
-      "dst": "uber_admins",
+      "src": "zone0:luke",
+      "dst": "zone0:uber_admins",
       "perms": "10001"
     },
     {
-      "src": "anne",
-      "dst": "ceric",
+      "src": "zone1:anne",
+      "dst": "zone0:ceric",
       "perms": "10001"
     },
     {
-      "src": "anne",
-      "dst": "audit",
+      "src": "zone1:anne",
+      "dst": "zone1:audit",
       "perms": "10001"
     },
     {
-      "src": "anne",
-      "dst": "members",
+      "src": "zone1:anne",
+      "dst": "zone1:members",
       "perms": "00000"
     },
     {
-      "src": "tom",
-      "dst": "members",
+      "src": "zone1:tom",
+      "dst": "zone1:members",
       "perms": "00000"
     },
     {
-      "src": "tom",
-      "dst": "primage",
+      "src": "zone1:tom",
+      "dst": "zone1:primage",
       "perms": "10011"
     }
   ]

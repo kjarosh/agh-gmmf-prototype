@@ -162,10 +162,10 @@ public class ZoneClient {
         execute(url);
     }
 
-    public void addVertex(ZoneId zone, VertexId id, Vertex.Type type) {
-        String url = baseUri(zone)
+    public void addVertex(VertexId id, Vertex.Type type) {
+        String url = baseUri(id.owner())
                 .path("graph/vertices")
-                .queryParam("id", id)
+                .queryParam("name", id.name())
                 .queryParam("type", type)
                 .build()
                 .toUriString();

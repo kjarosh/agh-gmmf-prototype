@@ -24,7 +24,7 @@ public class EventProcessor {
     @Autowired
     private Inbox inbox;
 
-    public void process(VertexId id, Event event, Runnable callback) {
+    public void process(VertexId id, Event event) {
         Graph graph = graphLoader.getGraph();
         VertexId sourceId = event.getSource();
         VertexId subjectId = event.getSubject();
@@ -69,8 +69,6 @@ public class EventProcessor {
                 throw new AssertionError();
             }
         }
-
-        callback.run();
     }
 
     private void propagateEvent(VertexId id, Event event, Edge e) {

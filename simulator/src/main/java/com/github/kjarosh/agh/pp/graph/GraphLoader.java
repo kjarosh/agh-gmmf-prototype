@@ -24,8 +24,7 @@ public class GraphLoader {
 
     @PostConstruct
     public void init() {
-        graph = new Graph(); // loadGraph("graph.json");
-        logger.info("Graph loaded: " + graph);
+        graph = new Graph();
     }
 
     public static Graph loadGraph(String path) {

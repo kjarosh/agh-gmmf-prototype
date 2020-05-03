@@ -113,8 +113,8 @@ public class Generator {
 
         private Vertex generateVertexWithType(Vertex.Type type) {
             ZoneId zone = chooseZoneId();
-            VertexId id = generateVertexId(type);
-            return new Vertex(id, type, zone);
+            VertexId id = generateVertexId(zone, type);
+            return new Vertex(id, type);
         }
 
         private Vertex.Type generateVertexType() {
@@ -130,16 +130,16 @@ public class Generator {
                     .build());
         }
 
-        private VertexId generateVertexId(Vertex.Type type) {
+        private VertexId generateVertexId(ZoneId zone, Vertex.Type type) {
             switch (type) {
                 case PROVIDER:
-                    return new VertexId(assertUniqueId(faker.address().city()));
+                    return new VertexId(zone, assertUniqueId(faker.address().city()));
                 case SPACE:
-                    return new VertexId(assertUniqueId(faker.address().streetName()));
+                    return new VertexId(zone, assertUniqueId(faker.address().streetName()));
                 case GROUP:
-                    return new VertexId(assertUniqueId(faker.internet().slug()));
+                    return new VertexId(zone, assertUniqueId(faker.internet().slug()));
                 case USER:
-                    return new VertexId(assertUniqueId(faker.name().username()));
+                    return new VertexId(zone, assertUniqueId(faker.name().username()));
             }
 
             throw new AssertionError();

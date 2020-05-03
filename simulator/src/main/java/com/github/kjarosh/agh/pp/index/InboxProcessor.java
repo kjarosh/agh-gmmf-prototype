@@ -19,7 +19,7 @@ import java.util.concurrent.Executors;
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class InboxProcessor {
-    private final ExecutorService executor = Executors.newCachedThreadPool();
+    private final ExecutorService executor = Executors.newFixedThreadPool(16);
     private final Set<VertexId> processing = new HashSet<>();
 
     @Autowired
@@ -46,8 +46,10 @@ public class InboxProcessor {
                 return;
             }
 
-            Runnable callback = () -> inboxChanged(id);
-            executor.submit(() -> eventProcessor.process(id, event, callback));
+            executor.submit(() -> {
+                eventProcessor.process(id, event);
+                inboxChanged(id);
+            });
         }
     }
 }

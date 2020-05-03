@@ -22,7 +22,6 @@ import static com.github.kjarosh.agh.pp.Config.ZONE_ID;
  * @author Kamil Jarosz
  */
 public class Graph {
-    private final Map<VertexId, ZoneId> vertexOwners = new HashMap<>();
     private final Map<VertexId, Vertex> vertices = new HashMap<>();
     private final Set<Edge> edges = new HashSet<>();
     private final Map<VertexId, Set<Edge>> edgesBySrc = new HashMap<>();
@@ -42,9 +41,7 @@ public class Graph {
     }
 
     public void addVertex(Vertex v) {
-        vertexOwners.put(v.id(), v.zone());
-
-        if (ZONE_ID == null || v.zone().equals(ZONE_ID)) {
+        if (ZONE_ID == null || v.id().owner().equals(ZONE_ID)) {
             vertices.put(v.id(), v);
         }
     }
@@ -55,10 +52,6 @@ public class Graph {
 
     public Vertex getVertex(VertexId id) {
         return vertices.get(id);
-    }
-
-    public ZoneId getVertexOwner(VertexId id) {
-        return vertexOwners.get(id);
     }
 
     public void addEdge(Edge e) {

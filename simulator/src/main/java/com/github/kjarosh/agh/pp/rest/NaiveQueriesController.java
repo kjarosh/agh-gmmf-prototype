@@ -44,7 +44,7 @@ public class NaiveQueriesController {
         Graph graph = graphLoader.getGraph();
         VertexId from = new VertexId(fromId);
         VertexId to = new VertexId(toId);
-        ZoneId fromOwner = graph.getVertexOwner(from);
+        ZoneId fromOwner = from.owner();
 
         if (!fromOwner.equals(ZONE_ID)) {
             return new ZoneClient().naiveReaches(fromOwner, from, to);
@@ -56,7 +56,7 @@ public class NaiveQueriesController {
 
         return graph.getEdgesBySource(from)
                 .stream()
-                .anyMatch(e -> reaches(e.dst().getId(), toId));
+                .anyMatch(e -> reaches(e.dst().toString(), toId));
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "naive/members")
@@ -65,7 +65,7 @@ public class NaiveQueriesController {
             @RequestParam("of") String ofId) {
         Graph graph = graphLoader.getGraph();
         VertexId of = new VertexId(ofId);
-        ZoneId ofOwner = graph.getVertexOwner(of);
+        ZoneId ofOwner = of.owner();
 
         if (!ofOwner.equals(ZONE_ID)) {
             return new ZoneClient().naiveMembers(ofOwner, of);
@@ -75,11 +75,11 @@ public class NaiveQueriesController {
 
         Vertex vertex = graph.getVertex(of);
         if (vertex.type() == Vertex.Type.USER) {
-            result.add(of.getId());
+            result.add(of.toString());
         }
 
         for (Edge edge : graph.getEdgesByDestination(of)) {
-            result.addAll(members(edge.src().getId()));
+            result.addAll(members(edge.src().toString()));
         }
 
         return new ArrayList<>(result);
@@ -93,7 +93,7 @@ public class NaiveQueriesController {
         Graph graph = graphLoader.getGraph();
         VertexId from = new VertexId(fromId);
         VertexId to = new VertexId(toId);
-        ZoneId fromOwner = graph.getVertexOwner(from);
+        ZoneId fromOwner = from.owner();
 
         if (!fromOwner.equals(ZONE_ID)) {
             return new ZoneClient().naiveEffectivePermissions(fromOwner, from, to);
@@ -107,7 +107,7 @@ public class NaiveQueriesController {
                         permissions,
                         edge.permissions());
             } else {
-                String other = effectivePermissions(edge.dst().getId(), toId);
+                String other = effectivePermissions(edge.dst().toString(), toId);
                 permissions = Permissions.combine(
                         permissions,
                         other != null ? new Permissions(other) : null);

@@ -30,11 +30,8 @@ public class Tester {
         this.zone = new ZoneId(zone);
     }
 
-    public static void main(String[] args) {
-        if (args.length != 2)
-            throw new RuntimeException("Got " + args.length + " args, expected 2");
-
-        new Tester(new ZoneClient(), args[1]).test();
+    public static void main(String zone) {
+        new Tester(new ZoneClient(), zone).test();
 
         System.out.println("Failed assertions: " + Assert.failedAssertions);
     }
@@ -69,7 +66,7 @@ public class Tester {
 
         Graph model = GraphLoader.loadGraph("graph.json");
         model.allVertices().forEach(v -> {
-            client.addVertex(v.zone(), v.id(), v.type());
+            client.addVertex(v.id(), v.type());
         });
         model.allEdges().forEach(e -> {
             client.addEdge(zone, e.src(), e.dst(), e.permissions());
@@ -79,61 +76,61 @@ public class Tester {
     }
 
     private void testIsAdjacent() {
-        assertTrue(client.isAdjacent(zone, vid("bob"), vid("datahub")));
-        assertFalse(client.isAdjacent(zone, vid("bob"), vid("alice")));
+        assertTrue(client.isAdjacent(zone, vid("zone0:bob"), vid("zone0:datahub")));
+        assertFalse(client.isAdjacent(zone, vid("zone0:bob"), vid("zone0:alice")));
     }
 
     private void testListAdjacent() {
-        assertEqualSet(client.listAdjacent(zone, vid("uber_admins")),
-                Collections.singletonList("admins"));
-        assertEqualSet(client.listAdjacent(zone, vid("anne")),
-                Arrays.asList("ceric", "audit", "members"));
-        assertEqualSet(client.listAdjacent(zone, vid("krakow")),
+        assertEqualSet(client.listAdjacent(zone, vid("zone0:uber_admins")),
+                Collections.singletonList("zone1:admins"));
+        assertEqualSet(client.listAdjacent(zone, vid("zone1:anne")),
+                Arrays.asList("zone0:ceric", "zone1:audit", "zone1:members"));
+        assertEqualSet(client.listAdjacent(zone, vid("zone1:krakow")),
                 Collections.emptyList());
 
-        assertEqualSet(client.listAdjacentReversed(zone, vid("anne")),
+        assertEqualSet(client.listAdjacentReversed(zone, vid("zone1:anne")),
                 Collections.emptyList());
-        assertEqualSet(client.listAdjacentReversed(zone, vid("paris")),
-                Arrays.asList("datahub", "eo_data", "eosc"));
+        assertEqualSet(client.listAdjacentReversed(zone, vid("zone0:paris")),
+                Arrays.asList("zone0:datahub", "zone0:eo_data", "zone1:eosc"));
     }
 
     private void testPermissions() {
-        assertEqual(client.permissions(zone, vid("alice"), vid("bob")),
+        assertEqual(client.permissions(zone, vid("zone0:alice"), vid("zone0:bob")),
                 null);
-        assertEqual(client.permissions(zone, vid("alice"), vid("ebi")),
+        assertEqual(client.permissions(zone, vid("zone0:alice"), vid("zone0:ebi")),
                 "11000");
-        assertEqual(client.permissions(zone, vid("audit"), vid("cyfnet")),
+        assertEqual(client.permissions(zone, vid("zone1:audit"), vid("zone1:cyfnet")),
                 "11001");
-        assertEqual(client.permissions(zone, vid("audit"), vid("eosc")),
+        assertEqual(client.permissions(zone, vid("zone1:audit"), vid("zone1:eosc")),
                 null);
     }
 
     private void testReaches(BiFunction<VertexId, VertexId, Boolean> f) {
-        assertTrue(f.apply(vid("bob"), vid("datahub")));
-        assertFalse(f.apply(vid("bob"), vid("alice")));
-        assertTrue(f.apply(vid("bob"), vid("dhub_members")));
-        assertTrue(f.apply(vid("luke"), vid("krakow")));
-        assertFalse(f.apply(vid("anne"), vid("lisbon")));
-        assertTrue(f.apply(vid("luke"), vid("dhub_members")));
+        assertTrue(f.apply(vid("zone0:bob"), vid("zone0:datahub")));
+        assertFalse(f.apply(vid("zone0:bob"), vid("zone1:admins")));
+        assertTrue(f.apply(vid("zone0:bob"), vid("zone0:dhub_members")));
+        assertTrue(f.apply(vid("zone0:luke"), vid("zone1:krakow")));
+        assertFalse(f.apply(vid("zone1:anne"), vid("zone0:lisbon")));
+        assertTrue(f.apply(vid("zone0:luke"), vid("zone0:dhub_members")));
     }
 
     private void testMembers(Function<VertexId, Collection<String>> f) {
-        assertEqualSet(f.apply(vid("admins")),
-                Collections.singletonList("luke"));
-        assertEqualSet(f.apply(vid("eo_data")),
-                Arrays.asList("luke", "bob", "alice"));
+        assertEqualSet(f.apply(vid("zone1:admins")),
+                Collections.singletonList("zone0:luke"));
+        assertEqualSet(f.apply(vid("zone0:eo_data")),
+                Arrays.asList("zone0:luke", "zone0:bob", "zone0:alice"));
     }
 
     private void testEffectivePermissions(BiFunction<VertexId, VertexId, String> f) {
-        assertEqual(f.apply(vid("alice"), vid("bob")),
+        assertEqual(f.apply(vid("zone0:alice"), vid("zone0:bob")),
                 null);
-        assertEqual(f.apply(vid("alice"), vid("ebi")),
+        assertEqual(f.apply(vid("zone0:alice"), vid("zone0:ebi")),
                 "11000");
-        assertEqual(f.apply(vid("audit"), vid("cyfnet")),
+        assertEqual(f.apply(vid("zone1:audit"), vid("zone1:cyfnet")),
                 "11001");
-        assertEqual(f.apply(vid("audit"), vid("eosc")),
+        assertEqual(f.apply(vid("zone1:audit"), vid("zone1:eosc")),
                 "11001");
-        assertEqual(f.apply(vid("tom"), vid("primage")),
+        assertEqual(f.apply(vid("zone1:tom"), vid("zone1:primage")),
                 "11011");
     }
 }

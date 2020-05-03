@@ -7,7 +7,8 @@ services:
       GRAPH_PATH: graph.dat
     networks:
       intranet:
-    command: [ 'server' ]
+    ports:
+      - 8080:8080
 
   zone1:
     build: .
@@ -16,7 +17,8 @@ services:
       GRAPH_PATH: graph.dat
     networks:
       intranet:
-    command: [ 'server' ]
+    ports:
+      - 8081:8080
 
   tester:
     build: .
@@ -27,7 +29,6 @@ services:
     depends_on:
       - zone0
       - zone1
-    command: [ 'test', 'zone0' ]
 
   client:
     build: .

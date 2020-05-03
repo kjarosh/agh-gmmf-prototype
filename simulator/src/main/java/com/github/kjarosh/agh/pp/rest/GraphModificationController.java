@@ -7,6 +7,9 @@ import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.index.Inbox;
+import com.github.kjarosh.agh.pp.index.events.Event;
+import com.github.kjarosh.agh.pp.index.events.EventType;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +32,9 @@ public class GraphModificationController {
     @Autowired
     private GraphLoader graphLoader;
 
+    @Autowired
+    private Inbox inbox;
+
     @RequestMapping(method = RequestMethod.POST, path = "graph/edges")
     @ResponseBody
     public void addEdge(
@@ -39,8 +45,8 @@ public class GraphModificationController {
         Graph graph = graphLoader.getGraph();
         VertexId from = new VertexId(fromId);
         VertexId to = new VertexId(toId);
-        ZoneId fromOwner = graph.getVertexOwner(from);
-        ZoneId toOwner = graph.getVertexOwner(to);
+        ZoneId fromOwner = from.owner();
+        ZoneId toOwner = to.owner();
         Permissions permissions = Strings.isNullOrEmpty(permissionsString) ? null : new Permissions(permissionsString);
 
         if (fromOwner == null) {
@@ -60,21 +66,33 @@ public class GraphModificationController {
         } else {
             // if it's the wrong zone, forward the request
             if (!fromOwner.equals(ZONE_ID)) {
-                new ZoneClient().addEdge(fromOwner, from, to, permissions, true);
+                new ZoneClient().addEdge(fromOwner, from, to, permissions);
                 return;
             }
+
+            new ZoneClient().addEdge(toOwner, from, to, permissions, true);
         }
 
         graph.addEdge(new Edge(from, to, permissions));
+        inbox.post(from, Event.builder()
+                .type(EventType.CHILD_CHANGE)
+                .subject(to)
+                .source(from)
+                .build());
+        inbox.post(to, Event.builder()
+                .type(EventType.PARENT_CHANGE)
+                .subject(from)
+                .source(to)
+                .build());
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "graph/vertices")
     @ResponseBody
     public void addVertex(
-            @RequestParam("id") String idString,
+            @RequestParam("name") String name,
             @RequestParam("type") Vertex.Type type) {
         Graph graph = graphLoader.getGraph();
-        VertexId id = new VertexId(idString);
-        graph.addVertex(new Vertex(id, type, ZONE_ID));
+        VertexId id = new VertexId(ZONE_ID, name);
+        graph.addVertex(new Vertex(id, type));
     }
 }

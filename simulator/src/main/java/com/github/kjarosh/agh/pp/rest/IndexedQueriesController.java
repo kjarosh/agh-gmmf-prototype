@@ -46,7 +46,7 @@ public class IndexedQueriesController {
             @RequestParam("of") String ofId) {
         Graph graph = graphLoader.getGraph();
         VertexId of = new VertexId(ofId);
-        ZoneId ofOwner = graph.getVertexOwner(of);
+        ZoneId ofOwner = of.owner();
 
         if (!ofOwner.equals(ZONE_ID)) {
             return new ZoneClient().naiveMembers(ofOwner, of);
@@ -56,7 +56,7 @@ public class IndexedQueriesController {
         return ofVertex.index().getEffectiveChildren()
                 .keySet()
                 .stream()
-                .map(VertexId::getId)
+                .map(VertexId::toString)
                 .collect(Collectors.toList());
     }
 
@@ -68,7 +68,7 @@ public class IndexedQueriesController {
         Graph graph = graphLoader.getGraph();
         VertexId from = new VertexId(fromId);
         VertexId to = new VertexId(toId);
-        ZoneId fromOwner = graph.getVertexOwner(from);
+        ZoneId fromOwner = from.owner();
 
         if (!fromOwner.equals(ZONE_ID)) {
             return new ZoneClient().indexedEffectivePermissions(fromOwner, from, to);

@@ -9,20 +9,35 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode
 public class VertexId {
-    private final String id;
+    private final ZoneId owner;
+    private final String name;
 
     @JsonCreator
-    public VertexId(String id) {
-        this.id = id;
+    public VertexId(String string) {
+        String[] split = string.split(":", 2);
+        if (split.length != 2) {
+            throw new IllegalStateException("Invalid id string: " + string);
+        }
+        this.owner = new ZoneId(split[0]);
+        this.name = split[1];
+    }
+
+    public VertexId(ZoneId owner, String name) {
+        this.owner = owner;
+        this.name = name;
+    }
+
+    public String name() {
+        return name;
+    }
+
+    public ZoneId owner() {
+        return owner;
     }
 
     @JsonValue
-    public String getId() {
-        return id;
-    }
-
     @Override
     public String toString() {
-        return getId();
+        return owner + ":" + name();
     }
 }
