@@ -13,6 +13,14 @@
         <maven.compiler.source>11</maven.compiler.source>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>bintray-jcenter</id>
+            <name>bintray</name>
+            <url>https://jcenter.bintray.com</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -49,6 +57,11 @@
             <groupId>com.github.javafaker</groupId>
             <artifactId>javafaker</artifactId>
             <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>joinery</groupId>
+            <artifactId>joinery-dataframe</artifactId>
+            <version>1.9</version>
         </dependency>
     </dependencies>
 

@@ -25,11 +25,19 @@ public class EventProcessor {
     private Inbox inbox;
 
     public void process(VertexId id, Event event) {
+        try {
+            // TODO remove
+            Thread.sleep(50);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         Graph graph = graphLoader.getGraph();
         VertexId sourceId = event.getSource();
         VertexId subjectId = event.getSubject();
-        Vertex subject = graph.getVertex(subjectId);
-        VertexIndex index = subject.index();
+
+        Vertex current = graph.getVertex(id);
+        VertexIndex index = current.index();
 
         Map<VertexId, VertexIndex.EffectiveVertex> effectiveVertices;
         if (event.getType() == EventType.CHILD_CHANGE) {
@@ -53,7 +61,7 @@ public class EventProcessor {
         Set<VertexId> intermediateVertices = effectiveVertex.getIntermediateVertices();
         if (!intermediateVertices.contains(sourceId)) {
             propagate = true;
-            intermediateVertices.add(subjectId);
+            intermediateVertices.add(sourceId);
         }
 
         if (propagate) {

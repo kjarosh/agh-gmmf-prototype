@@ -74,16 +74,19 @@ public class GraphModificationController {
         }
 
         graph.addEdge(new Edge(from, to, permissions));
-        inbox.post(from, Event.builder()
-                .type(EventType.CHILD_CHANGE)
-                .subject(to)
-                .source(from)
-                .build());
-        inbox.post(to, Event.builder()
-                .type(EventType.PARENT_CHANGE)
-                .subject(from)
-                .source(to)
-                .build());
+        if (!successive) {
+            inbox.post(from, Event.builder()
+                    .type(EventType.PARENT_CHANGE)
+                    .subject(to)
+                    .source(to)
+                    .build());
+        } else {
+            inbox.post(to, Event.builder()
+                    .type(EventType.CHILD_CHANGE)
+                    .subject(from)
+                    .source(from)
+                    .build());
+        }
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "graph/vertices")

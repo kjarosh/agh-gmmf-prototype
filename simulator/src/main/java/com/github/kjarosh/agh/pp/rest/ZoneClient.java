@@ -4,6 +4,7 @@ import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.util.StringList;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
@@ -48,6 +49,19 @@ public class ZoneClient {
         } catch (RestClientException e) {
             return false;
         }
+    }
+
+    public boolean indexReady(ZoneId zone) {
+        String url = baseUri(zone)
+                .path("index_ready")
+                .build()
+                .toUriString();
+        ResponseEntity<Boolean> response = new RestTemplate().getForEntity(url, Boolean.class);
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Status: " + response.getStatusCode());
+        }
+        Boolean body = response.getBody();
+        return body != null && body;
     }
 
     public boolean isAdjacent(ZoneId zone, VertexId from, VertexId to) {
@@ -167,6 +181,18 @@ public class ZoneClient {
                 .path("graph/vertices")
                 .queryParam("name", id.name())
                 .queryParam("type", type)
+                .build()
+                .toUriString();
+        execute(url);
+    }
+
+    public void postEvent(VertexId id, Event event) {
+        String url = baseUri(id.owner())
+                .path("events")
+                .queryParam("id", id.toString())
+                .queryParam("source", event.getSource().toString())
+                .queryParam("subject", event.getSubject().toString())
+                .queryParam("type", event.getType())
                 .build()
                 .toUriString();
         execute(url);

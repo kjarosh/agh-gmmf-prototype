@@ -3,13 +3,15 @@ package com.github.kjarosh.agh.pp.graph.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.kjarosh.agh.pp.index.VertexIndex;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
  * @author Kamil Jarosz
  */
+@EqualsAndHashCode
 @ToString
-public class Vertex {
+public class Vertex implements Comparable<Vertex> {
     @JsonProperty("id")
     private final VertexId id;
     @JsonProperty("type")
@@ -35,6 +37,11 @@ public class Vertex {
 
     public VertexIndex index() {
         return index;
+    }
+
+    @Override
+    public int compareTo(Vertex o) {
+        return id.compareTo(o.id);
     }
 
     public enum Type {

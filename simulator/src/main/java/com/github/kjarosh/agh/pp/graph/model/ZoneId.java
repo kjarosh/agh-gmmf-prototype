@@ -10,7 +10,7 @@ import java.util.Objects;
  * @author Kamil Jarosz
  */
 @EqualsAndHashCode
-public class ZoneId {
+public class ZoneId implements Comparable<ZoneId> {
     private final String id;
 
     @JsonCreator
@@ -26,5 +26,10 @@ public class ZoneId {
     @Override
     public String toString() {
         return getId();
+    }
+
+    @Override
+    public int compareTo(ZoneId o) {
+        return id.compareTo(o.id);
     }
 }

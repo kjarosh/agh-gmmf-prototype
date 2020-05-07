@@ -10,8 +10,10 @@ import lombok.SneakyThrows;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.github.kjarosh.agh.pp.test.Assert.assertEqual;
 import static com.github.kjarosh.agh.pp.test.Assert.assertEqualSet;
@@ -24,14 +26,18 @@ import static com.github.kjarosh.agh.pp.test.Assert.assertTrue;
 public class Tester {
     private final ZoneClient client;
     private final ZoneId zone;
+    private final List<ZoneId> allZones;
 
-    public Tester(ZoneClient client, String zone) {
+    public Tester(ZoneClient client, String zone, List<String> allZones) {
         this.client = client;
         this.zone = new ZoneId(zone);
+        this.allZones = allZones.stream()
+                .map(ZoneId::new)
+                .collect(Collectors.toList());
     }
 
-    public static void main(String zone) {
-        new Tester(new ZoneClient(), zone).test();
+    public static void main(String zone, List<String> allZones) {
+        new Tester(new ZoneClient(), zone, allZones).test();
 
         System.out.println("Failed assertions: " + Assert.failedAssertions);
     }
@@ -42,23 +48,37 @@ public class Tester {
 
     @SneakyThrows
     private void test() {
-        while (!client.healthcheck(zone)) {
+        while (notHealthy()) {
             Thread.sleep(200);
         }
 
         buildGraph();
 
-        testIsAdjacent();
-        testListAdjacent();
-        testPermissions();
+        // testIsAdjacent();
+        // testListAdjacent();
+        // testPermissions();
 
-        testReaches((f, t) -> client.naiveReaches(zone, f, t));
-        testMembers((o) -> client.naiveMembers(zone, o));
-        testEffectivePermissions((f, t) -> client.naiveEffectivePermissions(zone, f, t));
+        // testReaches((f, t) -> client.naiveReaches(zone, f, t));
+        // testMembers((o) -> client.naiveMembers(zone, o));
+        // testEffectivePermissions((f, t) -> client.naiveEffectivePermissions(zone, f, t));
+
+        while (indexNotReady()) {
+            Thread.sleep(200);
+        }
 
         testReaches((f, t) -> client.indexedReaches(zone, f, t));
-        testMembers((o) -> client.indexedMembers(zone, o));
-        testEffectivePermissions((f, t) -> client.indexedEffectivePermissions(zone, f, t));
+        // testMembers((o) -> client.indexedMembers(zone, o));
+        // testEffectivePermissions((f, t) -> client.indexedEffectivePermissions(zone, f, t));
+    }
+
+    private boolean notHealthy() {
+        return allZones.stream()
+                .anyMatch(zone -> !client.healthcheck(zone));
+    }
+
+    private boolean indexNotReady() {
+        return allZones.stream()
+                .anyMatch(zone -> !client.indexReady(zone));
     }
 
     private void buildGraph() {

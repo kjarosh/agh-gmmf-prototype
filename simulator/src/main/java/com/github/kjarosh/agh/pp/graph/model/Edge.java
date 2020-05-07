@@ -1,11 +1,13 @@
 package com.github.kjarosh.agh.pp.graph.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 /**
  * @author Kamil Jarosz
  */
+@EqualsAndHashCode(exclude = "permissions")
 @ToString
 public class Edge {
     @JsonProperty("src")

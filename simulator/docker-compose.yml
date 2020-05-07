@@ -8,7 +8,8 @@ services:
     networks:
       intranet:
     ports:
-      - 8080:8080
+      - 8080:80
+      - 8780:8080
 
   zone1:
     build: .
@@ -18,12 +19,14 @@ services:
     networks:
       intranet:
     ports:
-      - 8081:8080
+      - 8081:80
+      - 8781:8080
 
   tester:
     build: .
     environment:
       TESTED_ZONE: zone0
+      ALL_ZONES: zone0,zone1
     networks:
       intranet:
     depends_on:

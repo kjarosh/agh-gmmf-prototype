@@ -2,6 +2,8 @@ package com.github.kjarosh.agh.pp.index;
 
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -19,7 +21,9 @@ import java.util.concurrent.Executors;
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class InboxProcessor {
-    private final ExecutorService executor = Executors.newFixedThreadPool(16);
+    private static final Logger logger = LoggerFactory.getLogger(InboxProcessor.class);
+
+    private final ExecutorService executor = Executors.newFixedThreadPool(2);
     private final Set<VertexId> processing = new HashSet<>();
 
     @Autowired
@@ -46,10 +50,23 @@ public class InboxProcessor {
                 return;
             }
 
+            processing.add(id);
             executor.submit(() -> {
+                logger.info("Processing event " + event + " at " + id);
+
                 eventProcessor.process(id, event);
+
+                synchronized (processing) {
+                    processing.remove(id);
+                }
                 inboxChanged(id);
             });
+        }
+    }
+
+    public boolean isStalled() {
+        synchronized (processing) {
+            return inbox.isEmpty() && processing.isEmpty();
         }
     }
 }

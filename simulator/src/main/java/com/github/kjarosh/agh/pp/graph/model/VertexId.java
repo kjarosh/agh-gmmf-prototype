@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
  * @author Kamil Jarosz
  */
 @EqualsAndHashCode
-public class VertexId {
+public class VertexId implements Comparable<VertexId> {
     private final ZoneId owner;
     private final String name;
 
@@ -39,5 +39,15 @@ public class VertexId {
     @Override
     public String toString() {
         return owner + ":" + name();
+    }
+
+    @Override
+    public int compareTo(VertexId o) {
+        int cmp = owner.compareTo(o.owner);
+        if (cmp != 0) {
+            return cmp;
+        }
+
+        return name.compareTo(o.name);
     }
 }
