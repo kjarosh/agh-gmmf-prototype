@@ -3,13 +3,16 @@ package com.github.kjarosh.agh.pp.index;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
+import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
+import com.github.kjarosh.agh.pp.index.VertexIndex.EffectiveVertex;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,11 +35,14 @@ public class EventProcessor {
         Vertex current = graph.getVertex(id);
         VertexIndex index = current.index();
 
-        Map<VertexId, VertexIndex.EffectiveVertex> effectiveVertices;
+        Map<VertexId, EffectiveVertex> effectiveVertices;
+        Set<Edge> edgesToPropagate;
         if (event.getType() == EventType.CHILD_CHANGE) {
             effectiveVertices = index.getEffectiveChildren();
+            edgesToPropagate = graph.getEdgesBySource(id);
         } else if (event.getType() == EventType.PARENT_CHANGE) {
             effectiveVertices = index.getEffectiveParents();
+            edgesToPropagate = graph.getEdgesByDestination(id);
         } else {
             throw new AssertionError();
         }
@@ -44,9 +50,9 @@ public class EventProcessor {
         boolean propagate = false;
 
         for (VertexId subjectId : subjectIds) {
-            VertexIndex.EffectiveVertex effectiveVertex;
+            EffectiveVertex effectiveVertex;
             if (!effectiveVertices.containsKey(subjectId)) {
-                effectiveVertex = new VertexIndex.EffectiveVertex();
+                effectiveVertex = new EffectiveVertex();
                 effectiveVertices.put(subjectId, effectiveVertex);
                 propagate = true;
             } else {
@@ -58,21 +64,34 @@ public class EventProcessor {
                 propagate = true;
                 intermediateVertices.add(sourceId);
             }
+
+            refreshPermissions(id, effectiveVertex, edgesToPropagate);
         }
 
         if (propagate) {
-            if (event.getType() == EventType.CHILD_CHANGE) {
-                graph.getEdgesBySource(id).forEach(e -> {
-                    propagateEvent(id, event, e);
-                });
-            } else if (event.getType() == EventType.PARENT_CHANGE) {
-                graph.getEdgesByDestination(id).forEach(e -> {
-                    propagateEvent(id, event, e);
-                });
-            } else {
-                throw new AssertionError();
-            }
+            edgesToPropagate.forEach(e -> propagateEvent(id, event, e));
         }
+    }
+
+    private void refreshPermissions(
+            VertexId id,
+            EffectiveVertex effectiveVertex,
+            Set<Edge> edgesToPropagate) {
+        Set<VertexId> intermediateVertices = effectiveVertex.getIntermediateVertices();
+        Set<Permissions> allPermissions = new HashSet<>();
+        edgesToPropagate.forEach(edge -> {
+            VertexId src = edge.src();
+            VertexId dst = edge.dst();
+            if (dst.equals(id) && intermediateVertices.contains(src)) {
+                allPermissions.add(edge.permissions());
+            }
+            if (src.equals(id) && intermediateVertices.contains(dst)) {
+                allPermissions.add(edge.permissions());
+            }
+        });
+        allPermissions.stream()
+                .reduce(Permissions::combine)
+                .ifPresent(effectiveVertex::setEffectivePermissions);
     }
 
     private void propagateEvent(VertexId id, Event event, Edge e) {
