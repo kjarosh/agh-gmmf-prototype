@@ -38,8 +38,6 @@ public class Tester {
 
     public static void main(String zone, List<String> allZones) {
         new Tester(new ZoneClient(), zone, allZones).test();
-
-        System.out.println("Failed assertions: " + Assert.failedAssertions);
     }
 
     private VertexId vid(String bob) {
@@ -54,21 +52,32 @@ public class Tester {
 
         buildGraph();
 
-        // testIsAdjacent();
-        // testListAdjacent();
-        // testPermissions();
+        testIsAdjacent();
+        testListAdjacent();
+        testPermissions();
 
-        // testReaches((f, t) -> client.naiveReaches(zone, f, t));
-        // testMembers((o) -> client.naiveMembers(zone, o));
-        // testEffectivePermissions((f, t) -> client.naiveEffectivePermissions(zone, f, t));
+        Assert.Stats basicStats = Assert.statistics.reset();
+
+        testReaches((f, t) -> client.naiveReaches(zone, f, t));
+        testMembers((o) -> client.naiveMembers(zone, o));
+        testEffectivePermissions((f, t) -> client.naiveEffectivePermissions(zone, f, t));
+
+        Assert.Stats naiveStats = Assert.statistics.reset();
 
         while (indexNotReady()) {
             Thread.sleep(200);
         }
 
         testReaches((f, t) -> client.indexedReaches(zone, f, t));
-        // testMembers((o) -> client.indexedMembers(zone, o));
-        // testEffectivePermissions((f, t) -> client.indexedEffectivePermissions(zone, f, t));
+        testMembers((o) -> client.indexedMembers(zone, o));
+        testEffectivePermissions((f, t) -> client.indexedEffectivePermissions(zone, f, t));
+
+        Assert.Stats indexedStats = Assert.statistics.reset();
+
+        System.out.println();
+        System.out.println("Basic: " + basicStats);
+        System.out.println("Naive: " + naiveStats);
+        System.out.println("Indexed: " + indexedStats);
     }
 
     private boolean notHealthy() {

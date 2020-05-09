@@ -190,11 +190,11 @@ public class ZoneClient {
         String url = baseUri(id.owner())
                 .path("events")
                 .queryParam("id", id.toString())
-                .queryParam("source", event.getSource().toString())
-                .queryParam("subject", event.getSubject().toString())
-                .queryParam("type", event.getType())
                 .build()
                 .toUriString();
-        execute(url);
+        ResponseEntity<?> response = new RestTemplate().postForEntity(url, event, null);
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Status: " + response.getStatusCode());
+        }
     }
 }

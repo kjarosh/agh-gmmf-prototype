@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.Set;
+
 /**
  * @author Kamil Jarosz
  */
@@ -25,8 +27,8 @@ public class Event {
     /**
      * What is being added/modified.
      */
-    @JsonProperty("subject")
-    private VertexId subject;
+    @JsonProperty("subjects")
+    private Set<VertexId> subjects;
 
     /**
      * Which vertex the event comes from.

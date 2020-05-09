@@ -20,6 +20,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static com.github.kjarosh.agh.pp.Config.ZONE_ID;
 
 /**
@@ -38,16 +41,17 @@ public class GraphModificationController {
     @RequestMapping(method = RequestMethod.POST, path = "graph/edges")
     @ResponseBody
     public void addEdge(
-            @RequestParam("from") String fromId,
-            @RequestParam("to") String toId,
+            @RequestParam("from") String fromIdString,
+            @RequestParam("to") String toIdString,
             @RequestParam("permissions") String permissionsString,
             @RequestParam("successive") boolean successive) {
         Graph graph = graphLoader.getGraph();
-        VertexId from = new VertexId(fromId);
-        VertexId to = new VertexId(toId);
-        ZoneId fromOwner = from.owner();
-        ZoneId toOwner = to.owner();
-        Permissions permissions = Strings.isNullOrEmpty(permissionsString) ? null : new Permissions(permissionsString);
+        VertexId fromId = new VertexId(fromIdString);
+        VertexId toId = new VertexId(toIdString);
+        ZoneId fromOwner = fromId.owner();
+        ZoneId toOwner = toId.owner();
+        Permissions permissions = Strings.isNullOrEmpty(permissionsString) ? null :
+                new Permissions(permissionsString);
 
         if (fromOwner == null) {
             throw new RuntimeException("From vertex is unknown: " + fromId);
@@ -66,25 +70,35 @@ public class GraphModificationController {
         } else {
             // if it's the wrong zone, forward the request
             if (!fromOwner.equals(ZONE_ID)) {
-                new ZoneClient().addEdge(fromOwner, from, to, permissions);
+                new ZoneClient().addEdge(fromOwner, fromId, toId, permissions);
                 return;
             }
 
-            new ZoneClient().addEdge(toOwner, from, to, permissions, true);
+            new ZoneClient().addEdge(toOwner, fromId, toId, permissions, true);
         }
 
-        graph.addEdge(new Edge(from, to, permissions));
-        if (!successive) {
-            inbox.post(from, Event.builder()
+        graph.addEdge(new Edge(fromId, toId, permissions));
+        if (successive) {
+            Set<VertexId> subjects = new HashSet<>(graph.getVertex(toId)
+                    .index()
+                    .getEffectiveParents()
+                    .keySet());
+            subjects.add(toId);
+            inbox.post(fromId, Event.builder()
                     .type(EventType.PARENT_CHANGE)
-                    .subject(to)
-                    .source(to)
+                    .subjects(subjects)
+                    .source(toId)
                     .build());
         } else {
-            inbox.post(to, Event.builder()
+            Set<VertexId> subjects = new HashSet<>(graph.getVertex(fromId)
+                    .index()
+                    .getEffectiveChildren()
+                    .keySet());
+            subjects.add(fromId);
+            inbox.post(toId, Event.builder()
                     .type(EventType.CHILD_CHANGE)
-                    .subject(from)
-                    .source(from)
+                    .subjects(subjects)
+                    .source(fromId)
                     .build());
         }
     }

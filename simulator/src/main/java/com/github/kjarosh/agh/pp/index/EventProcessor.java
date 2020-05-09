@@ -25,16 +25,9 @@ public class EventProcessor {
     private Inbox inbox;
 
     public void process(VertexId id, Event event) {
-        try {
-            // TODO remove
-            Thread.sleep(50);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
         Graph graph = graphLoader.getGraph();
         VertexId sourceId = event.getSource();
-        VertexId subjectId = event.getSubject();
+        Set<VertexId> subjectIds = event.getSubjects();
 
         Vertex current = graph.getVertex(id);
         VertexIndex index = current.index();
@@ -49,19 +42,22 @@ public class EventProcessor {
         }
 
         boolean propagate = false;
-        VertexIndex.EffectiveVertex effectiveVertex;
-        if (!effectiveVertices.containsKey(subjectId)) {
-            effectiveVertex = new VertexIndex.EffectiveVertex();
-            effectiveVertices.put(subjectId, effectiveVertex);
-            propagate = true;
-        } else {
-            effectiveVertex = effectiveVertices.get(subjectId);
-        }
 
-        Set<VertexId> intermediateVertices = effectiveVertex.getIntermediateVertices();
-        if (!intermediateVertices.contains(sourceId)) {
-            propagate = true;
-            intermediateVertices.add(sourceId);
+        for (VertexId subjectId : subjectIds) {
+            VertexIndex.EffectiveVertex effectiveVertex;
+            if (!effectiveVertices.containsKey(subjectId)) {
+                effectiveVertex = new VertexIndex.EffectiveVertex();
+                effectiveVertices.put(subjectId, effectiveVertex);
+                propagate = true;
+            } else {
+                effectiveVertex = effectiveVertices.get(subjectId);
+            }
+
+            Set<VertexId> intermediateVertices = effectiveVertex.getIntermediateVertices();
+            if (!intermediateVertices.contains(sourceId)) {
+                propagate = true;
+                intermediateVertices.add(sourceId);
+            }
         }
 
         if (propagate) {
@@ -83,7 +79,7 @@ public class EventProcessor {
         Event newEvent = Event.builder()
                 .type(event.getType())
                 .source(id)
-                .subject(event.getSubject())
+                .subjects(event.getSubjects())
                 .build();
         inbox.post(e.dst(), newEvent);
     }
