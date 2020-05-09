@@ -23,7 +23,7 @@ import java.util.concurrent.Executors;
 public class InboxProcessor {
     private static final Logger logger = LoggerFactory.getLogger(InboxProcessor.class);
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(2);
+    private final ExecutorService executor = Executors.newFixedThreadPool(1);
     private final Set<VertexId> processing = new HashSet<>();
 
     @Autowired

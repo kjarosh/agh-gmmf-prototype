@@ -70,7 +70,7 @@ public class Tester {
 
         testReaches((f, t) -> client.indexedReaches(zone, f, t));
         testMembers((o) -> client.indexedMembers(zone, o));
-        testEffectivePermissions((f, t) -> client.indexedEffectivePermissions(zone, f, t));
+//        testEffectivePermissions((f, t) -> client.indexedEffectivePermissions(zone, f, t));
 
         Assert.Stats indexedStats = Assert.statistics.reset();
 

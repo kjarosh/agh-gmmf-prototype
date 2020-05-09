@@ -81,6 +81,14 @@ public class EventProcessor {
                 .source(id)
                 .subjects(event.getSubjects())
                 .build();
-        inbox.post(e.dst(), newEvent);
+
+        // select the other end of the relation
+        VertexId recipient;
+        if (id.equals(e.dst())) {
+            recipient = e.src();
+        } else {
+            recipient = e.dst();
+        }
+        inbox.post(recipient, newEvent);
     }
 }
