@@ -30,9 +30,6 @@ public class Event {
     @JsonProperty("subjects")
     private Set<VertexId> subjects;
 
-    /**
-     * Which vertex the event comes from.
-     */
-    @JsonProperty("source")
-    private VertexId source;
+    @JsonProperty("intermediate")
+    private VertexId intermediate;
 }

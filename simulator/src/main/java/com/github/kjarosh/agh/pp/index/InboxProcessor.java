@@ -1,7 +1,9 @@
 package com.github.kjarosh.agh.pp.index;
 
+import com.github.kjarosh.agh.pp.Config;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * @author Kamil Jarosz
@@ -23,7 +26,11 @@ import java.util.concurrent.Executors;
 public class InboxProcessor {
     private static final Logger logger = LoggerFactory.getLogger(InboxProcessor.class);
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(1);
+    private final ThreadFactory treadFactory = new ThreadFactoryBuilder()
+            .setNameFormat("worker-" + Config.ZONE_ID + "-%d")
+            .build();
+    private final ExecutorService executor =
+            Executors.newFixedThreadPool(1, treadFactory);
     private final Set<VertexId> processing = new HashSet<>();
 
     @Autowired
@@ -54,12 +61,16 @@ public class InboxProcessor {
             executor.submit(() -> {
                 logger.info("Processing event " + event + " at " + id);
 
-                eventProcessor.process(id, event);
-
-                synchronized (processing) {
-                    processing.remove(id);
+                try {
+                    eventProcessor.process(id, event);
+                } catch (Exception e) {
+                    logger.error("An exception occurred while processing an event", e);
+                } finally {
+                    synchronized (processing) {
+                        processing.remove(id);
+                    }
+                    inboxChanged(id);
                 }
-                inboxChanged(id);
             });
         }
     }

@@ -145,9 +145,11 @@ public class Tester {
 
     private void testMembers(Function<VertexId, Collection<String>> f) {
         assertEqualSet(f.apply(vid("zone1:admins")),
-                Collections.singletonList("zone0:luke"));
+                Arrays.asList("zone0:uber_admins", "zone0:luke"));
         assertEqualSet(f.apply(vid("zone0:eo_data")),
-                Arrays.asList("zone0:luke", "zone0:bob", "zone0:alice"));
+                Arrays.asList("zone0:dhub_mngrs", "zone0:dhub_members",
+                        "zone0:uber_admins", "zone1:admins",
+                        "zone0:alice", "zone0:bob", "zone0:luke"));
     }
 
     private void testEffectivePermissions(BiFunction<VertexId, VertexId, String> f) {
@@ -160,6 +162,8 @@ public class Tester {
         assertEqual(f.apply(vid("zone1:audit"), vid("zone1:eosc")),
                 "11001");
         assertEqual(f.apply(vid("zone1:tom"), vid("zone1:primage")),
+                "11011");
+        assertEqual(f.apply(vid("zone0:luke"), vid("zone1:eosc")),
                 "11011");
     }
 }

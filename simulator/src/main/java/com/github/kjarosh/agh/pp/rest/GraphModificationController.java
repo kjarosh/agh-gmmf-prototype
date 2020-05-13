@@ -87,7 +87,7 @@ public class GraphModificationController {
             inbox.post(fromId, Event.builder()
                     .type(EventType.PARENT_CHANGE)
                     .subjects(subjects)
-                    .source(toId)
+                    .intermediate(fromId)
                     .build());
         } else {
             Set<VertexId> subjects = new HashSet<>(graph.getVertex(fromId)
@@ -98,7 +98,7 @@ public class GraphModificationController {
             inbox.post(toId, Event.builder()
                     .type(EventType.CHILD_CHANGE)
                     .subjects(subjects)
-                    .source(fromId)
+                    .intermediate(toId)
                     .build());
         }
     }

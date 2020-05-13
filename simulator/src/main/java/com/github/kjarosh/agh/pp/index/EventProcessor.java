@@ -29,7 +29,7 @@ public class EventProcessor {
 
     public void process(VertexId id, Event event) {
         Graph graph = graphLoader.getGraph();
-        VertexId sourceId = event.getSource();
+        VertexId intermediateId = event.getIntermediate();
         Set<VertexId> subjectIds = event.getSubjects();
 
         Vertex current = graph.getVertex(id);
@@ -60,12 +60,12 @@ public class EventProcessor {
             }
 
             Set<VertexId> intermediateVertices = effectiveVertex.getIntermediateVertices();
-            if (!intermediateVertices.contains(sourceId)) {
+            if (!intermediateVertices.contains(intermediateId)) {
                 propagate = true;
-                intermediateVertices.add(sourceId);
+                intermediateVertices.add(intermediateId);
             }
 
-            refreshPermissions(id, effectiveVertex, edgesToPropagate);
+            refreshPermissions(id, effectiveVertex, event, subjectId);
         }
 
         if (propagate) {
@@ -76,16 +76,31 @@ public class EventProcessor {
     private void refreshPermissions(
             VertexId id,
             EffectiveVertex effectiveVertex,
-            Set<Edge> edgesToPropagate) {
+            Event event,
+            VertexId subjectId) {
+        Graph graph = graphLoader.getGraph();
+        Set<Edge> edges;
+        if (event.getType() == EventType.CHILD_CHANGE) {
+            edges = graph.getEdgesBySource(subjectId);
+        } else if (event.getType() == EventType.PARENT_CHANGE) {
+            edges = graph.getEdgesByDestination(subjectId);
+        } else {
+            throw new AssertionError();
+        }
+
         Set<VertexId> intermediateVertices = effectiveVertex.getIntermediateVertices();
         Set<Permissions> allPermissions = new HashSet<>();
-        edgesToPropagate.forEach(edge -> {
+        edges.forEach(edge -> {
+            if (edge.permissions() == null) {
+                return;
+            }
+
             VertexId src = edge.src();
             VertexId dst = edge.dst();
-            if (dst.equals(id) && intermediateVertices.contains(src)) {
+            if (dst.equals(subjectId) && intermediateVertices.contains(src)) {
                 allPermissions.add(edge.permissions());
             }
-            if (src.equals(id) && intermediateVertices.contains(dst)) {
+            if (src.equals(subjectId) && intermediateVertices.contains(dst)) {
                 allPermissions.add(edge.permissions());
             }
         });
@@ -97,7 +112,7 @@ public class EventProcessor {
     private void propagateEvent(VertexId id, Event event, Edge e) {
         Event newEvent = Event.builder()
                 .type(event.getType())
-                .source(id)
+                .intermediate(event.getIntermediate())
                 .subjects(event.getSubjects())
                 .build();
 

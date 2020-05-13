@@ -73,12 +73,8 @@ public class NaiveQueriesController {
 
         Set<String> result = new HashSet<>();
 
-        Vertex vertex = graph.getVertex(of);
-        if (vertex.type() == Vertex.Type.USER) {
-            result.add(of.toString());
-        }
-
         for (Edge edge : graph.getEdgesByDestination(of)) {
+            result.add(edge.src().toString());
             result.addAll(members(edge.src().toString()));
         }
 

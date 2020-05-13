@@ -4,7 +4,6 @@ import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
-import com.github.kjarosh.agh.pp.index.InboxProcessor;
 import com.github.kjarosh.agh.pp.index.VertexIndex;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import org.slf4j.Logger;
