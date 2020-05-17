@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -24,12 +26,7 @@ public class Event {
     @JsonProperty("type")
     private EventType type;
 
-    /**
-     * What is being added/modified.
-     */
-    @JsonProperty("subjects")
-    private Set<VertexId> subjects;
-
-    @JsonProperty("intermediate")
-    private VertexId intermediate;
+    @JsonProperty("intermediateVertices")
+    private Map<VertexId, Set<VertexId>> intermediateVertices
+            = new HashMap<>();
 }

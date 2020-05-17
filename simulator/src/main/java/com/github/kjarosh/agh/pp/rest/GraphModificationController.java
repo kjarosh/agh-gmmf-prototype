@@ -20,8 +20,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.github.kjarosh.agh.pp.Config.ZONE_ID;
 
@@ -79,26 +82,34 @@ public class GraphModificationController {
 
         graph.addEdge(new Edge(fromId, toId, permissions));
         if (successive) {
-            Set<VertexId> subjects = new HashSet<>(graph.getVertex(toId)
+            Map<VertexId, Set<VertexId>> subjects = graph.getVertex(toId)
                     .index()
                     .getEffectiveParents()
-                    .keySet());
-            subjects.add(toId);
+                    .entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            e -> e.getValue().getIntermediateVertices()
+                    ));
+            subjects.put(toId, new HashSet<>(Collections.singletonList(fromId)));
             inbox.post(fromId, Event.builder()
                     .type(EventType.PARENT_CHANGE)
-                    .subjects(subjects)
-                    .intermediate(fromId)
+                    .intermediateVertices(subjects)
                     .build());
         } else {
-            Set<VertexId> subjects = new HashSet<>(graph.getVertex(fromId)
+            Map<VertexId, Set<VertexId>> subjects = graph.getVertex(fromId)
                     .index()
                     .getEffectiveChildren()
-                    .keySet());
-            subjects.add(fromId);
+                    .entrySet()
+                    .stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            e -> e.getValue().getIntermediateVertices()
+                    ));
+            subjects.put(fromId, new HashSet<>(Collections.singletonList(toId)));
             inbox.post(toId, Event.builder()
                     .type(EventType.CHILD_CHANGE)
-                    .subjects(subjects)
-                    .intermediate(toId)
+                    .intermediateVertices(subjects)
                     .build());
         }
     }

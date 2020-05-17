@@ -12,6 +12,9 @@ import com.github.kjarosh.agh.pp.index.events.EventType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -29,8 +32,6 @@ public class EventProcessor {
 
     public void process(VertexId id, Event event) {
         Graph graph = graphLoader.getGraph();
-        VertexId intermediateId = event.getIntermediate();
-        Set<VertexId> subjectIds = event.getSubjects();
 
         Vertex current = graph.getVertex(id);
         VertexIndex index = current.index();
@@ -49,7 +50,10 @@ public class EventProcessor {
 
         boolean propagate = false;
 
-        for (VertexId subjectId : subjectIds) {
+        for (Map.Entry<VertexId, Set<VertexId>> e : event.getIntermediateVertices().entrySet()) {
+            VertexId subjectId = e.getKey();
+            Set<VertexId> eventData = e.getValue();
+
             EffectiveVertex effectiveVertex;
             if (!effectiveVertices.containsKey(subjectId)) {
                 effectiveVertex = new EffectiveVertex();
@@ -60,12 +64,12 @@ public class EventProcessor {
             }
 
             Set<VertexId> intermediateVertices = effectiveVertex.getIntermediateVertices();
-            if (!intermediateVertices.contains(intermediateId)) {
+            if (!intermediateVertices.containsAll(eventData)) {
                 propagate = true;
-                intermediateVertices.add(intermediateId);
+                intermediateVertices.addAll(eventData);
             }
 
-            refreshPermissions(id, effectiveVertex, event, subjectId);
+            refreshPermissions(effectiveVertex, event, subjectId);
         }
 
         if (propagate) {
@@ -74,7 +78,6 @@ public class EventProcessor {
     }
 
     private void refreshPermissions(
-            VertexId id,
             EffectiveVertex effectiveVertex,
             Event event,
             VertexId subjectId) {
@@ -110,12 +113,6 @@ public class EventProcessor {
     }
 
     private void propagateEvent(VertexId id, Event event, Edge e) {
-        Event newEvent = Event.builder()
-                .type(event.getType())
-                .intermediate(event.getIntermediate())
-                .subjects(event.getSubjects())
-                .build();
-
         // select the other end of the relation
         VertexId recipient;
         if (id.equals(e.dst())) {
@@ -123,6 +120,16 @@ public class EventProcessor {
         } else {
             recipient = e.dst();
         }
+
+        Map<VertexId, Set<VertexId>> intermediateVertices =
+                new HashMap<>(event.getIntermediateVertices());
+        intermediateVertices.put(id, new HashSet<>(Collections.singletonList(
+                recipient)));
+        Event newEvent = Event.builder()
+                .type(event.getType())
+                .intermediateVertices(intermediateVertices)
+                .build();
+
         inbox.post(recipient, newEvent);
     }
 }
