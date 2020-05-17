@@ -4,7 +4,7 @@ import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
-import com.github.kjarosh.agh.pp.index.VertexIndex;
+import com.github.kjarosh.agh.pp.index.EffectiveVertex;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +74,7 @@ public class IndexedQueriesController {
         }
 
         Vertex fromVertex = graph.getVertex(from);
-        VertexIndex.EffectiveVertex effectiveVertex = fromVertex.index()
+        EffectiveVertex effectiveVertex = fromVertex.index()
                 .getEffectiveParents().get(to);
 
         if (effectiveVertex == null) {

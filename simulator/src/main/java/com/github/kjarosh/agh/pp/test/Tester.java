@@ -1,6 +1,7 @@
 package com.github.kjarosh.agh.pp.test;
 
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
+import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
@@ -10,6 +11,7 @@ import lombok.SneakyThrows;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -97,9 +99,13 @@ public class Tester {
         model.allVertices().forEach(v -> {
             client.addVertex(v.id(), v.type());
         });
-        model.allEdges().forEach(e -> {
-            client.addEdge(zone, e.src(), e.dst(), e.permissions());
-        });
+        model.allEdges()
+                .stream()
+                .sorted(Comparator.comparing(Edge::src)
+                        .thenComparing(Edge::dst))
+                .forEach(e -> {
+                    client.addEdge(zone, e.src(), e.dst(), e.permissions());
+                });
 
         System.out.println("Graph built");
     }

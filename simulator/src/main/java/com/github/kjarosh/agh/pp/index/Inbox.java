@@ -1,9 +1,11 @@
 package com.github.kjarosh.agh.pp.index;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.kjarosh.agh.pp.Config;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.rest.ZoneClient;
+import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -31,6 +33,7 @@ public class Inbox {
     private final Map<VertexId, Deque<Event>> inboxes = new HashMap<>();
     private final List<Consumer<VertexId>> listeners = new CopyOnWriteArrayList<>();
 
+    @SneakyThrows
     public void post(VertexId id, Event event) {
         if (!id.owner().equals(Config.ZONE_ID)) {
             // TODO add outbox
@@ -43,6 +46,7 @@ public class Inbox {
         listeners.forEach(l -> l.accept(id));
     }
 
+    @SneakyThrows
     public Optional<Event> receive(VertexId id) {
         Deque<Event> queue = inboxes.get(id);
         if (queue == null) {

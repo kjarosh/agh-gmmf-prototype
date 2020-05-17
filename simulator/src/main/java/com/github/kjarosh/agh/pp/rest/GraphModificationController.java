@@ -7,6 +7,7 @@ import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.index.EffectiveVertex;
 import com.github.kjarosh.agh.pp.index.Inbox;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventType;
@@ -82,34 +83,36 @@ public class GraphModificationController {
 
         graph.addEdge(new Edge(fromId, toId, permissions));
         if (successive) {
-            Map<VertexId, Set<VertexId>> subjects = graph.getVertex(toId)
+            Map<VertexId, EffectiveVertex> subjects = graph.getVertex(toId)
                     .index()
                     .getEffectiveParents()
                     .entrySet()
                     .stream()
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
-                            e -> e.getValue().getIntermediateVertices()
+                            Map.Entry::getValue
                     ));
-            subjects.put(toId, new HashSet<>(Collections.singletonList(fromId)));
+//            subjects.put(toId, new HashSet<>(Collections.singletonList(fromId)));
             inbox.post(fromId, Event.builder()
                     .type(EventType.PARENT_CHANGE)
-                    .intermediateVertices(subjects)
+                    .effectiveVertices(subjects)
+                    .sender(toId)
                     .build());
         } else {
-            Map<VertexId, Set<VertexId>> subjects = graph.getVertex(fromId)
+            Map<VertexId, EffectiveVertex> subjects = graph.getVertex(fromId)
                     .index()
                     .getEffectiveChildren()
                     .entrySet()
                     .stream()
                     .collect(Collectors.toMap(
                             Map.Entry::getKey,
-                            e -> e.getValue().getIntermediateVertices()
+                            Map.Entry::getValue
                     ));
-            subjects.put(fromId, new HashSet<>(Collections.singletonList(toId)));
+//            subjects.put(fromId, new HashSet<>(Collections.singletonList(toId)));
             inbox.post(toId, Event.builder()
                     .type(EventType.CHILD_CHANGE)
-                    .intermediateVertices(subjects)
+                    .effectiveVertices(subjects)
+                    .sender(fromId)
                     .build());
         }
     }

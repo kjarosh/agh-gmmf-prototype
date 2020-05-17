@@ -2,12 +2,14 @@ package com.github.kjarosh.agh.pp.graph.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
+import lombok.EqualsAndHashCode;
 
 import java.util.Objects;
 
 /**
  * @author Kamil Jarosz
  */
+@EqualsAndHashCode
 public class Permissions {
     public static final Permissions NONE = new Permissions("00000");
 
@@ -17,8 +19,8 @@ public class Permissions {
     public Permissions(String value) {
         this.value = Objects.requireNonNull(value);
 
-        if (value.length() != 5) {
-            throw new IllegalStateException();
+        if (!value.matches("[01]{5}")) {
+            throw new IllegalArgumentException();
         }
     }
 

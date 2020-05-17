@@ -5,7 +5,7 @@ import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.VertexIndex;
-import com.github.kjarosh.agh.pp.index.VertexIndex.EffectiveVertex;
+import com.github.kjarosh.agh.pp.index.EffectiveVertex;
 import com.github.kjarosh.agh.pp.rest.dto.IndexDto;
 import com.github.kjarosh.agh.pp.rest.dto.IndexDto.EffectiveVertexDto;
 import org.slf4j.Logger;
