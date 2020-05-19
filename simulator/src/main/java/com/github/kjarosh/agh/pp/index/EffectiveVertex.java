@@ -34,4 +34,9 @@ public class EffectiveVertex {
                 .intermediateVertices(new HashSet<>(intermediateVertices))
                 .build();
     }
+
+    @JsonIgnore
+    public void combine(Permissions perms) {
+        effectivePermissions = Permissions.combine(effectivePermissions, perms);
+    }
 }

@@ -87,8 +87,7 @@ public class EventProcessor {
                 intermediateVertices.addAll(eventData);
             }
 
-            effectiveVertex.setEffectivePermissions(
-                    Permissions.combine(effectiveVertex.getEffectivePermissions(), permissions));
+            effectiveVertex.combine(permissions);
         }
 
 
@@ -123,7 +122,7 @@ public class EventProcessor {
                 .filter(Objects::nonNull)
                 .reduce(Permissions::combine)
                 .orElse(Permissions.NONE);
-        effectiveVertex.setEffectivePermissions(perms);
+        effectiveVertex.combine(perms);
 
 
         if (propagate) {
