@@ -4,7 +4,6 @@ services:
     build: .
     environment:
       ZONE_ID: zone0
-      GRAPH_PATH: graph.dat
     networks:
       intranet:
     ports:
@@ -15,23 +14,35 @@ services:
     build: .
     environment:
       ZONE_ID: zone1
-      GRAPH_PATH: graph.dat
     networks:
       intranet:
     ports:
       - 8081:80
       - 8781:8080
 
+  zone2:
+    build: .
+    environment:
+      ZONE_ID: zone2
+    networks:
+      intranet:
+    ports:
+      - 8082:80
+      - 8782:8080
+
   tester:
     build: .
     environment:
       TESTED_ZONE: zone0
-      ALL_ZONES: zone0,zone1
+      ALL_ZONES: zone0,zone1,zone2
+      GRAPH_PATH: generated_graph.json
+      DYNAMIC_TESTS: "true"
     networks:
       intranet:
     depends_on:
       - zone0
       - zone1
+      - zone2
 
   client:
     build: .

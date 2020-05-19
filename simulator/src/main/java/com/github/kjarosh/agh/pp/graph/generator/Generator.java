@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.graph.generator;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
@@ -10,6 +11,10 @@ import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.google.common.collect.ImmutableMap;
 import com.moandjiezana.toml.Toml;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +43,13 @@ public class Generator {
         this.relationGenerator = this.new RelationGenerator();
     }
 
+    public static void main(String[] args) throws IOException {
+        Toml config = new Toml().read(new File("config.toml"));
+        Generator generator = new Generator(config);
+        Graph graph = generator.generateGraph();
+        graph.serialize(Files.newOutputStream(Paths.get(config.getString("output"))));
+    }
+
     private <T> T chooseByShares(Map<T, Double> shares) {
         List<Map.Entry<T, Double>> entries = new ArrayList<>(shares.entrySet());
         double sharesSum = entries.stream()
@@ -50,9 +62,9 @@ public class Generator {
         for (int i = 0; i < entries.size(); ++i) {
             double prob = probabilities.get(i);
             if (r < prob) {
-                r -= prob;
-            } else {
                 return entries.get(i).getKey();
+            } else {
+                r -= prob;
             }
         }
 
@@ -60,8 +72,16 @@ public class Generator {
     }
 
     private ZoneId chooseZoneId() {
-        int zoneCount = Math.toIntExact(config.getLong("count.zone"));
-        return new ZoneId("zone" + random.nextInt(zoneCount));
+        int zoneCount = getZoneCount();
+        return getZoneId(random.nextInt(zoneCount));
+    }
+
+    private ZoneId getZoneId(int i) {
+        return new ZoneId("zone" + i);
+    }
+
+    private int getZoneCount() {
+        return Math.toIntExact(config.getLong("count.zone"));
     }
 
     public Graph generateGraph() {
@@ -70,10 +90,13 @@ public class Generator {
         int vertexCount = Math.toIntExact(config.getLong("count.entity"));
         int edgeCount = Math.toIntExact(config.getLong("count.relation"));
 
-        graph.addVertex(entityGenerator.generateVertexWithType(Vertex.Type.PROVIDER));
-        graph.addVertex(entityGenerator.generateVertexWithType(Vertex.Type.SPACE));
-        graph.addVertex(entityGenerator.generateVertexWithType(Vertex.Type.GROUP));
-        graph.addVertex(entityGenerator.generateVertexWithType(Vertex.Type.USER));
+        for (int i = 0; i < getZoneCount(); ++i) {
+            ZoneId z = getZoneId(i);
+            graph.addVertex(entityGenerator.generateVertex(z, Vertex.Type.PROVIDER));
+            graph.addVertex(entityGenerator.generateVertex(z, Vertex.Type.SPACE));
+            graph.addVertex(entityGenerator.generateVertex(z, Vertex.Type.GROUP));
+            graph.addVertex(entityGenerator.generateVertex(z, Vertex.Type.USER));
+        }
 
         for (int i = 0; i < vertexCount - 4; ++i) {
             graph.addVertex(entityGenerator.generateVertex());
@@ -108,25 +131,30 @@ public class Generator {
 
         private Vertex generateVertex() {
             Vertex.Type type = generateVertexType();
-            return generateVertexWithType(type);
+            ZoneId zone = chooseZoneId();
+            return generateVertex(zone, type);
         }
 
-        private Vertex generateVertexWithType(Vertex.Type type) {
-            ZoneId zone = chooseZoneId();
+        private Vertex generateVertex(ZoneId zone, Vertex.Type type) {
             VertexId id = generateVertexId(zone, type);
-            return new Vertex(id, type);
+            Vertex v = new Vertex(id, type);
+
+            verticesByZoneType.computeIfAbsent(
+                    new ZoneAndType(v.id().owner(), v.type()), i -> new ArrayList<>())
+                    .add(id);
+            return v;
         }
 
         private Vertex.Type generateVertexType() {
             return chooseByShares(ImmutableMap.<Vertex.Type, Double>builder()
                     .put(Vertex.Type.PROVIDER,
-                            config.getDouble("type.provider.share"))
+                            config.getDouble("share.type.provider"))
                     .put(Vertex.Type.SPACE,
-                            config.getDouble("type.space.share"))
+                            config.getDouble("share.type.space"))
                     .put(Vertex.Type.GROUP,
-                            config.getDouble("type.group.share"))
+                            config.getDouble("share.type.group"))
                     .put(Vertex.Type.USER,
-                            config.getDouble("type.user.share"))
+                            config.getDouble("share.type.user"))
                     .build());
         }
 
@@ -206,15 +234,15 @@ public class Generator {
         private RelationType generateRelationType() {
             return chooseByShares(ImmutableMap.<RelationType, Double>builder()
                     .put(RelationType.SPACE_PROVIDER,
-                            config.getDouble("relation.space_provider.share"))
+                            config.getDouble("share.relation.space_provider"))
                     .put(RelationType.GROUP_SPACE,
-                            config.getDouble("relation.group_space.share"))
+                            config.getDouble("share.relation.group_space"))
                     .put(RelationType.GROUP_GROUP,
-                            config.getDouble("relation.group_group.share"))
+                            config.getDouble("share.relation.group_group"))
                     .put(RelationType.USER_GROUP,
-                            config.getDouble("relation.user_group.share"))
+                            config.getDouble("share.relation.user_group"))
                     .put(RelationType.USER_SPACE,
-                            config.getDouble("relation.user_space.share"))
+                            config.getDouble("share.relation.user_space"))
                     .build());
         }
 
@@ -227,7 +255,7 @@ public class Generator {
         }
 
         private boolean isRelationInterZone() {
-            double prob = config.getDouble("feature.inter_zone_relation.prob");
+            double prob = config.getDouble("prob.relation.inter_zone");
             return random.nextDouble() < prob;
         }
     }

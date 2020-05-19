@@ -30,7 +30,7 @@ public class InboxProcessor {
             .setNameFormat("worker-" + Config.ZONE_ID + "-%d")
             .build();
     private final ExecutorService executor =
-            Executors.newFixedThreadPool(1, treadFactory);
+            Executors.newFixedThreadPool(10, treadFactory);
     private final Set<VertexId> processing = new HashSet<>();
 
     @Autowired

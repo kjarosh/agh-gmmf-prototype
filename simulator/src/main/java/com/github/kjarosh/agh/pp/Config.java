@@ -1,6 +1,7 @@
 package com.github.kjarosh.agh.pp;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 
 import java.util.Optional;
@@ -12,5 +13,6 @@ public class Config {
     public static ZoneId ZONE_ID = Optional.ofNullable(System.getenv("ZONE_ID"))
             .map(ZoneId::new)
             .orElse(null);
-    public static ObjectMapper MAPPER = new ObjectMapper();
+    public static ObjectMapper MAPPER = new ObjectMapper()
+            .enable(SerializationFeature.INDENT_OUTPUT);
 }

@@ -1,23 +1,29 @@
 # graph generator config
 
-count.zone = 3
-count.entity = 100
-count.relation = 200
+output = 'generated_graph.json'
 
-type.provider.share = 1
-type.space.share = 4
-type.group.share = 16
-type.user.share = 64
+[count]
+zone = 3
+entity = 100
+relation = 200
 
-relation.space_provider.share = 10
-relation.group_space.share = 10
-relation.group_group.share = 10
-relation.user_group.share = 20
-relation.user_space.share = 10
+[share.type]
+provider = 1.0
+space = 4.0
+group = 16.0
+user = 64.0
 
-relation.inter_zone.prob = 0.10
+[share.relation]
+space_provider = 10.0
+group_space = 10.0
+group_group = 10.0
+user_group = 20.0
+user_space = 10.0
+
+[prob.relation]
+inter_zone = 0.10
 
 # operation generator config
 
-steps.relation.deletion.prob = 0.05
-steps.relation.change.prob = 0.1
+#steps.relation.deletion.prob = 0.05
+#steps.relation.change.prob = 0.1
