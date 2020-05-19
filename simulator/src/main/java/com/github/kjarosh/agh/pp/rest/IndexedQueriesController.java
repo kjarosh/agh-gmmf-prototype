@@ -4,8 +4,8 @@ import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
-import com.github.kjarosh.agh.pp.index.EffectiveVertex;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.index.EffectiveVertex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +74,9 @@ public class IndexedQueriesController {
         }
 
         Vertex fromVertex = graph.getVertex(from);
+        if (fromVertex == null) {
+            throw new RuntimeException("Vertex not found: " + from);
+        }
         EffectiveVertex effectiveVertex = fromVertex.index()
                 .getEffectiveParents().get(to);
 

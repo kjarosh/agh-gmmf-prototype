@@ -147,15 +147,55 @@ public class Tester {
         assertTrue(f.apply(vid("zone0:luke"), vid("zone1:krakow")));
         assertFalse(f.apply(vid("zone1:anne"), vid("zone0:lisbon")));
         assertTrue(f.apply(vid("zone0:luke"), vid("zone0:dhub_members")));
+        assertTrue(f.apply(vid("zone0:jill"), vid("zone1:krakow")));
     }
 
     private void testMembers(Function<VertexId, Collection<String>> f) {
-        assertEqualSet(f.apply(vid("zone1:admins")),
-                Arrays.asList("zone0:uber_admins", "zone0:luke"));
-        assertEqualSet(f.apply(vid("zone0:eo_data")),
-                Arrays.asList("zone0:dhub_mngrs", "zone0:dhub_members",
-                        "zone0:uber_admins", "zone1:admins",
-                        "zone0:alice", "zone0:bob", "zone0:luke"));
+        assertEqualSet(f.apply(vid("zone1:admins")), Arrays.asList(
+                "zone0:uber_admins",
+                "zone0:luke"));
+
+        assertEqualSet(f.apply(vid("zone0:eo_data")), Arrays.asList(
+                "zone0:dhub_mngrs",
+                "zone0:dhub_members",
+                "zone0:uber_admins",
+                "zone1:admins",
+                "zone0:alice",
+                "zone0:bob",
+                "zone0:luke"));
+
+        assertEqualSet(f.apply(vid("zone0:ebi")), Arrays.asList(
+                "zone0:alice",
+                "zone0:jill"));
+
+        assertEqualSet(f.apply(vid("zone1:cyfnet")), Arrays.asList(
+                "zone1:audit",
+                "zone1:members",
+                "zone1:tom",
+                "zone1:anne",
+                "zone1:admins",
+                "zone0:uber_admins",
+                "zone0:luke"));
+
+        assertEqualSet(f.apply(vid("zone1:krakow")), Arrays.asList(
+                "zone1:eosc",
+                "zone1:primage",
+                "zone1:members",
+                "zone1:tom",
+                "zone1:anne",
+                "zone1:audit",
+                "zone1:admins",
+                "zone1:cyfnet",
+                "zone0:uber_admins",
+                "zone0:luke",
+                "zone0:ceric",
+                "zone0:ebi",
+                "zone0:jill",
+                "zone0:alice",
+                "zone0:eo_data",
+                "zone0:dhub_members",
+                "zone0:dhub_mngrs",
+                "zone0:bob"));
     }
 
     private void testEffectivePermissions(BiFunction<VertexId, VertexId, String> f) {
@@ -171,5 +211,17 @@ public class Tester {
                 "11011");
         assertEqual(f.apply(vid("zone0:luke"), vid("zone1:eosc")),
                 "11011");
+        assertEqual(f.apply(vid("zone1:anne"), vid("zone1:cyfnet")),
+                "11001");
+        assertEqual(f.apply(vid("zone0:luke"), vid("zone0:dhub_members")),
+                "11111");
+        assertEqual(f.apply(vid("zone1:admins"), vid("zone1:eosc")),
+                "11011");
+        assertEqual(f.apply(vid("zone0:ebi"), vid("zone0:ceric")),
+                "10000");
+        assertEqual(f.apply(vid("zone0:bob"), vid("zone0:datahub")),
+                "11111");
+        assertEqual(f.apply(vid("zone1:tom"), vid("zone1:eosc")),
+                "11001");
     }
 }

@@ -39,4 +39,10 @@ public class EffectiveVertex {
     public void combine(Permissions perms) {
         effectivePermissions = Permissions.combine(effectivePermissions, perms);
     }
+
+    @Override
+    public String toString() {
+        return "EffectiveVertex(" + effectivePermissions +
+                " by " + intermediateVertices + ')';
+    }
 }
