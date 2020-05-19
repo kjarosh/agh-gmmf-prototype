@@ -126,21 +126,16 @@ public class EventProcessor {
 
 
         if (propagate) {
-            edgesToPropagate.forEach((k, e) -> propagateEvent(id, event, e, effectiveVertices));
+            edgesToPropagate.keySet().forEach(recipient ->
+                    propagateEvent(id, recipient, event, effectiveVertices));
         }
     }
 
     private void propagateEvent(
-            VertexId id, Event event, Edge e,
+            VertexId id,
+            VertexId recipient,
+            Event event,
             Map<VertexId, EffectiveVertex> effectiveVertices) {
-        // select the other end of the relation
-        VertexId recipient;
-        if (id.equals(e.dst())) {
-            recipient = e.src();
-        } else {
-            recipient = e.dst();
-        }
-
         Event newEvent = Event.builder()
                 .type(event.getType())
                 .effectiveVertices(effectiveVertices)
