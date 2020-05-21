@@ -1,17 +1,18 @@
 package com.github.kjarosh.agh.pp.test;
 
+import ch.qos.logback.classic.Level;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
-import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
+import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.ZoneClient;
+import com.github.kjarosh.agh.pp.util.LoggerUtils;
 import lombok.SneakyThrows;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -29,8 +30,8 @@ public class Tester {
     private final ZoneClient client;
     private final ZoneId zone;
     private final List<ZoneId> allZones;
-    private final String graphPath;
     private final boolean dynamicTests;
+    private final Graph graph;
 
     public Tester(
             ZoneClient client,
@@ -43,11 +44,13 @@ public class Tester {
         this.allZones = allZones.stream()
                 .map(ZoneId::new)
                 .collect(Collectors.toList());
-        this.graphPath = graphPath;
         this.dynamicTests = dynamicTests;
+        this.graph = GraphLoader.loadGraph(graphPath);
     }
 
     public static void main(String zone, List<String> allZones) {
+        LoggerUtils.setLoggingLevel("org.springframework.web", Level.INFO);
+
         boolean dynamicTests = "true".equals(System.getenv("DYNAMIC_TESTS"));
         String graphPath = System.getenv("GRAPH_PATH");
         new Tester(new ZoneClient(), zone, allZones, graphPath, dynamicTests).test();
@@ -83,10 +86,6 @@ public class Tester {
 
         Assert.Stats naiveStats = Assert.statistics.reset();
 
-        while (indexNotReady()) {
-            Thread.sleep(200);
-        }
-
         testReaches((f, t) -> client.indexedReaches(zone, f, t));
         testMembers((o) -> client.indexedMembers(zone, o));
         testEffectivePermissions((f, t) -> client.indexedEffectivePermissions(zone, f, t));
@@ -107,26 +106,9 @@ public class Tester {
                 .anyMatch(zone -> !client.healthcheck(zone));
     }
 
-    private boolean indexNotReady() {
-        return allZones.stream()
-                .anyMatch(zone -> !client.indexReady(zone));
-    }
-
     private void buildGraph() {
         System.out.println("Building graph");
-
-        Graph model = GraphLoader.loadGraph(graphPath);
-        model.allVertices().forEach(v -> {
-            client.addVertex(v.id(), v.type());
-        });
-        model.allEdges()
-                .stream()
-                .sorted(Comparator.comparing(Edge::src)
-                        .thenComparing(Edge::dst))
-                .forEach(e -> {
-                    client.addEdge(zone, e.src(), e.dst(), e.permissions());
-                });
-
+        new RemoteGraphBuilder(graph, client, allZones).build(client, zone);
         System.out.println("Graph built");
     }
 
@@ -233,8 +215,8 @@ public class Tester {
                 "11011");
         assertEqual(f.apply(vid("zone1:anne"), vid("zone1:cyfnet")),
                 "11001");
-//        assertEqual(f.apply(vid("zone0:luke"), vid("zone0:dhub_members")),
-//                "11111");
+        assertEqual(f.apply(vid("zone0:luke"), vid("zone0:dhub_members")),
+                "11111");
         assertEqual(f.apply(vid("zone1:admins"), vid("zone1:eosc")),
                 "11011");
         assertEqual(f.apply(vid("zone0:ebi"), vid("zone0:ceric")),
@@ -246,6 +228,26 @@ public class Tester {
     }
 
     private void runDynamicTests() {
-        // TODO
+        for (int i = 0; i < 1000; ++i) {
+            Vertex from = getRandom(graph.allVertices());
+            Vertex to = getRandom(graph.allVertices());
+
+            String naive = client.naiveEffectivePermissions(
+                    zone, from.id(), to.id());
+            String indexed = client.indexedEffectivePermissions(
+                    zone, from.id(), to.id());
+            assertEqual(naive, indexed,
+                    "testing permissions from " + from + ", to " + to);
+        }
+
+        Assert.Stats effectivePermissions = Assert.statistics.reset();
+        System.out.println("Effective permissions: " + effectivePermissions);
+    }
+
+    private <E> E getRandom(Collection<E> e) {
+        return e.stream()
+                .skip((int) (e.size() * Math.random()))
+                .findFirst()
+                .orElseThrow(AssertionError::new);
     }
 }

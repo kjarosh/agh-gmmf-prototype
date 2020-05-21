@@ -15,6 +15,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import static com.github.kjarosh.agh.pp.Config.ZONE_ID;
 
@@ -22,10 +24,10 @@ import static com.github.kjarosh.agh.pp.Config.ZONE_ID;
  * @author Kamil Jarosz
  */
 public class Graph {
-    private final Map<VertexId, Vertex> vertices = new HashMap<>();
-    private final Set<Edge> edges = new HashSet<>();
-    private final Map<VertexId, Set<Edge>> edgesBySrc = new HashMap<>();
-    private final Map<VertexId, Set<Edge>> edgesByDst = new HashMap<>();
+    private final Map<VertexId, Vertex> vertices = new ConcurrentHashMap<>();
+    private final Set<Edge> edges = new ConcurrentSkipListSet<>();
+    private final Map<VertexId, Set<Edge>> edgesBySrc = new ConcurrentHashMap<>();
+    private final Map<VertexId, Set<Edge>> edgesByDst = new ConcurrentHashMap<>();
 
     public Graph() {
 
@@ -51,7 +53,12 @@ public class Graph {
     }
 
     public Vertex getVertex(VertexId id) {
-        return vertices.get(id);
+        Vertex vertex = vertices.get(id);
+        if (vertex == null && !hasVertex(id)) {
+            throw new RuntimeException(
+                    "Vertex " + id + " not found in zone " + Config.ZONE_ID);
+        }
+        return vertex;
     }
 
     public void addEdge(Edge e) {
@@ -62,8 +69,8 @@ public class Graph {
         }
 
         edges.add(e);
-        edgesBySrc.computeIfAbsent(e.src(), i -> new HashSet<>()).add(e);
-        edgesByDst.computeIfAbsent(e.dst(), i -> new HashSet<>()).add(e);
+        edgesBySrc.computeIfAbsent(e.src(), i -> new ConcurrentSkipListSet<>()).add(e);
+        edgesByDst.computeIfAbsent(e.dst(), i -> new ConcurrentSkipListSet<>()).add(e);
     }
 
     public Set<Edge> getEdgesBySource(VertexId source) {

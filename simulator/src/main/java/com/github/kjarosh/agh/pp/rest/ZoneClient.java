@@ -5,6 +5,7 @@ import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.events.Event;
+import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.util.StringList;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
@@ -196,5 +197,18 @@ public class ZoneClient {
         if (!response.getStatusCode().is2xxSuccessful()) {
             throw new RuntimeException("Status: " + response.getStatusCode());
         }
+    }
+
+    public EventStats getEventStats(ZoneId zone) {
+        String url = baseUri(zone)
+                .path("events/stats")
+                .build()
+                .toUriString();
+        ResponseEntity<EventStats> response = new RestTemplate().getForEntity(url, EventStats.class);
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Status: " + response.getStatusCode());
+        }
+
+        return response.getBody();
     }
 }

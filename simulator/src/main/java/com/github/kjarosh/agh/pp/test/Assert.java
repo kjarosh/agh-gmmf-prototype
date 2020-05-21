@@ -27,8 +27,13 @@ public class Assert {
     }
 
     public static void assertEqual(Object a, Object b) {
+        assertEqual(a, b, null);
+    }
+
+    public static void assertEqual(Object a, Object b, String when) {
         if (!Objects.equals(a, b)) {
-            failTest("Expected " + a + " to equal " + b);
+            failTest("Expected " + a + " to equal " + b +
+                    (when != null ? " when " + when : ""));
         } else {
             passTest();
         }

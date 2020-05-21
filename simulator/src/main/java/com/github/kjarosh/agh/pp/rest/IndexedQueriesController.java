@@ -74,9 +74,6 @@ public class IndexedQueriesController {
         }
 
         Vertex fromVertex = graph.getVertex(from);
-        if (fromVertex == null) {
-            throw new RuntimeException("Vertex not found: " + from);
-        }
         EffectiveVertex effectiveVertex = fromVertex.index()
                 .getEffectiveParents().get(to);
 

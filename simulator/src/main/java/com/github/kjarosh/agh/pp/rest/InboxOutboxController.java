@@ -2,8 +2,9 @@ package com.github.kjarosh.agh.pp.rest;
 
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.Inbox;
+import com.github.kjarosh.agh.pp.index.InboxProcessor;
 import com.github.kjarosh.agh.pp.index.events.Event;
-import com.github.kjarosh.agh.pp.index.events.EventType;
+import com.github.kjarosh.agh.pp.index.events.EventStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ public class InboxOutboxController {
     @Autowired
     private Inbox inbox;
 
+    @Autowired
+    private InboxProcessor inboxProcessor;
+
     @RequestMapping(method = RequestMethod.POST, path = "events")
     @ResponseBody
     public void postEvent(
@@ -31,5 +35,11 @@ public class InboxOutboxController {
             @RequestBody Event event) {
         VertexId id = new VertexId(idString);
         inbox.post(id, event);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, path = "events/stats")
+    @ResponseBody
+    public EventStats eventStats() {
+        return inboxProcessor.stats();
     }
 }

@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.index;
 
+import com.github.kjarosh.agh.pp.Config;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;

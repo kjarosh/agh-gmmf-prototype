@@ -9,7 +9,7 @@ import lombok.ToString;
  */
 @EqualsAndHashCode(exclude = "permissions")
 @ToString
-public class Edge {
+public class Edge implements Comparable<Edge> {
     @JsonProperty("src")
     private final VertexId src;
     @JsonProperty("dst")
@@ -36,5 +36,20 @@ public class Edge {
 
     public Permissions permissions() {
         return permissions;
+    }
+
+    @Override
+    public int compareTo(Edge other) {
+        int cmp;
+        cmp = src.compareTo(other.src);
+        if (cmp != 0) return cmp;
+        cmp = dst.compareTo(other.dst);
+        if (cmp != 0) return cmp;
+
+        if (permissions == other.permissions) {
+            return 0;
+        }
+
+        return permissions.compareTo(other.permissions);
     }
 }

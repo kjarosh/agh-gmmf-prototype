@@ -10,7 +10,7 @@ import java.util.Objects;
  * @author Kamil Jarosz
  */
 @EqualsAndHashCode
-public class Permissions {
+public class Permissions implements Comparable<Permissions> {
     public static final Permissions NONE = new Permissions("00000");
 
     private final String value;
@@ -49,5 +49,10 @@ public class Permissions {
     @JsonValue
     public String toString() {
         return value;
+    }
+
+    @Override
+    public int compareTo(Permissions o) {
+        return value.compareTo(o.value);
     }
 }

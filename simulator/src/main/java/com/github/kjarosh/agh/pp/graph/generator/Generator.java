@@ -1,6 +1,5 @@
 package com.github.kjarosh.agh.pp.graph.generator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
@@ -217,15 +216,23 @@ public class Generator {
 
             int fromIx = random.nextInt(fromSpace.size());
             int toIx = random.nextInt(toSpace.size());
+            if (fromIx == toIx) {
+                return null;
+            }
+
             VertexId from = fromSpace.get(fromIx);
             VertexId to = toSpace.get(toIx);
 
             if (relationType.from == relationType.to) {
                 if (fromIx > toIx) {
-                    VertexId tmp = from;
+                    VertexId tmp = to;
                     to = from;
                     from = tmp;
                 }
+            }
+
+            if (from.equals(to)) {
+                throw new RuntimeException();
             }
 
             return new Edge(from, to, permissions);

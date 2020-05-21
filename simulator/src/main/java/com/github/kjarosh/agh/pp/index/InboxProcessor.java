@@ -3,6 +3,7 @@ package com.github.kjarosh.agh.pp.index;
 import com.github.kjarosh.agh.pp.Config;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
+import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,7 @@ public class InboxProcessor {
             .setNameFormat("worker-" + Config.ZONE_ID + "-%d")
             .build();
     private final ExecutorService executor =
-            Executors.newFixedThreadPool(10, treadFactory);
+            Executors.newFixedThreadPool(5, treadFactory);
     private final Set<VertexId> processing = new HashSet<>();
 
     @Autowired
@@ -38,6 +39,9 @@ public class InboxProcessor {
 
     @Autowired
     private EventProcessor eventProcessor;
+
+    private volatile long totalTime;
+    private volatile int processedEvents;
 
     @PostConstruct
     public void init() {
@@ -62,7 +66,10 @@ public class InboxProcessor {
                 logger.info("Processing event " + event + " at " + id);
 
                 try {
+                    long start = System.nanoTime();
                     eventProcessor.process(id, event);
+                    processedEvents++;
+                    totalTime += System.nanoTime() - start;
                 } catch (Exception e) {
                     logger.error("An exception occurred while processing an event", e);
                 } finally {
@@ -79,5 +86,13 @@ public class InboxProcessor {
         synchronized (processing) {
             return inbox.isEmpty() && processing.isEmpty();
         }
+    }
+
+    public EventStats stats() {
+        return EventStats.builder()
+                .processing(processing.size())
+                .queued(inbox.queuedCount())
+                .averageNanos(processedEvents > 0 ? totalTime / processedEvents : -1)
+                .build();
     }
 }

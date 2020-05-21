@@ -1,6 +1,5 @@
 package com.github.kjarosh.agh.pp.index;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.kjarosh.agh.pp.Config;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
@@ -14,10 +13,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
@@ -30,13 +29,12 @@ import java.util.function.Consumer;
 public class Inbox {
     private static final Logger logger = LoggerFactory.getLogger(Inbox.class);
 
-    private final Map<VertexId, Deque<Event>> inboxes = new HashMap<>();
+    private final Map<VertexId, Deque<Event>> inboxes = new ConcurrentHashMap<>();
     private final List<Consumer<VertexId>> listeners = new CopyOnWriteArrayList<>();
 
     @SneakyThrows
     public void post(VertexId id, Event event) {
         if (!id.owner().equals(Config.ZONE_ID)) {
-            // TODO add outbox
             new ZoneClient().postEvent(id, event);
             return;
         }
@@ -65,5 +63,12 @@ public class Inbox {
         return inboxes.values()
                 .stream()
                 .allMatch(Collection::isEmpty);
+    }
+
+    public int queuedCount() {
+        return Math.toIntExact(inboxes.values()
+                .stream()
+                .mapToLong(Collection::size)
+                .sum());
     }
 }

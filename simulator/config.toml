@@ -1,11 +1,11 @@
 # graph generator config
 
-output = 'generated_graph.json'
+output = 'src/main/resources/generated_graph.json'
 
 [count]
 zone = 3
-entity = 100
-relation = 200
+entity = 1000
+relation = 2000
 
 [share.type]
 provider = 1.0
