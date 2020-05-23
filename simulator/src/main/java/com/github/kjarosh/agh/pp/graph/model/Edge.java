@@ -23,7 +23,8 @@ public class Edge implements Comparable<Edge> {
             @JsonProperty("perms") Permissions permissions) {
         this.src = src;
         this.dst = dst;
-        this.permissions = permissions;
+        this.permissions = permissions != null ?
+                permissions : Permissions.NONE;
     }
 
     public VertexId src() {
@@ -45,10 +46,6 @@ public class Edge implements Comparable<Edge> {
         if (cmp != 0) return cmp;
         cmp = dst.compareTo(other.dst);
         if (cmp != 0) return cmp;
-
-        if (permissions == other.permissions) {
-            return 0;
-        }
 
         return permissions.compareTo(other.permissions);
     }

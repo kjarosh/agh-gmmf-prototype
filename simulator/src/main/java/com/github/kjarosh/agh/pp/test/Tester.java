@@ -14,9 +14,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.github.kjarosh.agh.pp.test.Assert.assertEqual;
 import static com.github.kjarosh.agh.pp.test.Assert.assertEqualSet;
@@ -203,6 +205,10 @@ public class Tester {
     private void testEffectivePermissions(BiFunction<VertexId, VertexId, String> f) {
         assertEqual(f.apply(vid("zone0:alice"), vid("zone0:bob")),
                 null);
+        assertEqual(f.apply(vid("zone0:jill"), vid("zone1:krakow")),
+                "00000");
+        assertEqual(f.apply(vid("zone0:jill"), vid("zone0:paris")),
+                null);
         assertEqual(f.apply(vid("zone0:alice"), vid("zone0:ebi")),
                 "11000");
         assertEqual(f.apply(vid("zone1:audit"), vid("zone1:cyfnet")),
@@ -228,7 +234,12 @@ public class Tester {
     }
 
     private void runDynamicTests() {
-        for (int i = 0; i < 1000; ++i) {
+        int count = Optional.ofNullable(System.getenv("DYNAMIC_TESTS_COUNT"))
+                .map(Integer::parseInt)
+                .orElse(100);
+        boolean parallel = "true".equals(System.getenv("DYNAMIC_TESTS_PARALLEL"));
+
+        makeStream(count, parallel).forEach(i -> {
             Vertex from = getRandom(graph.allVertices());
             Vertex to = getRandom(graph.allVertices());
 
@@ -238,10 +249,25 @@ public class Tester {
                     zone, from.id(), to.id());
             assertEqual(naive, indexed,
                     "testing permissions from " + from + ", to " + to);
-        }
-
+        });
         Assert.Stats effectivePermissions = Assert.statistics.reset();
+
+        makeStream(count, parallel).forEach(i -> {
+            Vertex of = getRandom(graph.allVertices());
+
+            List<String> naive = client.naiveMembers(zone, of.id());
+            Collection<String> indexed = client.indexedMembers(zone, of.id());
+            assertEqualSet(naive, indexed, "testing members of " + of.id());
+        });
+        Assert.Stats members = Assert.statistics.reset();
+
         System.out.println("Effective permissions: " + effectivePermissions);
+        System.out.println("Members: " + members);
+    }
+
+    private IntStream makeStream(int count, boolean parallel) {
+        IntStream stream = IntStream.range(0, count);
+        return parallel ? stream.parallel() : stream;
     }
 
     private <E> E getRandom(Collection<E> e) {

@@ -37,6 +37,8 @@ services:
       ALL_ZONES: zone0,zone1,zone2
       GRAPH_PATH: generated_graph.json
       DYNAMIC_TESTS: "true"
+      DYNAMIC_TESTS_PARALLEL: "true"
+      DYNAMIC_TESTS_COUNT: 1000
     networks:
       intranet:
     depends_on:

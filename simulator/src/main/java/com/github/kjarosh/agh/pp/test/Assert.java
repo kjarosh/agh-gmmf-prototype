@@ -3,12 +3,14 @@ package com.github.kjarosh.agh.pp.test;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Kamil Jarosz
  */
 public class Assert {
     public static final Stats statistics = new Stats();
+    public static boolean showPassed = true;
 
     public static void assertTrue(boolean a) {
         if (!a) {
@@ -40,23 +42,30 @@ public class Assert {
     }
 
     public static <X> void assertEqualSet(Collection<X> a, Collection<X> b) {
+        assertEqualSet(a, b, null);
+    }
+
+    public static <X> void assertEqualSet(Collection<X> a, Collection<X> b, String when) {
         HashSet<X> setA = new HashSet<>(a);
         HashSet<X> setB = new HashSet<>(b);
         if (!Objects.equals(setA, setB)) {
-            failTest("Expected set " + a + " to equal " + b);
+            failTest("Expected set " + a + " to equal " + b +
+                    (when != null ? " when " + when : ""));
         } else {
             passTest();
         }
     }
 
     private static void passTest() {
-        ++statistics.passed;
-        String src = new Throwable().getStackTrace()[2].toString();
-        System.out.println("Passed (" + src + ")");
+        statistics.passed.incrementAndGet();
+        if (showPassed) {
+            String src = new Throwable().getStackTrace()[2].toString();
+            System.out.println("Passed (" + src + ")");
+        }
     }
 
     private static void failTest(String message) {
-        ++statistics.failed;
+        statistics.failed.incrementAndGet();
         System.out.println("!!!!!!!!!!!!!!!!!!!!");
         System.out.println("! Failed: " + message);
         System.out.println("!!!!!!!!!!!!!!!!!!!!");
@@ -64,31 +73,38 @@ public class Assert {
     }
 
     public static class Stats {
-        private int failed;
-        private int passed;
+        private final AtomicInteger failed;
+        private final AtomicInteger passed;
+
+        public Stats() {
+            this(0, 0);
+        }
+
+        public Stats(int failed, int passed) {
+            this.failed = new AtomicInteger(failed);
+            this.passed = new AtomicInteger(passed);
+        }
 
         public Stats reset() {
-            Stats oldStats = new Stats();
-            oldStats.failed = failed;
-            oldStats.passed = passed;
+            Stats oldStats = new Stats(failed.get(), passed.get());
 
-            failed = 0;
-            passed = 0;
+            failed.set(0);
+            passed.set(0);
 
             return oldStats;
         }
 
         public int failed() {
-            return failed;
+            return failed.get();
         }
 
         public int passed() {
-            return passed;
+            return passed.get();
         }
 
         @Override
         public String toString() {
-            return failed + "/" + (failed + passed) + " failed";
+            return failed.get() + "/" + (failed.get() + passed.get()) + " failed";
         }
     }
 }
