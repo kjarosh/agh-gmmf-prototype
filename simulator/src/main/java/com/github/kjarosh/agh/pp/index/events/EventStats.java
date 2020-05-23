@@ -18,33 +18,31 @@ import lombok.Setter;
 public class EventStats {
     private int processing;
     private int queued;
-    private long averageNanos;
+    private long total;
+    private double load1;
+    private double load5;
+    private double load10;
 
     public static EventStats empty() {
-        return new EventStats(0, 0, -1);
+        return new EventStats(0, 0, 0, 0, 0, 0);
     }
 
     @JsonIgnore
     public EventStats combine(EventStats other) {
-        long avgNanos;
-        if (averageNanos < 0) {
-            avgNanos = other.averageNanos;
-        } else if (other.averageNanos < 0) {
-            avgNanos = averageNanos;
-        } else {
-            avgNanos = (averageNanos + other.averageNanos) / 2;
-        }
         return EventStats.builder()
                 .processing(processing + other.processing)
+                .total(total + other.total)
                 .queued(queued + other.queued)
-                .averageNanos(avgNanos)
+                .load1(load1 + other.load1)
+                .load5(load5 + other.load5)
+                .load10(load10 + other.load10)
                 .build();
     }
 
     @Override
     public String toString() {
-        String averageString = averageNanos > 0 ?
-                String.format(" avg: %.2f/s", 1_000_000_000D / averageNanos) : "";
-        return processing + "/" + (processing + queued) + averageString;
+        return String.format("events: %d/%d", processing, processing + queued) +
+                String.format("  load: %.0f/%.0f/%.0f", load1, load5, load10) +
+                String.format("  total: %d", total);
     }
 }

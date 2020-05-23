@@ -42,7 +42,7 @@ public class RemoteGraphBuilder {
                         .map(client::getEventStats)
                         .reduce(EventStats.empty(), EventStats::combine);
                 System.out.println(String.format(
-                        "built: V: %.2f%% E: %.2f%%    events: %s", v * 100, e * 100, stats));
+                        "built: V: %.2f%% E: %.2f%%    %s", v * 100, e * 100, stats));
             }
         });
         supervisor.start();

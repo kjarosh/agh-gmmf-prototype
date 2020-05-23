@@ -1,9 +1,12 @@
 package com.github.kjarosh.agh.pp.index;
 
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.SlidingTimeWindowMovingAverages;
 import com.github.kjarosh.agh.pp.Config;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
+import com.github.kjarosh.agh.pp.util.ClockX60;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,14 +37,13 @@ public class InboxProcessor {
             Executors.newFixedThreadPool(5, treadFactory);
     private final Set<VertexId> processing = new HashSet<>();
 
+    private final Meter eventsMeter = new Meter(new SlidingTimeWindowMovingAverages(new ClockX60()));
+
     @Autowired
     private Inbox inbox;
 
     @Autowired
     private EventProcessor eventProcessor;
-
-    private volatile long totalTime;
-    private volatile int processedEvents;
 
     @PostConstruct
     public void init() {
@@ -66,10 +68,8 @@ public class InboxProcessor {
                 logger.info("Processing event " + event + " at " + id);
 
                 try {
-                    long start = System.nanoTime();
                     eventProcessor.process(id, event);
-                    processedEvents++;
-                    totalTime += System.nanoTime() - start;
+                    eventsMeter.mark();
                 } catch (Exception e) {
                     logger.error("An exception occurred while processing an event", e);
                 } finally {
@@ -92,7 +92,10 @@ public class InboxProcessor {
         return EventStats.builder()
                 .processing(processing.size())
                 .queued(inbox.queuedCount())
-                .averageNanos(processedEvents > 0 ? totalTime / processedEvents : -1)
+                .total(eventsMeter.getCount())
+                .load1(eventsMeter.getOneMinuteRate())
+                .load5(eventsMeter.getFiveMinuteRate() / 5)
+                .load10(eventsMeter.getFifteenMinuteRate() / 15)
                 .build();
     }
 }
