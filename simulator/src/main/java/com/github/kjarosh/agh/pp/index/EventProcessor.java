@@ -1,6 +1,5 @@
 package com.github.kjarosh.agh.pp.index;
 
-import com.github.kjarosh.agh.pp.Config;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
@@ -13,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -39,7 +39,9 @@ public class EventProcessor {
         Map<VertexId, EffectiveVertex> effectiveVertices;
         Map<VertexId, Edge> edgesToPropagate;
         Map<VertexId, Edge> edgesToCalculate;
-        if (event.getType() == EventType.CHILD_CHANGE) {
+        boolean isChildChange = event.getType() == EventType.CHILD_CHANGE;
+        boolean isParentChange = event.getType() == EventType.PARENT_CHANGE;
+        if (isChildChange) {
             effectiveVertices = index.getEffectiveChildren();
             edgesToPropagate = graph.getEdgesBySource(id)
                     .stream()
@@ -47,7 +49,7 @@ public class EventProcessor {
             edgesToCalculate = graph.getEdgesByDestination(id)
                     .stream()
                     .collect(Collectors.toMap(Edge::src, Function.identity()));
-        } else if (event.getType() == EventType.PARENT_CHANGE) {
+        } else if (isParentChange) {
             effectiveVertices = index.getEffectiveParents();
             edgesToPropagate = graph.getEdgesByDestination(id)
                     .stream()
@@ -83,12 +85,29 @@ public class EventProcessor {
             }
 
             Set<VertexId> intermediateVertices = effectiveVertex.getIntermediateVertices();
-            if (!intermediateVertices.containsAll(eventData)) {
-                propagate = true;
-                intermediateVertices.addAll(eventData);
+            if (isParentChange) {
+                if (!intermediateVertices.containsAll(eventData)) {
+                    propagate = true;
+                    intermediateVertices.addAll(eventData);
+                }
+                effectiveVertex.combine(permissions);
+            } else {
+                if (!intermediateVertices.contains(event.getSender())) {
+                    propagate = true;
+                    intermediateVertices.add(event.getSender());
+                }
+                List<Permissions> perms = edgesToCalculate.values()
+                        .stream()
+                        .filter(x -> intermediateVertices.contains(x.src()))
+                        .map(Edge::permissions)
+                        .collect(Collectors.toList());
+                if (perms.size() != intermediateVertices.size()) {
+                    throw new RuntimeException();
+                }
+                permissions = perms.stream()
+                        .reduce(Permissions.NONE, Permissions::combine);
+                effectiveVertex.setEffectivePermissions(permissions);
             }
-
-            effectiveVertex.combine(permissions);
         }
 
 
@@ -103,28 +122,37 @@ public class EventProcessor {
         }
 
         Set<VertexId> intermediateVertices = effectiveVertex.getIntermediateVertices();
-        if (!intermediateVertices.contains(id)) {
-            propagate = true;
-            intermediateVertices.add(id);
+        if (isParentChange) {
+            if (!intermediateVertices.contains(id)) {
+                propagate = true;
+                intermediateVertices.add(id);
+            }
+
+            Permissions perms = edgesToCalculate.values()
+                    .stream()
+                    .filter(e -> intermediateVertices.contains(e.src()) && e.dst().equals(sender))
+                    .map(Edge::permissions)
+                    .filter(Objects::nonNull)
+                    .reduce(Permissions::combine)
+                    .orElse(Permissions.NONE);
+            effectiveVertex.combine(perms);
+        } else {
+            if (!intermediateVertices.contains(event.getSender())) {
+                propagate = true;
+                intermediateVertices.add(event.getSender());
+            }
+            List<Permissions> perms = edgesToCalculate.values()
+                    .stream()
+                    .filter(x -> intermediateVertices.contains(x.src()))
+                    .map(Edge::permissions)
+                    .collect(Collectors.toList());
+            if (perms.size() != intermediateVertices.size()) {
+                throw new RuntimeException();
+            }
+            Permissions permissions = perms.stream()
+                    .reduce(Permissions.NONE, Permissions::combine);
+            effectiveVertex.setEffectivePermissions(permissions);
         }
-
-        Permissions perms = edgesToCalculate.values()
-                .stream()
-                .filter(e -> {
-                    if (event.getType() == EventType.CHILD_CHANGE) {
-                        return intermediateVertices.contains(e.dst()) && e.src().equals(sender);
-                    } else if (event.getType() == EventType.PARENT_CHANGE) {
-                        return intermediateVertices.contains(e.src()) && e.dst().equals(sender);
-                    } else {
-                        throw new AssertionError();
-                    }
-                })
-                .map(Edge::permissions)
-                .filter(Objects::nonNull)
-                .reduce(Permissions::combine)
-                .orElse(Permissions.NONE);
-        effectiveVertex.combine(perms);
-
 
         if (propagate) {
             edgesToPropagate.keySet().forEach(recipient ->

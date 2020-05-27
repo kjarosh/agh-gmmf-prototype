@@ -67,15 +67,15 @@ public class IndexedQueriesController {
         Graph graph = graphLoader.getGraph();
         VertexId from = new VertexId(fromId);
         VertexId to = new VertexId(toId);
-        ZoneId fromOwner = from.owner();
+        ZoneId toOwner = to.owner();
 
-        if (!fromOwner.equals(ZONE_ID)) {
-            return new ZoneClient().indexedEffectivePermissions(fromOwner, from, to);
+        if (!toOwner.equals(ZONE_ID)) {
+            return new ZoneClient().indexedEffectivePermissions(toOwner, from, to);
         }
 
-        Vertex fromVertex = graph.getVertex(from);
-        EffectiveVertex effectiveVertex = fromVertex.index()
-                .getEffectiveParents().get(to);
+        Vertex toVertex = graph.getVertex(to);
+        EffectiveVertex effectiveVertex = toVertex.index()
+                .getEffectiveChildren().get(from);
 
         if (effectiveVertex == null) {
             return null;
