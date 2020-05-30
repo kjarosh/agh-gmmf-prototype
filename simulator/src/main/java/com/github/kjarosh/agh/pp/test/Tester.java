@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -239,13 +240,29 @@ public class Tester {
                 .orElse(100);
         boolean parallel = "true".equals(System.getenv("DYNAMIC_TESTS_PARALLEL"));
 
+        AtomicInteger allPerms = new AtomicInteger(0);
+        AtomicInteger nonReachablePerms = new AtomicInteger(0);
         makeStream(count, parallel).forEach(i -> {
-            Vertex from = getRandom(graph.allVertices());
-            Vertex to = getRandom(graph.allVertices());
+            Vertex from;
+            Vertex to;
+            String indexed;
+            boolean reaches;
+
+            do {
+                from = getRandom(graph.allVertices());
+                to = getRandom(graph.allVertices());
+
+                indexed = client.indexedEffectivePermissions(
+                        zone, from.id(), to.id());
+                reaches = indexed != null;
+            } while (!reaches && nonReachablePerms.get() * 2 >= allPerms.get());
+
+            allPerms.incrementAndGet();
+            if (!reaches) {
+                nonReachablePerms.incrementAndGet();
+            }
 
             String naive = client.naiveEffectivePermissions(
-                    zone, from.id(), to.id());
-            String indexed = client.indexedEffectivePermissions(
                     zone, from.id(), to.id());
             assertEqual(naive, indexed,
                     "testing permissions from " + from + ", to " + to);
