@@ -92,7 +92,6 @@ public class GraphModificationController {
                             Map.Entry::getKey,
                             Map.Entry::getValue
                     ));
-//            subjects.put(toId, new HashSet<>(Collections.singletonList(fromId)));
             inbox.post(fromId, Event.builder()
                     .type(EventType.PARENT_CHANGE)
                     .effectiveVertices(subjects)
@@ -108,7 +107,6 @@ public class GraphModificationController {
                             Map.Entry::getKey,
                             Map.Entry::getValue
                     ));
-//            subjects.put(fromId, new HashSet<>(Collections.singletonList(toId)));
             inbox.post(toId, Event.builder()
                     .type(EventType.CHILD_CHANGE)
                     .effectiveVertices(subjects)
