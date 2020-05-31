@@ -4,8 +4,8 @@ import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
-import com.github.kjarosh.agh.pp.index.VertexIndex;
 import com.github.kjarosh.agh.pp.index.EffectiveVertex;
+import com.github.kjarosh.agh.pp.index.VertexIndex;
 import com.github.kjarosh.agh.pp.rest.dto.IndexDto;
 import com.github.kjarosh.agh.pp.rest.dto.IndexDto.EffectiveVertexDto;
 import org.slf4j.Logger;
@@ -59,7 +59,10 @@ public class GraphIndexController {
     private IndexDto mapIndex(VertexIndex vertexIndex) {
         return IndexDto.builder()
                 .children(mapEffectiveVertices(vertexIndex.getEffectiveChildren()))
-                .parents(mapEffectiveVertices(vertexIndex.getEffectiveParents()))
+                .parents(vertexIndex.getEffectiveParents()
+                        .stream()
+                        .map(VertexId::toString)
+                        .collect(Collectors.toSet()))
                 .build();
     }
 

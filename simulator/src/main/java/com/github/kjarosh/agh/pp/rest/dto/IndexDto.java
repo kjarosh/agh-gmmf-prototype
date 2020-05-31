@@ -5,6 +5,7 @@ import lombok.Getter;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Kamil Jarosz
@@ -13,7 +14,7 @@ import java.util.Map;
 @Builder
 public class IndexDto {
     private final Map<String, EffectiveVertexDto> children;
-    private final Map<String, EffectiveVertexDto> parents;
+    private final Set<String> parents;
 
     @Getter
     @Builder

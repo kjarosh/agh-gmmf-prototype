@@ -4,7 +4,9 @@ import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import lombok.Getter;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * @author Kamil Jarosz
@@ -12,18 +14,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @Getter
 public class VertexIndex {
     private final Map<VertexId, EffectiveVertex> effectiveChildren = new ConcurrentHashMap<>();
-    private final Map<VertexId, EffectiveVertex> effectiveParents = new ConcurrentHashMap<>();
+    private final Set<VertexId> effectiveParents = new ConcurrentSkipListSet<>();
 
-    public EffectiveVertex getEffectiveParent(VertexId id, Runnable createListener) {
-        EffectiveVertex effectiveVertex;
-        if (!effectiveParents.containsKey(id)) {
-            effectiveVertex = new EffectiveVertex();
-            effectiveParents.put(id, effectiveVertex);
+    public void addEffectiveParent(VertexId id, Runnable createListener) {
+        if (!effectiveParents.contains(id)) {
+            effectiveParents.add(id);
             createListener.run();
-        } else {
-            effectiveVertex = effectiveParents.get(id);
         }
-        return effectiveVertex;
     }
 
     public EffectiveVertex getEffectiveChild(VertexId id, Runnable createListener) {

@@ -1,16 +1,16 @@
 package com.github.kjarosh.agh.pp.index.events;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
-import com.github.kjarosh.agh.pp.index.EffectiveVertex;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Kamil Jarosz
@@ -28,17 +28,21 @@ public class Event {
     private VertexId sender;
 
     @JsonProperty("effectiveVertices")
-    private Map<VertexId, EffectiveVertex> effectiveVertices
-            = new HashMap<>();
+    private Set<VertexId> effectiveVertices;
 
     public Event(
             EventType type,
             VertexId sender,
-            Map<VertexId, EffectiveVertex> effectiveVertices) {
+            Set<VertexId> effectiveVertices) {
         this.type = type;
         this.sender = sender;
-        effectiveVertices.forEach((key, ev) -> {
-            this.effectiveVertices.put(key, ev.copy());
-        });
+        this.effectiveVertices = new HashSet<>(effectiveVertices);
+    }
+
+    @JsonIgnore
+    public Set<VertexId> getAllSubjects() {
+        Set<VertexId> subjects = new HashSet<>(effectiveVertices);
+        subjects.add(sender);
+        return subjects;
     }
 }

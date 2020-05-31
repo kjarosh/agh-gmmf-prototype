@@ -7,7 +7,6 @@ import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.index.EffectiveVertex;
 import com.github.kjarosh.agh.pp.index.Inbox;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventType;
@@ -21,11 +20,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.github.kjarosh.agh.pp.Config.ZONE_ID;
 
@@ -83,30 +78,19 @@ public class GraphModificationController {
 
         graph.addEdge(new Edge(fromId, toId, permissions));
         if (successive) {
-            Map<VertexId, EffectiveVertex> subjects = graph.getVertex(toId)
+            Set<VertexId> subjects = graph.getVertex(toId)
                     .index()
-                    .getEffectiveParents()
-                    .entrySet()
-                    .stream()
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            Map.Entry::getValue
-                    ));
+                    .getEffectiveParents();
             inbox.post(fromId, Event.builder()
                     .type(EventType.PARENT_CHANGE)
                     .effectiveVertices(subjects)
                     .sender(toId)
                     .build());
         } else {
-            Map<VertexId, EffectiveVertex> subjects = graph.getVertex(fromId)
+            Set<VertexId> subjects = graph.getVertex(fromId)
                     .index()
                     .getEffectiveChildren()
-                    .entrySet()
-                    .stream()
-                    .collect(Collectors.toMap(
-                            Map.Entry::getKey,
-                            Map.Entry::getValue
-                    ));
+                    .keySet();
             inbox.post(toId, Event.builder()
                     .type(EventType.CHILD_CHANGE)
                     .effectiveVertices(subjects)
