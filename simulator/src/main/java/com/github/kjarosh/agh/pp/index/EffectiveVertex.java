@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,6 +39,19 @@ public class EffectiveVertex {
     @JsonIgnore
     public void combine(Permissions perms) {
         effectivePermissions = Permissions.combine(effectivePermissions, perms);
+    }
+
+    @JsonIgnore
+    public void addIntermediateVertex(VertexId id, Runnable modifyListener) {
+        addIntermediateVertices(Collections.singleton(id), modifyListener);
+    }
+
+    @JsonIgnore
+    public void addIntermediateVertices(Set<VertexId> ids, Runnable modifyListener) {
+        if (!intermediateVertices.containsAll(ids)) {
+            intermediateVertices.addAll(ids);
+            modifyListener.run();
+        }
     }
 
     @Override
