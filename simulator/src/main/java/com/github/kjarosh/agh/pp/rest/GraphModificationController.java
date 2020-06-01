@@ -2,6 +2,7 @@ package com.github.kjarosh.agh.pp.rest;
 
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
+import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
@@ -42,77 +43,82 @@ public class GraphModificationController {
     @RequestMapping(method = RequestMethod.POST, path = "graph/edges")
     @ResponseBody
     public void addEdge(
-            @RequestParam("from") String fromIdString,
-            @RequestParam("to") String toIdString,
+            @RequestParam("from") String fromId,
+            @RequestParam("to") String toId,
             @RequestParam("permissions") String permissionsString,
+            @RequestParam(value = "trace", required = false) String trace,
             @RequestParam("successive") boolean successive) {
         Graph graph = graphLoader.getGraph();
-        VertexId fromId = new VertexId(fromIdString);
-        VertexId toId = new VertexId(toIdString);
+        EdgeId edgeId = EdgeId.of(
+                new VertexId(fromId),
+                new VertexId(toId));
         Permissions permissions = Strings.isNullOrEmpty(permissionsString) ? null :
                 new Permissions(permissionsString);
 
-        makeSuccessiveRequest(successive, fromId, toId,
+        makeSuccessiveRequest(successive, edgeId,
                 (zone, s) -> new ZoneClient()
-                        .addEdge(zone, fromId, toId, permissions, s));
+                        .addEdge(zone, edgeId, permissions, s));
 
-        graph.addEdge(new Edge(fromId, toId, permissions));
-        propagateChange(successive, fromId, toId);
+        graph.addEdge(new Edge(edgeId.getFrom(), edgeId.getTo(), permissions));
+        postChangeEvent(successive, trace, edgeId);
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "graph/edges/permissions")
     @ResponseBody
     public void setPermissions(
-            @RequestParam("from") String fromIdString,
-            @RequestParam("to") String toIdString,
+            @RequestParam("from") String fromId,
+            @RequestParam("to") String toId,
             @RequestParam("permissions") String permissionsString,
+            @RequestParam(value = "trace", required = false) String trace,
             @RequestParam("successive") boolean successive) {
         Graph graph = graphLoader.getGraph();
-        VertexId fromId = new VertexId(fromIdString);
-        VertexId toId = new VertexId(toIdString);
+        EdgeId edgeId = EdgeId.of(
+                new VertexId(fromId),
+                new VertexId(toId));
         Permissions permissions = Strings.isNullOrEmpty(permissionsString) ? null :
                 new Permissions(permissionsString);
 
-        makeSuccessiveRequest(successive, fromId, toId,
+        makeSuccessiveRequest(successive, edgeId,
                 (zone, s) -> new ZoneClient()
-                        .setPermissions(zone, fromId, toId, permissions, s));
+                        .setPermissions(zone, edgeId, permissions, s));
 
-        graph.setPermissions(fromId, toId, permissions);
-        propagateChange(successive, fromId, toId);
+        graph.setPermissions(edgeId, permissions);
+        postChangeEvent(successive, trace, edgeId);
     }
 
-    @RequestMapping(method = RequestMethod.DELETE, path = "graph/edges")
+    @RequestMapping(method = RequestMethod.POST, path = "graph/edges/delete")
     @ResponseBody
     public void removeEdge(
-            @RequestParam("from") String fromIdString,
-            @RequestParam("to") String toIdString,
+            @RequestParam("from") String fromId,
+            @RequestParam("to") String toId,
+            @RequestParam(value = "trace", required = false) String trace,
             @RequestParam("successive") boolean successive) {
         Graph graph = graphLoader.getGraph();
-        VertexId fromId = new VertexId(fromIdString);
-        VertexId toId = new VertexId(toIdString);
+        EdgeId edgeId = EdgeId.of(
+                new VertexId(fromId),
+                new VertexId(toId));
 
-        makeSuccessiveRequest(successive, fromId, toId,
+        makeSuccessiveRequest(successive, edgeId,
                 (zone, s) -> new ZoneClient()
-                        .removeEdge(zone, fromId, toId, s));
+                        .removeEdge(zone, edgeId, s));
 
-        Edge edge = graph.getEdge(fromId, toId);
+        Edge edge = graph.getEdge(edgeId);
         graph.removeEdge(edge);
-        propagateChange(successive, fromId, toId);
+        postChangeEvent(successive, trace, edgeId);
     }
 
     private void makeSuccessiveRequest(
             boolean successive,
-            VertexId fromId,
-            VertexId toId,
+            EdgeId edgeId,
             BiConsumer<ZoneId, Boolean> propagator) {
-        ZoneId fromOwner = fromId.owner();
-        ZoneId toOwner = toId.owner();
+        ZoneId fromOwner = edgeId.getFrom().owner();
+        ZoneId toOwner = edgeId.getTo().owner();
         if (fromOwner == null) {
-            throw new RuntimeException("From vertex is unknown: " + fromId);
+            throw new RuntimeException("From vertex is unknown: " + edgeId.getFrom());
         }
 
         if (toOwner == null) {
-            throw new RuntimeException("To vertex is unknown: " + toId);
+            throw new RuntimeException("To vertex is unknown: " + edgeId.getTo());
         }
 
         if (successive) {
@@ -132,29 +138,31 @@ public class GraphModificationController {
         }
     }
 
-    private void propagateChange(
+    private void postChangeEvent(
             boolean successive,
-            VertexId fromId,
-            VertexId toId) {
+            String trace,
+            EdgeId edgeId) {
         Graph graph = graphLoader.getGraph();
         if (successive) {
-            Set<VertexId> subjects = graph.getVertex(toId)
+            Set<VertexId> subjects = graph.getVertex(edgeId.getTo())
                     .index()
                     .getEffectiveParents();
-            inbox.post(fromId, Event.builder()
+            inbox.post(edgeId.getFrom(), Event.builder()
+                    .trace(trace)
                     .type(EventType.PARENT_CHANGE)
                     .effectiveVertices(subjects)
-                    .sender(toId)
+                    .sender(edgeId.getTo())
                     .build());
         } else {
-            Set<VertexId> subjects = graph.getVertex(fromId)
+            Set<VertexId> subjects = graph.getVertex(edgeId.getFrom())
                     .index()
                     .getEffectiveChildren()
                     .keySet();
-            inbox.post(toId, Event.builder()
+            inbox.post(edgeId.getTo(), Event.builder()
+                    .trace(trace)
                     .type(EventType.CHILD_CHANGE)
                     .effectiveVertices(subjects)
-                    .sender(fromId)
+                    .sender(edgeId.getFrom())
                     .build());
         }
     }

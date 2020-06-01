@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.cli;
 
+import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.ZoneClient;
@@ -112,7 +113,8 @@ public class Cmd {
 
         public Void call() {
             if (checkZone()) return null;
-            System.out.println(client.isAdjacent(zone, new VertexId(from), new VertexId(to)));
+            System.out.println(client.isAdjacent(zone,
+                    EdgeId.of(new VertexId(from), new VertexId(to))));
             return null;
         }
     }

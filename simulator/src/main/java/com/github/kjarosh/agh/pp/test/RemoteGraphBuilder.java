@@ -60,7 +60,7 @@ public class RemoteGraphBuilder {
                             .thenComparing(Edge::dst))
                     .parallel()
                     .forEach(e -> {
-                        client.addEdge(zone, e.src(), e.dst(), e.permissions());
+                        client.addEdge(zone, e.id(), e.permissions());
                         edgesBuilt.incrementAndGet();
                     });
 

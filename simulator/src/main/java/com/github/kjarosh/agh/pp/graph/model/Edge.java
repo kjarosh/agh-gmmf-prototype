@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.graph.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -25,6 +26,11 @@ public class Edge implements Comparable<Edge> {
         this.dst = dst;
         this.permissions = permissions != null ?
                 permissions : Permissions.NONE;
+    }
+
+    @JsonIgnore
+    public EdgeId id() {
+        return new EdgeId(src, dst);
     }
 
     public VertexId src() {

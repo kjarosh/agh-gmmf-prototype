@@ -1,6 +1,7 @@
 package com.github.kjarosh.agh.pp.rest;
 
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
+import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
@@ -65,17 +66,18 @@ public class IndexedQueriesController {
             @RequestParam("from") String fromId,
             @RequestParam("to") String toId) {
         Graph graph = graphLoader.getGraph();
-        VertexId from = new VertexId(fromId);
-        VertexId to = new VertexId(toId);
-        ZoneId toOwner = to.owner();
+        EdgeId edgeId = EdgeId.of(
+                new VertexId(fromId),
+                new VertexId(toId));
+        ZoneId toOwner = edgeId.getTo().owner();
 
         if (!toOwner.equals(ZONE_ID)) {
-            return new ZoneClient().indexedEffectivePermissions(toOwner, from, to);
+            return new ZoneClient().indexedEffectivePermissions(toOwner, edgeId);
         }
 
-        Vertex toVertex = graph.getVertex(to);
+        Vertex toVertex = graph.getVertex(edgeId.getTo());
         EffectiveVertex effectiveVertex = toVertex.index()
-                .getEffectiveChildren().get(from);
+                .getEffectiveChildren().get(edgeId.getFrom());
 
         if (effectiveVertex == null) {
             return null;

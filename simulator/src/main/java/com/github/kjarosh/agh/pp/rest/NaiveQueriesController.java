@@ -2,6 +2,7 @@ package com.github.kjarosh.agh.pp.rest;
 
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
+import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
@@ -42,19 +43,20 @@ public class NaiveQueriesController {
             @RequestParam("from") String fromId,
             @RequestParam("to") String toId) {
         Graph graph = graphLoader.getGraph();
-        VertexId from = new VertexId(fromId);
-        VertexId to = new VertexId(toId);
-        ZoneId fromOwner = from.owner();
+        EdgeId edgeId = EdgeId.of(
+                new VertexId(fromId),
+                new VertexId(toId));
+        ZoneId fromOwner = edgeId.getFrom().owner();
 
         if (!fromOwner.equals(ZONE_ID)) {
-            return new ZoneClient().naiveReaches(fromOwner, from, to);
+            return new ZoneClient().naiveReaches(fromOwner, edgeId);
         }
 
         if (basicQueriesController.isAdjacent(fromId, toId)) {
             return true;
         }
 
-        return graph.getEdgesBySource(from)
+        return graph.getEdgesBySource(edgeId.getFrom())
                 .stream()
                 .anyMatch(e -> reaches(e.dst().toString(), toId));
     }
@@ -87,18 +89,19 @@ public class NaiveQueriesController {
             @RequestParam("from") String fromId,
             @RequestParam("to") String toId) {
         Graph graph = graphLoader.getGraph();
-        VertexId from = new VertexId(fromId);
-        VertexId to = new VertexId(toId);
-        ZoneId fromOwner = from.owner();
+        EdgeId edgeId = EdgeId.of(
+                new VertexId(fromId),
+                new VertexId(toId));
+        ZoneId fromOwner = edgeId.getFrom().owner();
 
         if (!fromOwner.equals(ZONE_ID)) {
-            return new ZoneClient().naiveEffectivePermissions(fromOwner, from, to);
+            return new ZoneClient().naiveEffectivePermissions(fromOwner, edgeId);
         }
 
         Permissions permissions = null;
 
-        for (Edge edge : graph.getEdgesBySource(from)) {
-            if (edge.dst().equals(to)) {
+        for (Edge edge : graph.getEdgesBySource(edgeId.getFrom())) {
+            if (edge.dst().equals(edgeId.getTo())) {
                 permissions = Permissions.combine(
                         permissions,
                         edge.permissions());

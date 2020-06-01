@@ -2,6 +2,7 @@ package com.github.kjarosh.agh.pp.test;
 
 import ch.qos.logback.classic.Level;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
+import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
@@ -24,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -72,6 +72,10 @@ public class Tester {
         return new VertexId(bob);
     }
 
+    private EdgeId eid(String from, String to) {
+        return new EdgeId(new VertexId(from), new VertexId(to));
+    }
+
     @SneakyThrows
     private void test() {
         while (notHealthy()) {
@@ -95,24 +99,24 @@ public class Tester {
         Map<String, Assert.Stats> naiveByType = new HashMap<>();
         Map<String, Assert.Stats> indexedByType = new HashMap<>();
 
-        testReaches((f, t) -> client.naiveReaches(zone, f, t));
+        testReaches(e -> client.naiveReaches(zone, e));
         naiveByType.put("reaches", Assert.statistics.reset());
         testMembers((o) -> client.naiveMembers(zone, o));
         naiveByType.put("members", Assert.statistics.reset());
-        testEffectivePermissions((f, t) -> client.naiveEffectivePermissions(zone, f, t));
+        testEffectivePermissions(e -> client.naiveEffectivePermissions(zone, e));
         naiveByType.put("eperms", Assert.statistics.reset());
 
-        testReaches((f, t) -> client.indexedReaches(zone, f, t));
+        testReaches(e -> client.indexedReaches(zone, e));
         indexedByType.put("reaches", Assert.statistics.reset());
         testMembers((o) -> client.indexedMembers(zone, o));
         indexedByType.put("members", Assert.statistics.reset());
-        testEffectivePermissions((f, t) -> client.indexedEffectivePermissions(zone, f, t));
+        testEffectivePermissions(e -> client.indexedEffectivePermissions(zone, e));
         indexedByType.put("eperms", Assert.statistics.reset());
 
         modifyPermissions();
-        testPermissionsAfterModification((f, t) -> client.naiveEffectivePermissions(zone, f, t));
+        testPermissionsAfterModification(e -> client.naiveEffectivePermissions(zone, e));
         naiveByType.put("perm mod", Assert.statistics.reset());
-        testPermissionsAfterModification((f, t) -> client.naiveEffectivePermissions(zone, f, t));
+        testPermissionsAfterModification(e -> client.naiveEffectivePermissions(zone, e));
         indexedByType.put("perm mod", Assert.statistics.reset());
 
         long time = System.nanoTime() - start;
@@ -156,8 +160,8 @@ public class Tester {
     }
 
     private void testIsAdjacent() {
-        assertTrue(client.isAdjacent(zone, vid("zone0:bob"), vid("zone0:datahub")));
-        assertFalse(client.isAdjacent(zone, vid("zone0:bob"), vid("zone0:alice")));
+        assertTrue(client.isAdjacent(zone, eid("zone0:bob", "zone0:datahub")));
+        assertFalse(client.isAdjacent(zone, eid("zone0:bob", "zone0:alice")));
     }
 
     private void testListAdjacent() {
@@ -175,24 +179,24 @@ public class Tester {
     }
 
     private void testPermissions() {
-        assertEqual(client.permissions(zone, vid("zone0:alice"), vid("zone0:bob")),
+        assertEqual(client.permissions(zone, eid("zone0:alice", "zone0:bob")),
                 null);
-        assertEqual(client.permissions(zone, vid("zone0:alice"), vid("zone0:ebi")),
+        assertEqual(client.permissions(zone, eid("zone0:alice", "zone0:ebi")),
                 "11000");
-        assertEqual(client.permissions(zone, vid("zone1:audit"), vid("zone1:cyfnet")),
+        assertEqual(client.permissions(zone, eid("zone1:audit", "zone1:cyfnet")),
                 "11001");
-        assertEqual(client.permissions(zone, vid("zone1:audit"), vid("zone1:eosc")),
+        assertEqual(client.permissions(zone, eid("zone1:audit", "zone1:eosc")),
                 null);
     }
 
-    private void testReaches(BiFunction<VertexId, VertexId, Boolean> f) {
-        assertTrue(f.apply(vid("zone0:bob"), vid("zone0:datahub")));
-        assertFalse(f.apply(vid("zone0:bob"), vid("zone1:admins")));
-        assertTrue(f.apply(vid("zone0:bob"), vid("zone0:dhub_members")));
-        assertTrue(f.apply(vid("zone0:luke"), vid("zone1:krakow")));
-        assertFalse(f.apply(vid("zone1:anne"), vid("zone0:lisbon")));
-        assertTrue(f.apply(vid("zone0:luke"), vid("zone0:dhub_members")));
-        assertTrue(f.apply(vid("zone0:jill"), vid("zone1:krakow")));
+    private void testReaches(Function<EdgeId, Boolean> f) {
+        assertTrue(f.apply(eid("zone0:bob", "zone0:datahub")));
+        assertFalse(f.apply(eid("zone0:bob", "zone1:admins")));
+        assertTrue(f.apply(eid("zone0:bob", "zone0:dhub_members")));
+        assertTrue(f.apply(eid("zone0:luke", "zone1:krakow")));
+        assertFalse(f.apply(eid("zone1:anne", "zone0:lisbon")));
+        assertTrue(f.apply(eid("zone0:luke", "zone0:dhub_members")));
+        assertTrue(f.apply(eid("zone0:jill", "zone1:krakow")));
     }
 
     private void testMembers(Function<VertexId, Collection<String>> f) {
@@ -243,72 +247,67 @@ public class Tester {
                 "zone0:bob"));
     }
 
-    private void testEffectivePermissions(BiFunction<VertexId, VertexId, String> f) {
-        assertEqual(f.apply(vid("zone0:alice"), vid("zone0:bob")),
+    private void testEffectivePermissions(Function<EdgeId, String> f) {
+        assertEqual(f.apply(eid("zone0:alice", "zone0:bob")),
                 null);
-        assertEqual(f.apply(vid("zone0:jill"), vid("zone1:krakow")),
+        assertEqual(f.apply(eid("zone0:jill", "zone1:krakow")),
                 "00000");
-        assertEqual(f.apply(vid("zone0:jill"), vid("zone0:paris")),
+        assertEqual(f.apply(eid("zone0:jill", "zone0:paris")),
                 null);
-        assertEqual(f.apply(vid("zone0:alice"), vid("zone0:ebi")),
+        assertEqual(f.apply(eid("zone0:alice", "zone0:ebi")),
                 "11000");
-        assertEqual(f.apply(vid("zone1:audit"), vid("zone1:cyfnet")),
+        assertEqual(f.apply(eid("zone1:audit", "zone1:cyfnet")),
                 "11001");
-        assertEqual(f.apply(vid("zone1:audit"), vid("zone1:eosc")),
+        assertEqual(f.apply(eid("zone1:audit", "zone1:eosc")),
                 "11001");
-        assertEqual(f.apply(vid("zone1:tom"), vid("zone1:primage")),
+        assertEqual(f.apply(eid("zone1:tom", "zone1:primage")),
                 "11011");
-        assertEqual(f.apply(vid("zone0:luke"), vid("zone1:eosc")),
+        assertEqual(f.apply(eid("zone0:luke", "zone1:eosc")),
                 "11011");
-        assertEqual(f.apply(vid("zone1:anne"), vid("zone1:cyfnet")),
+        assertEqual(f.apply(eid("zone1:anne", "zone1:cyfnet")),
                 "11001");
-        assertEqual(f.apply(vid("zone0:luke"), vid("zone0:dhub_members")),
+        assertEqual(f.apply(eid("zone0:luke", "zone0:dhub_members")),
                 "11111");
-        assertEqual(f.apply(vid("zone1:admins"), vid("zone1:eosc")),
+        assertEqual(f.apply(eid("zone1:admins", "zone1:eosc")),
                 "11011");
-        assertEqual(f.apply(vid("zone0:ebi"), vid("zone0:ceric")),
+        assertEqual(f.apply(eid("zone0:ebi", "zone0:ceric")),
                 "10000");
-        assertEqual(f.apply(vid("zone0:bob"), vid("zone0:datahub")),
+        assertEqual(f.apply(eid("zone0:bob", "zone0:datahub")),
                 "11111");
-        assertEqual(f.apply(vid("zone1:tom"), vid("zone1:eosc")),
+        assertEqual(f.apply(eid("zone1:tom", "zone1:eosc")),
                 "11001");
-        assertEqual(f.apply(vid("zone0:alice"), vid("zone0:ceric")),
+        assertEqual(f.apply(eid("zone0:alice", "zone0:ceric")),
                 "10000");
     }
 
     private void modifyPermissions() {
         client.setPermissions(zone,
-                vid("zone1:tom"),
-                vid("zone1:primage"),
+                eid("zone1:tom", "zone1:primage"),
                 new Permissions("11001"));
         client.setPermissions(zone,
-                vid("zone0:uber_admins"),
-                vid("zone1:admins"),
+                eid("zone0:uber_admins", "zone1:admins"),
                 new Permissions("10100"));
         client.setPermissions(zone,
-                vid("zone1:admins"),
-                vid("zone1:eosc"),
+                eid("zone1:admins", "zone1:eosc"),
                 new Permissions("10000"));
         client.setPermissions(zone,
-                vid("zone1:cyfnet"),
-                vid("zone1:eosc"),
+                eid("zone1:cyfnet", "zone1:eosc"),
                 new Permissions("00001"));
 
         client.removeEdge(zone,
-                vid("zone0:alice"),
-                vid("zone0:ebi"));
+                eid("zone0:alice", "zone0:ebi"));
     }
 
-    private void testPermissionsAfterModification(BiFunction<VertexId, VertexId, String> f) {
-        assertEqual(f.apply(vid("zone1:tom"), vid("zone1:primage")),
+    private void testPermissionsAfterModification(Function<EdgeId, String> f) {
+        assertEqual(f.apply(eid("zone1:tom", "zone1:primage")),
                 "11001");
-        assertEqual(f.apply(vid("zone0:luke"), vid("zone1:admins")),
+        assertEqual(f.apply(eid("zone0:luke", "zone1:admins")),
                 "10100");
-        assertEqual(f.apply(vid("zone0:luke"), vid("zone1:eosc")),
+        assertEqual(f.apply(eid("zone0:luke", "zone1:eosc")),
                 "10001");
-        assertEqual(f.apply(vid("zone0:alice"), vid("zone0:ceric")),
+        assertEqual(f.apply(eid("zone0:alice", "zone0:ceric")),
                 null);
-        assertEqual(f.apply(vid("zone0:alice"), vid("zone1:krakow")),
+        assertEqual(f.apply(eid("zone0:alice", "zone1:krakow")),
                 "00000");
     }
 
@@ -331,7 +330,7 @@ public class Tester {
                 to = getRandom(graph.allVertices());
 
                 indexed = client.indexedEffectivePermissions(
-                        zone, from.id(), to.id());
+                        zone, EdgeId.of(from.id(), to.id()));
                 reaches = indexed != null;
             } while (!reaches && nonReachablePerms.get() * 2 >= allPerms.get());
 
@@ -341,7 +340,7 @@ public class Tester {
             }
 
             String naive = client.naiveEffectivePermissions(
-                    zone, from.id(), to.id());
+                    zone, EdgeId.of(from.id(), to.id()));
             assertEqual(naive, indexed,
                     "testing permissions from " + from + ", to " + to);
         });

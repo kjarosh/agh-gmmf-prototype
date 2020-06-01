@@ -2,6 +2,7 @@ package com.github.kjarosh.agh.pp.rest;
 
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
+import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
@@ -36,18 +37,19 @@ public class BasicQueriesController {
             @RequestParam("from") String fromId,
             @RequestParam("to") String toId) {
         Graph graph = graphLoader.getGraph();
-        VertexId from = new VertexId(fromId);
-        VertexId to = new VertexId(toId);
-        ZoneId fromOwner = from.owner();
+        EdgeId edgeId = EdgeId.of(
+                new VertexId(fromId),
+                new VertexId(toId));
+        ZoneId fromOwner = edgeId.getFrom().owner();
 
         if (!fromOwner.equals(ZONE_ID)) {
-            return new ZoneClient().isAdjacent(fromOwner, from, to);
+            return new ZoneClient().isAdjacent(fromOwner, edgeId);
         }
 
-        return graph.getEdgesBySource(from)
+        return graph.getEdgesBySource(edgeId.getFrom())
                 .stream()
                 .map(Edge::dst)
-                .anyMatch(to::equals);
+                .anyMatch(edgeId.getTo()::equals);
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "list_adjacent")
@@ -94,17 +96,18 @@ public class BasicQueriesController {
             @RequestParam("from") String fromId,
             @RequestParam("to") String toId) {
         Graph graph = graphLoader.getGraph();
-        VertexId from = new VertexId(fromId);
-        VertexId to = new VertexId(toId);
-        ZoneId fromOwner = from.owner();
+        EdgeId edgeId = EdgeId.of(
+                new VertexId(fromId),
+                new VertexId(toId));
+        ZoneId fromOwner = edgeId.getFrom().owner();
 
         if (!fromOwner.equals(ZONE_ID)) {
-            return new ZoneClient().permissions(fromOwner, from, to);
+            return new ZoneClient().permissions(fromOwner, edgeId);
         }
 
-        return graph.getEdgesBySource(from)
+        return graph.getEdgesBySource(edgeId.getFrom())
                 .stream()
-                .filter(e -> e.dst().equals(to))
+                .filter(e -> e.dst().equals(edgeId.getTo()))
                 .findAny()
                 .map(Edge::permissions)
                 .map(Permissions::toString)

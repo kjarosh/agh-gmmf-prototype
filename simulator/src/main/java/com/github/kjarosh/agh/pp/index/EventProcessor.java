@@ -92,6 +92,7 @@ public class EventProcessor {
             Event event,
             Set<VertexId> effectiveVertices) {
         Event newEvent = Event.builder()
+                .trace(event.getTrace())
                 .type(event.getType())
                 .effectiveVertices(effectiveVertices)
                 .sender(id)

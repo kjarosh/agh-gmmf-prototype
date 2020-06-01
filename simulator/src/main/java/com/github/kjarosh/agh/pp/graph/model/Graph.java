@@ -24,7 +24,7 @@ import static com.github.kjarosh.agh.pp.Config.ZONE_ID;
  */
 public class Graph {
     private final Map<VertexId, Vertex> vertices = new ConcurrentHashMap<>();
-    private final Map<Pair<VertexId, VertexId>, Edge> edges = new ConcurrentHashMap<>();
+    private final Map<EdgeId, Edge> edges = new ConcurrentHashMap<>();
     private final Map<VertexId, Set<Edge>> edgesBySrc = new ConcurrentHashMap<>();
     private final Map<VertexId, Set<Edge>> edgesByDst = new ConcurrentHashMap<>();
 
@@ -67,7 +67,7 @@ public class Graph {
             return;
         }
 
-        edges.put(Pair.of(e.src(), e.dst()), e);
+        edges.put(e.id(), e);
         edgesBySrc.computeIfAbsent(e.src(), i -> new ConcurrentSkipListSet<>()).add(e);
         edgesByDst.computeIfAbsent(e.dst(), i -> new ConcurrentSkipListSet<>()).add(e);
     }
@@ -78,18 +78,18 @@ public class Graph {
         edgesByDst.get(e.dst()).remove(e);
     }
 
-    public Edge getEdge(VertexId from, VertexId to) {
-        return edges.get(Pair.of(from, to));
+    public Edge getEdge(EdgeId edgeId) {
+        return edges.get(edgeId);
     }
 
-    public void setPermissions(VertexId from, VertexId to, Permissions permissions) {
-        Edge edge = getEdge(from, to);
+    public void setPermissions(EdgeId edgeId, Permissions permissions) {
+        Edge edge = getEdge(edgeId);
         if (edge == null) {
             throw new IllegalStateException();
         }
 
         removeEdge(edge);
-        addEdge(new Edge(from, to, permissions));
+        addEdge(new Edge(edgeId.getFrom(), edgeId.getTo(), permissions));
     }
 
     public Set<Edge> getEdgesBySource(VertexId source) {

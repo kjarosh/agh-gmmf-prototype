@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.rest;
 
+import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
@@ -65,11 +66,11 @@ public class ZoneClient {
         return body != null && body;
     }
 
-    public boolean isAdjacent(ZoneId zone, VertexId from, VertexId to) {
+    public boolean isAdjacent(ZoneId zone, EdgeId edgeId) {
         String url = baseUri(zone)
                 .path("is_adjacent")
-                .queryParam("from", from)
-                .queryParam("to", to)
+                .queryParam("from", edgeId.getFrom())
+                .queryParam("to", edgeId.getTo())
                 .build()
                 .toUriString();
         return execute(url, Boolean.class);
@@ -93,21 +94,21 @@ public class ZoneClient {
         return execute(url, StringList.class);
     }
 
-    public String permissions(ZoneId zone, VertexId from, VertexId to) {
+    public String permissions(ZoneId zone, EdgeId edgeId) {
         String url = baseUri(zone)
                 .path("permissions")
-                .queryParam("from", from)
-                .queryParam("to", to)
+                .queryParam("from", edgeId.getFrom())
+                .queryParam("to", edgeId.getTo())
                 .build()
                 .toUriString();
         return execute(url, String.class);
     }
 
-    public boolean naiveReaches(ZoneId zone, VertexId from, VertexId to) {
+    public boolean naiveReaches(ZoneId zone, EdgeId edgeId) {
         String url = baseUri(zone)
                 .path("naive/reaches")
-                .queryParam("from", from)
-                .queryParam("to", to)
+                .queryParam("from", edgeId.getFrom())
+                .queryParam("to", edgeId.getTo())
                 .build()
                 .toUriString();
         return execute(url, Boolean.class);
@@ -122,31 +123,31 @@ public class ZoneClient {
         return execute(url, StringList.class);
     }
 
-    public String naiveEffectivePermissions(ZoneId zone, VertexId from, VertexId to) {
+    public String naiveEffectivePermissions(ZoneId zone, EdgeId edgeId) {
         String url = baseUri(zone)
                 .path("naive/effective_permissions")
-                .queryParam("from", from)
-                .queryParam("to", to)
+                .queryParam("from", edgeId.getFrom())
+                .queryParam("to", edgeId.getTo())
                 .build()
                 .toUriString();
         return execute(url, String.class);
     }
 
-    public boolean indexedReaches(ZoneId zone, VertexId from, VertexId to) {
+    public boolean indexedReaches(ZoneId zone, EdgeId edgeId) {
         String url = baseUri(zone)
                 .path("indexed/reaches")
-                .queryParam("from", from)
-                .queryParam("to", to)
+                .queryParam("from", edgeId.getFrom())
+                .queryParam("to", edgeId.getTo())
                 .build()
                 .toUriString();
         return execute(url, Boolean.class);
     }
 
-    public String indexedEffectivePermissions(ZoneId zone, VertexId from, VertexId to) {
+    public String indexedEffectivePermissions(ZoneId zone, EdgeId edgeId) {
         String url = baseUri(zone)
                 .path("indexed/effective_permissions")
-                .queryParam("from", from)
-                .queryParam("to", to)
+                .queryParam("from", edgeId.getFrom())
+                .queryParam("to", edgeId.getTo())
                 .build()
                 .toUriString();
         return execute(url, String.class);
@@ -161,15 +162,15 @@ public class ZoneClient {
         return execute(url, StringList.class);
     }
 
-    public void addEdge(ZoneId zone, VertexId from, VertexId to, Permissions permissions) {
-        addEdge(zone, from, to, permissions, false);
+    public void addEdge(ZoneId zone, EdgeId edgeId, Permissions permissions) {
+        addEdge(zone, edgeId, permissions, false);
     }
 
-    public void addEdge(ZoneId zone, VertexId from, VertexId to, Permissions permissions, boolean successive) {
+    public void addEdge(ZoneId zone, EdgeId edgeId, Permissions permissions, boolean successive) {
         String url = baseUri(zone)
                 .path("graph/edges")
-                .queryParam("from", from)
-                .queryParam("to", to)
+                .queryParam("from", edgeId.getFrom())
+                .queryParam("to", edgeId.getTo())
                 .queryParam("permissions", permissions)
                 .queryParam("successive", successive)
                 .build()
@@ -177,30 +178,30 @@ public class ZoneClient {
         execute(url);
     }
 
-    public void removeEdge(ZoneId zone, VertexId from, VertexId to) {
-        removeEdge(zone, from, to, false);
+    public void removeEdge(ZoneId zone, EdgeId edgeId) {
+        removeEdge(zone, edgeId, false);
     }
 
-    public void removeEdge(ZoneId zone, VertexId from, VertexId to, boolean successive) {
+    public void removeEdge(ZoneId zone, EdgeId edgeId, boolean successive) {
         String url = baseUri(zone)
-                .path("graph/edges")
-                .queryParam("from", from)
-                .queryParam("to", to)
+                .path("graph/edges/delete")
+                .queryParam("from", edgeId.getFrom())
+                .queryParam("to", edgeId.getTo())
                 .queryParam("successive", successive)
                 .build()
                 .toUriString();
-        new RestTemplate().delete(url);
+        execute(url);
     }
 
-    public void setPermissions(ZoneId zone, VertexId from, VertexId to, Permissions permissions) {
-        setPermissions(zone, from, to, permissions, false);
+    public void setPermissions(ZoneId zone, EdgeId edgeId, Permissions permissions) {
+        setPermissions(zone, edgeId, permissions, false);
     }
 
-    public void setPermissions(ZoneId zone, VertexId from, VertexId to, Permissions permissions, boolean successive) {
+    public void setPermissions(ZoneId zone, EdgeId edgeId, Permissions permissions, boolean successive) {
         String url = baseUri(zone)
                 .path("graph/edges/permissions")
-                .queryParam("from", from)
-                .queryParam("to", to)
+                .queryParam("from", edgeId.getFrom())
+                .queryParam("to", edgeId.getTo())
                 .queryParam("permissions", permissions)
                 .queryParam("successive", successive)
                 .build()
