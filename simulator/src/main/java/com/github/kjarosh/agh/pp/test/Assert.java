@@ -94,6 +94,10 @@ public class Assert {
             return oldStats;
         }
 
+        public Stats reduce(Stats other) {
+            return new Stats(failed() + other.failed(), passed() + other.passed());
+        }
+
         public int failed() {
             return failed.get();
         }

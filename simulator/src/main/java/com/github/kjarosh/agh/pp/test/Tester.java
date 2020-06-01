@@ -3,23 +3,32 @@ package com.github.kjarosh.agh.pp.test;
 import ch.qos.logback.classic.Level;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
+import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.ZoneClient;
 import com.github.kjarosh.agh.pp.util.LoggerUtils;
+import com.google.common.collect.Sets;
 import lombok.SneakyThrows;
+import tech.tablesaw.api.Row;
+import tech.tablesaw.api.StringColumn;
+import tech.tablesaw.api.Table;
+import tech.tablesaw.columns.Column;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static com.github.kjarosh.agh.pp.test.Assert.assertEqual;
 import static com.github.kjarosh.agh.pp.test.Assert.assertEqualSet;
@@ -83,24 +92,55 @@ public class Tester {
 
         Assert.Stats basicStats = Assert.statistics.reset();
 
-        testReaches((f, t) -> client.naiveReaches(zone, f, t));
-        testMembers((o) -> client.naiveMembers(zone, o));
-        testEffectivePermissions((f, t) -> client.naiveEffectivePermissions(zone, f, t));
+        Map<String, Assert.Stats> naiveByType = new HashMap<>();
+        Map<String, Assert.Stats> indexedByType = new HashMap<>();
 
-        Assert.Stats naiveStats = Assert.statistics.reset();
+        testReaches((f, t) -> client.naiveReaches(zone, f, t));
+        naiveByType.put("reaches", Assert.statistics.reset());
+        testMembers((o) -> client.naiveMembers(zone, o));
+        naiveByType.put("members", Assert.statistics.reset());
+        testEffectivePermissions((f, t) -> client.naiveEffectivePermissions(zone, f, t));
+        naiveByType.put("eperms", Assert.statistics.reset());
 
         testReaches((f, t) -> client.indexedReaches(zone, f, t));
+        indexedByType.put("reaches", Assert.statistics.reset());
         testMembers((o) -> client.indexedMembers(zone, o));
+        indexedByType.put("members", Assert.statistics.reset());
         testEffectivePermissions((f, t) -> client.indexedEffectivePermissions(zone, f, t));
+        indexedByType.put("eperms", Assert.statistics.reset());
 
-        Assert.Stats indexedStats = Assert.statistics.reset();
+        modifyPermissions();
+        testPermissionsAfterModification((f, t) -> client.naiveEffectivePermissions(zone, f, t));
+        naiveByType.put("perm mod", Assert.statistics.reset());
+        testPermissionsAfterModification((f, t) -> client.naiveEffectivePermissions(zone, f, t));
+        indexedByType.put("perm mod", Assert.statistics.reset());
 
         long time = System.nanoTime() - start;
+        System.out.println();
 
+        Assert.Stats totalStats = Stream.of(
+                naiveByType.values().stream(),
+                indexedByType.values().stream(),
+                Stream.of(basicStats))
+                .flatMap(Function.identity())
+                .reduce(Assert.Stats::reduce)
+                .orElseThrow();
+
+        Table results = Table.create("Failed tests");
+        results.addColumns(StringColumn.create(""));
+        results.addColumns(Sets.union(naiveByType.keySet(), indexedByType.keySet()).stream()
+                .map(StringColumn::create)
+                .toArray(Column[]::new));
+        Row naiveRow = results.appendRow();
+        naiveRow.setString("", "naive");
+        naiveByType.forEach((type, stats) -> naiveRow.setString(type, "" + stats.failed()));
+        Row indexedRow = results.appendRow();
+        indexedRow.setString("", "indexed");
+        indexedByType.forEach((type, stats) -> indexedRow.setString(type, "" + stats.failed()));
+        System.out.println(results);
         System.out.println();
         System.out.println("Basic: " + basicStats);
-        System.out.println("Naive: " + naiveStats);
-        System.out.println("Indexed: " + indexedStats);
+        System.out.println("Total: " + totalStats);
         System.out.println("Time: " + time / 1_000_000_000D + " s");
     }
 
@@ -232,6 +272,44 @@ public class Tester {
                 "11111");
         assertEqual(f.apply(vid("zone1:tom"), vid("zone1:eosc")),
                 "11001");
+        assertEqual(f.apply(vid("zone0:alice"), vid("zone0:ceric")),
+                "10000");
+    }
+
+    private void modifyPermissions() {
+        client.setPermissions(zone,
+                vid("zone1:tom"),
+                vid("zone1:primage"),
+                new Permissions("11001"));
+        client.setPermissions(zone,
+                vid("zone0:uber_admins"),
+                vid("zone1:admins"),
+                new Permissions("10100"));
+        client.setPermissions(zone,
+                vid("zone1:admins"),
+                vid("zone1:eosc"),
+                new Permissions("10000"));
+        client.setPermissions(zone,
+                vid("zone1:cyfnet"),
+                vid("zone1:eosc"),
+                new Permissions("00001"));
+
+        client.removeEdge(zone,
+                vid("zone0:alice"),
+                vid("zone0:ebi"));
+    }
+
+    private void testPermissionsAfterModification(BiFunction<VertexId, VertexId, String> f) {
+        assertEqual(f.apply(vid("zone1:tom"), vid("zone1:primage")),
+                "11001");
+        assertEqual(f.apply(vid("zone0:luke"), vid("zone1:admins")),
+                "10100");
+        assertEqual(f.apply(vid("zone0:luke"), vid("zone1:eosc")),
+                "10001");
+        assertEqual(f.apply(vid("zone0:alice"), vid("zone0:ceric")),
+                null);
+        assertEqual(f.apply(vid("zone0:alice"), vid("zone1:krakow")),
+                "00000");
     }
 
     private void runDynamicTests() {

@@ -177,6 +177,37 @@ public class ZoneClient {
         execute(url);
     }
 
+    public void removeEdge(ZoneId zone, VertexId from, VertexId to) {
+        removeEdge(zone, from, to, false);
+    }
+
+    public void removeEdge(ZoneId zone, VertexId from, VertexId to, boolean successive) {
+        String url = baseUri(zone)
+                .path("graph/edges")
+                .queryParam("from", from)
+                .queryParam("to", to)
+                .queryParam("successive", successive)
+                .build()
+                .toUriString();
+        new RestTemplate().delete(url);
+    }
+
+    public void setPermissions(ZoneId zone, VertexId from, VertexId to, Permissions permissions) {
+        setPermissions(zone, from, to, permissions, false);
+    }
+
+    public void setPermissions(ZoneId zone, VertexId from, VertexId to, Permissions permissions, boolean successive) {
+        String url = baseUri(zone)
+                .path("graph/edges/permissions")
+                .queryParam("from", from)
+                .queryParam("to", to)
+                .queryParam("permissions", permissions)
+                .queryParam("successive", successive)
+                .build()
+                .toUriString();
+        execute(url);
+    }
+
     public void addVertex(VertexId id, Vertex.Type type) {
         String url = baseUri(id.owner())
                 .path("graph/vertices")

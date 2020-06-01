@@ -10,6 +10,7 @@ import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.Inbox;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventType;
+import com.github.kjarosh.agh.pp.rest.utils.OkException;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 import static com.github.kjarosh.agh.pp.Config.ZONE_ID;
 
@@ -47,11 +49,64 @@ public class GraphModificationController {
         Graph graph = graphLoader.getGraph();
         VertexId fromId = new VertexId(fromIdString);
         VertexId toId = new VertexId(toIdString);
-        ZoneId fromOwner = fromId.owner();
-        ZoneId toOwner = toId.owner();
         Permissions permissions = Strings.isNullOrEmpty(permissionsString) ? null :
                 new Permissions(permissionsString);
 
+        makeSuccessiveRequest(successive, fromId, toId,
+                (zone, s) -> new ZoneClient()
+                        .addEdge(zone, fromId, toId, permissions, s));
+
+        graph.addEdge(new Edge(fromId, toId, permissions));
+        propagateChange(successive, fromId, toId);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, path = "graph/edges/permissions")
+    @ResponseBody
+    public void setPermissions(
+            @RequestParam("from") String fromIdString,
+            @RequestParam("to") String toIdString,
+            @RequestParam("permissions") String permissionsString,
+            @RequestParam("successive") boolean successive) {
+        Graph graph = graphLoader.getGraph();
+        VertexId fromId = new VertexId(fromIdString);
+        VertexId toId = new VertexId(toIdString);
+        Permissions permissions = Strings.isNullOrEmpty(permissionsString) ? null :
+                new Permissions(permissionsString);
+
+        makeSuccessiveRequest(successive, fromId, toId,
+                (zone, s) -> new ZoneClient()
+                        .setPermissions(zone, fromId, toId, permissions, s));
+
+        graph.setPermissions(fromId, toId, permissions);
+        propagateChange(successive, fromId, toId);
+    }
+
+    @RequestMapping(method = RequestMethod.DELETE, path = "graph/edges")
+    @ResponseBody
+    public void removeEdge(
+            @RequestParam("from") String fromIdString,
+            @RequestParam("to") String toIdString,
+            @RequestParam("successive") boolean successive) {
+        Graph graph = graphLoader.getGraph();
+        VertexId fromId = new VertexId(fromIdString);
+        VertexId toId = new VertexId(toIdString);
+
+        makeSuccessiveRequest(successive, fromId, toId,
+                (zone, s) -> new ZoneClient()
+                        .removeEdge(zone, fromId, toId, s));
+
+        Edge edge = graph.getEdge(fromId, toId);
+        graph.removeEdge(edge);
+        propagateChange(successive, fromId, toId);
+    }
+
+    private void makeSuccessiveRequest(
+            boolean successive,
+            VertexId fromId,
+            VertexId toId,
+            BiConsumer<ZoneId, Boolean> propagator) {
+        ZoneId fromOwner = fromId.owner();
+        ZoneId toOwner = toId.owner();
         if (fromOwner == null) {
             throw new RuntimeException("From vertex is unknown: " + fromId);
         }
@@ -69,14 +124,19 @@ public class GraphModificationController {
         } else {
             // if it's the wrong zone, forward the request
             if (!fromOwner.equals(ZONE_ID)) {
-                new ZoneClient().addEdge(fromOwner, fromId, toId, permissions);
-                return;
+                propagator.accept(fromOwner, false);
+                throw new OkException();
             }
 
-            new ZoneClient().addEdge(toOwner, fromId, toId, permissions, true);
+            propagator.accept(toOwner, true);
         }
+    }
 
-        graph.addEdge(new Edge(fromId, toId, permissions));
+    private void propagateChange(
+            boolean successive,
+            VertexId fromId,
+            VertexId toId) {
+        Graph graph = graphLoader.getGraph();
         if (successive) {
             Set<VertexId> subjects = graph.getVertex(toId)
                     .index()
