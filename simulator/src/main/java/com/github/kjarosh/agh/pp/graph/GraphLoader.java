@@ -1,6 +1,5 @@
 package com.github.kjarosh.agh.pp.graph;
 
-import com.github.kjarosh.agh.pp.SpringApp;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +12,8 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 
 /**
+ * A singleton that contains the service-wide graph representation.
+ *
  * @author Kamil Jarosz
  */
 @Service
@@ -22,11 +23,6 @@ public class GraphLoader {
 
     public Graph graph;
 
-    @PostConstruct
-    public void init() {
-        graph = new Graph();
-    }
-
     public static Graph loadGraph(String path) {
         logger.debug("Loading graph");
         try (InputStream is = GraphLoader.class.getClassLoader()
@@ -35,6 +31,11 @@ public class GraphLoader {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    @PostConstruct
+    public void init() {
+        graph = new Graph();
     }
 
     public Graph getGraph() {

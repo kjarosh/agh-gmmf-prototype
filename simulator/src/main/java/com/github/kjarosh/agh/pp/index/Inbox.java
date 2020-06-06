@@ -22,6 +22,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 
 /**
+ * Inbox for {@link Event}s. Contains inboxes for
+ * each vertex and allows to post new events and
+ * listen for new events.
+ *
  * @author Kamil Jarosz
  */
 @Service

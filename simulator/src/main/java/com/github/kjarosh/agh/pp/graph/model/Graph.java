@@ -4,7 +4,6 @@ import com.github.kjarosh.agh.pp.Config;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -20,6 +19,9 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import static com.github.kjarosh.agh.pp.Config.ZONE_ID;
 
 /**
+ * The local graph representation. It contains only the local portion of the
+ * distributed graph. Thread-safe.
+ *
  * @author Kamil Jarosz
  */
 public class Graph {
@@ -98,10 +100,6 @@ public class Graph {
 
     public Set<Edge> getEdgesByDestination(VertexId destination) {
         return edgesByDst.getOrDefault(destination, Collections.emptySet());
-    }
-
-    public int edgeCount() {
-        return edges.size();
     }
 
     public Collection<Vertex> allVertices() {

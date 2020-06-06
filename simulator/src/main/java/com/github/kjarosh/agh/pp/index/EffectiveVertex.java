@@ -29,19 +29,6 @@ public class EffectiveVertex {
     private Set<VertexId> intermediateVertices = new HashSet<>();
 
     @JsonIgnore
-    public EffectiveVertex copy() {
-        return EffectiveVertex.builder()
-                .effectivePermissions(effectivePermissions)
-                .intermediateVertices(new HashSet<>(intermediateVertices))
-                .build();
-    }
-
-    @JsonIgnore
-    public void combine(Permissions perms) {
-        effectivePermissions = Permissions.combine(effectivePermissions, perms);
-    }
-
-    @JsonIgnore
     public void addIntermediateVertex(VertexId id, Runnable modifyListener) {
         addIntermediateVertices(Collections.singleton(id), modifyListener);
     }

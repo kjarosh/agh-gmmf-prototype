@@ -16,6 +16,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
+ * Class responsible for processing {@link Event}s and
+ * potentially propagating them.
+ *
  * @author Kamil Jarosz
  */
 @Service

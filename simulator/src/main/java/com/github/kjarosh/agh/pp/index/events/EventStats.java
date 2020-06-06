@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
+ * Statistics about event processing.
+ *
  * @author Kamil Jarosz
  */
 @Getter
@@ -16,12 +18,36 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class EventStats {
+    /**
+     * Number of events that are scheduled,
+     * i.e. are sent to the executor.
+     */
     private int processing;
+
+    /**
+     * Number of events that are waiting to be scheduled.
+     */
     private int queued;
+
+    /**
+     * Total number of events.
+     */
     private long total;
+
+    /**
+     * Number of events per second computed in the last second.
+     */
     private double load1;
+
+    /**
+     * Number of events per second computed in the last 5 seconds.
+     */
     private double load5;
-    private double load10;
+
+    /**
+     * Number of events per second computed in the last 15 seconds.
+     */
+    private double load15;
 
     public static EventStats empty() {
         return new EventStats(0, 0, 0, 0, 0, 0);
@@ -35,14 +61,14 @@ public class EventStats {
                 .queued(queued + other.queued)
                 .load1(load1 + other.load1)
                 .load5(load5 + other.load5)
-                .load10(load10 + other.load10)
+                .load15(load15 + other.load15)
                 .build();
     }
 
     @Override
     public String toString() {
         return String.format("events: %d/%d", processing, processing + queued) +
-                String.format("  load: %.0f/%.0f/%.0f", load1, load5, load10) +
+                String.format("  load: %.0f/%.0f/%.0f", load1, load5, load15) +
                 String.format("  total: %d", total);
     }
 }

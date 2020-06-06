@@ -3,6 +3,8 @@ package com.github.kjarosh.agh.pp.index.events;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
+import com.github.kjarosh.agh.pp.index.EventProcessor;
+import com.github.kjarosh.agh.pp.index.Inbox;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -13,6 +15,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * An entity which may be transmitted between vertices.
+ * Normally is stored in the {@link Inbox} and processed
+ * by the {@link EventProcessor}.
+ * <p>
+ * Is serializable to JSON for sending through HTTP.
+ *
  * @author Kamil Jarosz
  */
 @Getter

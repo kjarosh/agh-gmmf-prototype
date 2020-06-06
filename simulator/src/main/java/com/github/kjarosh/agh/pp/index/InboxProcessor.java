@@ -23,6 +23,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 /**
+ * Combines {@link Inbox} and {@link EventProcessor} together,
+ * receives events from {@link Inbox} and passes them along
+ * to the {@link EventProcessor}. It also ensures the correct order
+ * of processing events, i.e. events meant for one vertex are
+ * to be executed sequentially and in the correct order.
+ * <p>
+ * It also provides basic statistics about the events.
+ *
  * @author Kamil Jarosz
  */
 @Service
@@ -95,7 +103,7 @@ public class InboxProcessor {
                 .total(eventsMeter.getCount())
                 .load1(eventsMeter.getOneMinuteRate())
                 .load5(eventsMeter.getFiveMinuteRate() / 5)
-                .load10(eventsMeter.getFifteenMinuteRate() / 15)
+                .load15(eventsMeter.getFifteenMinuteRate() / 15)
                 .build();
     }
 }

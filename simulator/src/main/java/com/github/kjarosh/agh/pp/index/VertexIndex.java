@@ -9,6 +9,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
+ * The index for a vertex which contains pre-computed graph
+ * information used for near-constant time queries.
+ *
  * @author Kamil Jarosz
  */
 @Getter
