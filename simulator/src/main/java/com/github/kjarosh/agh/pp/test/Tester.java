@@ -4,11 +4,13 @@ import ch.qos.logback.classic.Level;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.ZoneClient;
 import com.github.kjarosh.agh.pp.test.strategy.DynamicTestsStrategy;
+import com.github.kjarosh.agh.pp.test.strategy.LoadMeasurementStrategy;
 import com.github.kjarosh.agh.pp.test.strategy.TestContext;
 import com.github.kjarosh.agh.pp.test.strategy.TestExampleGraphStrategy;
 import com.github.kjarosh.agh.pp.util.LoggerUtils;
 import lombok.SneakyThrows;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,6 +56,9 @@ public class Tester {
         }
 
         if (dynamicTests) {
+            new LoadMeasurementStrategy("generated_graph.json", Duration.ofSeconds(10))
+                    .execute(context);
+            if (true) return;
             dynamicStrategy.execute(context);
         } else {
             exampleStrategy.execute(context);

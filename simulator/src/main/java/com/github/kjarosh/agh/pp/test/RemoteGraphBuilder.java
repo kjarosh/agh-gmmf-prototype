@@ -3,7 +3,6 @@ package com.github.kjarosh.agh.pp.test;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.rest.ZoneClient;
 
 import java.util.Comparator;
@@ -27,24 +26,10 @@ public class RemoteGraphBuilder {
     }
 
     public void build(ZoneClient client, ZoneId zone) {
-        Thread supervisor = new Thread(() -> {
-            while (!Thread.interrupted()) {
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    return;
-                }
-
-                double v = (double) verticesBuilt.get() / graph.allVertices().size();
-                double e = (double) edgesBuilt.get() / graph.allEdges().size();
-
-                EventStats stats = allZones.stream()
-                        .map(client::getEventStats)
-                        .reduce(EventStats.empty(), EventStats::combine);
-                System.out.println(String.format(
-                        "built: V: %.2f%% E: %.2f%%    %s", v * 100, e * 100, stats));
-            }
-        });
+        Supervisor supervisor = new Supervisor(
+                () -> (double) verticesBuilt.get() / graph.allVertices().size(),
+                () -> (double) edgesBuilt.get() / graph.allEdges().size(),
+                new EventStatsGatherer(client, allZones));
         supervisor.start();
         try {
             graph.allVertices()

@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.EqualsAndHashCode;
 
 import java.util.Objects;
+import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * @author Kamil Jarosz
@@ -27,6 +30,13 @@ public class Permissions implements Comparable<Permissions> {
     public static Permissions combine(Permissions a, Permissions b) {
         if (a == null) return b;
         return a.combine(b);
+    }
+
+    public static Permissions random(Random random) {
+        return new Permissions(IntStream.range(0, 5)
+                .map(x -> random.nextBoolean() ? 1 : 0)
+                .mapToObj(Integer::toString)
+                .collect(Collectors.joining()));
     }
 
     private Permissions combine(Permissions other) {
