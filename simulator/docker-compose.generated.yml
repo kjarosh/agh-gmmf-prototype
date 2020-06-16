@@ -46,14 +46,5 @@ services:
       - zone1
       - zone2
 
-  client:
-    build: .
-    stdin_open: true
-    tty: true
-    environment:
-      CLIENT_MODE: "true"
-    networks:
-      intranet:
-
 networks:
   intranet:
