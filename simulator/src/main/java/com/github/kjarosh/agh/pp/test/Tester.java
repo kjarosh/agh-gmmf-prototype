@@ -56,7 +56,7 @@ public class Tester {
         }
 
         if (dynamicTests) {
-            new LoadMeasurementStrategy("generated_graph.json", Duration.ofSeconds(10))
+            new LoadMeasurementStrategy("generated_graph.json", Duration.ofSeconds(100))
                     .execute(context);
             if (true) return;
             dynamicStrategy.execute(context);

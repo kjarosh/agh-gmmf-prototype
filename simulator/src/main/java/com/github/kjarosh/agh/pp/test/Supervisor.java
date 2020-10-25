@@ -12,6 +12,7 @@ public class Supervisor extends Thread {
     private final DoubleSupplier verticesBuilt;
     private final DoubleSupplier edgesBuilt;
     private final Supplier<EventStats> statsSupplier;
+    private EventStats lastStats = null;
 
     public Supervisor(Supplier<EventStats> statsSupplier) {
         this(null, null, statsSupplier);
@@ -47,11 +48,17 @@ public class Supervisor extends Thread {
             }
 
             if (statsSupplier != null) {
-                EventStats stats = statsSupplier.get();
-                message.append(stats);
+                lastStats = statsSupplier.get();
+                message.append(lastStats);
             }
 
             System.out.println(message.toString());
         }
+    }
+
+    public EventStats getLastStats() {
+        return lastStats != null ?
+                lastStats :
+                (lastStats = statsSupplier.get());
     }
 }
