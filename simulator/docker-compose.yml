@@ -2,6 +2,7 @@ version: '3'
 services:
   zone0:
     build: .
+    command: server
     environment:
       ZONE_ID: zone0
     networks:
@@ -12,6 +13,7 @@ services:
 
   zone1:
     build: .
+    command: server
     environment:
       ZONE_ID: zone1
     networks:
@@ -22,9 +24,8 @@ services:
 
   tester:
     build: .
+    command: test zone0
     environment:
-      MODE: tester
-      TESTED_ZONE: zone0
       ALL_ZONES: zone0,zone1
       GRAPH_PATH: graph.json
     networks:
@@ -37,10 +38,9 @@ services:
 
   client:
     build: .
+    command: client
     stdin_open: true
     tty: true
-    environment:
-      MODE: client
     networks:
       intranet:
 

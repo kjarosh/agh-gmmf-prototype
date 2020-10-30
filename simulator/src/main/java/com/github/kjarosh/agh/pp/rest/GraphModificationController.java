@@ -60,7 +60,11 @@ public class GraphModificationController {
                         .addEdge(zone, edgeId, permissions, s));
 
         Edge edge = new Edge(edgeId.getFrom(), edgeId.getTo(), permissions);
-        logger.info("Adding edge {}", edge);
+
+        if (shouldLogOperation(successive, edgeId)) {
+            logger.info("Adding edge {}", edge);
+        }
+
         graph.addEdge(edge);
         postChangeEvent(successive, trace, edgeId);
     }
@@ -84,7 +88,10 @@ public class GraphModificationController {
                 (zone, s) -> new ZoneClient()
                         .setPermissions(zone, edgeId, permissions, s));
 
-        logger.info("Setting permissions of {} to {}", edgeId, permissions);
+        if (shouldLogOperation(successive, edgeId)) {
+            logger.info("Setting permissions of {} to {}", edgeId, permissions);
+        }
+
         graph.setPermissions(edgeId, permissions);
         postChangeEvent(successive, trace, edgeId);
     }
@@ -106,7 +113,11 @@ public class GraphModificationController {
                         .removeEdge(zone, edgeId, s));
 
         Edge edge = graph.getEdge(edgeId);
-        logger.info("Removing edge {}", edge);
+
+        if (shouldLogOperation(successive, edgeId)) {
+            logger.info("Removing edge {}", edge);
+        }
+
         graph.removeEdge(edge);
         postChangeEvent(successive, trace, edgeId);
     }
@@ -169,6 +180,13 @@ public class GraphModificationController {
                     .sender(edgeId.getFrom())
                     .build());
         }
+    }
+
+    private boolean shouldLogOperation(boolean successive, EdgeId edgeId) {
+        ZoneId fromOwner = edgeId.getFrom().owner();
+        ZoneId toOwner = edgeId.getTo().owner();
+        // prevent double logging on the same zone
+        return !successive || !fromOwner.equals(toOwner);
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "graph/vertices")

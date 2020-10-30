@@ -32,6 +32,7 @@ public class Config {
 
     public static ZoneId ZONE_ID = Optional.ofNullable(System.getProperty("app.zone_id", null))
             .filter(Predicate.not(Strings::isNullOrEmpty))
+            .or(() -> Optional.ofNullable(System.getenv("ZONE_ID")))
             .map(ZoneId::new)
             .orElse(null);
 

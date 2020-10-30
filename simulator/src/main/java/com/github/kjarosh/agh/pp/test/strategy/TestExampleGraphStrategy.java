@@ -78,8 +78,12 @@ public class TestExampleGraphStrategy implements TestStrategy {
         modifyPermissions(context);
         testPermissionsAfterModification(e -> client.naiveEffectivePermissions(zone, e));
         naiveByType.put("perm mod", Assert.statistics.reset());
-        testPermissionsAfterModification(e -> client.naiveEffectivePermissions(zone, e));
+        testPermissionsAfterModification(e -> client.indexedEffectivePermissions(zone, e));
         indexedByType.put("perm mod", Assert.statistics.reset());
+        testMembersAfterModification(e -> client.naiveMembers(zone, e));
+        naiveByType.put("members mod", Assert.statistics.reset());
+        testMembersAfterModification(e -> client.indexedMembers(zone, e));
+        indexedByType.put("members mod", Assert.statistics.reset());
 
         long time = System.nanoTime() - start;
         System.out.println();
@@ -271,8 +275,39 @@ public class TestExampleGraphStrategy implements TestStrategy {
                 "10001");
         assertEqual(f.apply(eid("zone0:alice", "zone0:ceric")),
                 null);
+        assertEqual(f.apply(eid("zone0:alice", "zone0:ebi")),
+                null);
         assertEqual(f.apply(eid("zone0:alice", "zone1:krakow")),
                 "00000");
     }
 
+    private void testMembersAfterModification(Function<VertexId, Collection<String>> f) {
+        assertEqualSet(f.apply(vid("zone0:ebi")), Arrays.asList(
+                "zone0:jill"));
+
+        assertEqualSet(f.apply(vid("zone0:ceric")), Arrays.asList(
+                "zone0:ebi",
+                "zone1:anne",
+                "zone0:jill"));
+
+        assertEqualSet(f.apply(vid("zone1:krakow")), Arrays.asList(
+                "zone1:eosc",
+                "zone1:primage",
+                "zone1:members",
+                "zone1:tom",
+                "zone1:anne",
+                "zone1:audit",
+                "zone1:admins",
+                "zone1:cyfnet",
+                "zone0:uber_admins",
+                "zone0:luke",
+                "zone0:ceric",
+                "zone0:ebi",
+                "zone0:jill",
+                "zone0:alice",
+                "zone0:eo_data",
+                "zone0:dhub_members",
+                "zone0:dhub_mngrs",
+                "zone0:bob"));
+    }
 }
