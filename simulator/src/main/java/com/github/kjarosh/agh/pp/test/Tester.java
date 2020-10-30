@@ -9,6 +9,8 @@ import com.github.kjarosh.agh.pp.test.strategy.TestContext;
 import com.github.kjarosh.agh.pp.test.strategy.TestExampleGraphStrategy;
 import com.github.kjarosh.agh.pp.util.LoggerUtils;
 import lombok.SneakyThrows;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.List;
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
  * @author Kamil Jarosz
  */
 public class Tester {
+    private static final Logger logger = LoggerFactory.getLogger(Tester.class);
+
     private final boolean dynamicTests;
     private final TestExampleGraphStrategy exampleStrategy;
     private final DynamicTestsStrategy dynamicStrategy;
@@ -51,9 +55,11 @@ public class Tester {
 
     @SneakyThrows
     private void test() {
+        logger.debug("Checking if services are healthy");
         while (notHealthy(context)) {
             Thread.sleep(200);
         }
+        logger.info("Services healthy, starting tests");
 
         if (dynamicTests) {
             new LoadMeasurementStrategy("generated_graph.json", Duration.ofSeconds(100))

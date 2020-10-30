@@ -1,6 +1,6 @@
 package com.github.kjarosh.agh.pp.graph.model;
 
-import com.github.kjarosh.agh.pp.Config;
+import com.github.kjarosh.agh.pp.config.Config;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import static com.github.kjarosh.agh.pp.Config.ZONE_ID;
+import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
 
 /**
  * The local graph representation. It contains only the local portion of the

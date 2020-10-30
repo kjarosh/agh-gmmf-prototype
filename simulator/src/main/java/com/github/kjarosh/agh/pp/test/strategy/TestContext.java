@@ -6,6 +6,8 @@ import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.ZoneClient;
 import com.github.kjarosh.agh.pp.test.RemoteGraphBuilder;
 import lombok.Builder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,15 +17,17 @@ import java.util.List;
  */
 @Builder
 public class TestContext {
+    private static final Logger logger = LoggerFactory.getLogger(TestContext.class);
+
     private final ZoneClient client;
     private final ZoneId zone;
     private final List<ZoneId> allZones;
 
     public Graph buildGraph(String graphPath) {
-        System.out.println("Building graph");
+        logger.info("Building graph");
         Graph graph = GraphLoader.loadGraph(graphPath);
         new RemoteGraphBuilder(graph, client, allZones).build(client, zone);
-        System.out.println("Graph built");
+        logger.info("Graph built");
         return graph;
     }
 

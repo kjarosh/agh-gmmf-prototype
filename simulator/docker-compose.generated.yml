@@ -33,6 +33,7 @@ services:
   tester:
     build: .
     environment:
+      MODE: tester
       TESTED_ZONE: zone0
       ALL_ZONES: zone0,zone1,zone2
       GRAPH_PATH: generated_graph.json
@@ -41,6 +42,8 @@ services:
       DYNAMIC_TESTS_COUNT: 1000
     networks:
       intranet:
+    ports:
+      - 8789:8080
     depends_on:
       - zone0
       - zone1

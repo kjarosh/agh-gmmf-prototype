@@ -2,27 +2,54 @@ package com.github.kjarosh.agh.pp;
 
 import com.github.kjarosh.agh.pp.cli.Cmd;
 import com.github.kjarosh.agh.pp.test.Tester;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Kamil Jarosz
  */
 public class Main {
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
+
     public static void main(String[] args) {
-        if (System.getenv("TESTED_ZONE") != null) {
-            String testedZone = System.getenv("TESTED_ZONE");
-            List<String> allZones = Arrays.asList(System.getenv("ALL_ZONES").split(","));
-            Tester.main(testedZone, allZones);
-            return;
-        }
+        String mode = Optional.ofNullable(System.getenv("MODE"))
+                .orElse("zone");
+        logger.debug("Starting application in mode '{}'", mode);
 
-        if (System.getenv("CLIENT_MODE") != null) {
-            Cmd.main(args);
-            return;
-        }
+        switch (mode) {
+            case "tester": {
+                logger.info("Running tester");
 
-        SpringApp.main(args);
+                String testedZone = System.getenv("TESTED_ZONE");
+                logger.debug("Testing zone '{}'", testedZone);
+
+                List<String> allZones = Arrays.asList(System.getenv("ALL_ZONES").split(","));
+                logger.debug("All zones: {}", allZones);
+                Tester.main(testedZone, allZones);
+                break;
+            }
+
+            case "client": {
+                logger.info("Running client");
+                Cmd.main(args);
+                break;
+            }
+
+            case "zone": {
+                logger.info("Running Spring");
+                SpringApp.main(args);
+                break;
+            }
+
+            default: {
+                logger.error("Unknown mode: {}", mode);
+                System.exit(1);
+                break;
+            }
+        }
     }
 }

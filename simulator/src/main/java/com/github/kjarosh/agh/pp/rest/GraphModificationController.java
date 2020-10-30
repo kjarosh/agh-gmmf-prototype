@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
-import static com.github.kjarosh.agh.pp.Config.ZONE_ID;
+import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
 
 /**
  * @author Kamil Jarosz
@@ -59,7 +59,9 @@ public class GraphModificationController {
                 (zone, s) -> new ZoneClient()
                         .addEdge(zone, edgeId, permissions, s));
 
-        graph.addEdge(new Edge(edgeId.getFrom(), edgeId.getTo(), permissions));
+        Edge edge = new Edge(edgeId.getFrom(), edgeId.getTo(), permissions);
+        logger.info("Adding edge {}", edge);
+        graph.addEdge(edge);
         postChangeEvent(successive, trace, edgeId);
     }
 
@@ -82,6 +84,7 @@ public class GraphModificationController {
                 (zone, s) -> new ZoneClient()
                         .setPermissions(zone, edgeId, permissions, s));
 
+        logger.info("Setting permissions of {} to {}", edgeId, permissions);
         graph.setPermissions(edgeId, permissions);
         postChangeEvent(successive, trace, edgeId);
     }
@@ -103,6 +106,7 @@ public class GraphModificationController {
                         .removeEdge(zone, edgeId, s));
 
         Edge edge = graph.getEdge(edgeId);
+        logger.info("Removing edge {}", edge);
         graph.removeEdge(edge);
         postChangeEvent(successive, trace, edgeId);
     }

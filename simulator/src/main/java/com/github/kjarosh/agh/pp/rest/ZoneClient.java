@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.rest;
 
+import com.github.kjarosh.agh.pp.config.Config;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
@@ -21,7 +22,7 @@ import java.util.List;
  */
 public class ZoneClient {
     private UriComponentsBuilder baseUri(ZoneId zone) {
-        return UriComponentsBuilder.fromHttpUrl("http://" + zone.getId() + "/");
+        return UriComponentsBuilder.fromHttpUrl("http://" + Config.getConfig().translateZoneToAddress(zone) + "/");
     }
 
     private <R> R execute(String url, Class<R> cls) {

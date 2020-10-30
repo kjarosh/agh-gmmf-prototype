@@ -2,7 +2,7 @@ package com.github.kjarosh.agh.pp.index;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.SlidingTimeWindowMovingAverages;
-import com.github.kjarosh.agh.pp.Config;
+import com.github.kjarosh.agh.pp.config.Config;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
@@ -73,7 +73,7 @@ public class InboxProcessor {
 
             processing.add(id);
             executor.submit(() -> {
-                logger.info("Processing event " + event + " at " + id);
+                logger.trace("Processing event " + event + " at " + id);
 
                 try {
                     eventProcessor.process(id, event);

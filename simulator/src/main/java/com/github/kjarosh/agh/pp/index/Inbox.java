@@ -1,6 +1,6 @@
 package com.github.kjarosh.agh.pp.index;
 
-import com.github.kjarosh.agh.pp.Config;
+import com.github.kjarosh.agh.pp.config.Config;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.rest.ZoneClient;
@@ -43,7 +43,7 @@ public class Inbox {
             return;
         }
 
-        logger.info("Event posted at " + id + ": " + event);
+        logger.trace("Event posted at " + id + ": " + event);
         inboxes.computeIfAbsent(id, i -> new ConcurrentLinkedDeque<>()).addLast(event);
         listeners.forEach(l -> l.accept(id));
     }
