@@ -1,14 +1,17 @@
 package com.github.kjarosh.agh.pp;
 
 import com.github.kjarosh.agh.pp.cli.Cmd;
+import com.github.kjarosh.agh.pp.graph.GraphLoader;
+import com.github.kjarosh.agh.pp.graph.model.Graph;
+import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.rest.ZoneClient;
+import com.github.kjarosh.agh.pp.test.RemoteGraphBuilder;
 import com.github.kjarosh.agh.pp.test.Tester;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Predicate;
 
 /**
  * @author Kamil Jarosz
@@ -20,11 +23,6 @@ public class Main {
         if (args.length < 1) {
             logger.error("Too few arguments");
             printHelp();
-            try {
-                Thread.sleep(100000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
             System.exit(1);
             return;
         }
@@ -62,6 +60,26 @@ public class Main {
                 break;
             }
 
+            case "load": {
+                if (args.length != 3) {
+                    logger.error("Invalid number of arguments for load");
+                    printHelp();
+                    System.exit(1);
+                    return;
+                }
+
+                String zone = args[1];
+                String graphPath = args[2];
+                logger.info("Loading graph {} into zone {}", graphPath, zone);
+
+                Graph graph = GraphLoader.loadGraph(graphPath);
+                ZoneClient client = new ZoneClient();
+                new RemoteGraphBuilder(graph, client, null).build(client, new ZoneId(zone));
+
+                logger.info("Graph loaded");
+                break;
+            }
+
             case "server": {
                 if (args.length != 1) {
                     logger.error("Invalid number of arguments for server");
@@ -81,55 +99,13 @@ public class Main {
                 break;
             }
         }
-
-//        String mode = Optional.ofNullable(System.getProperty("app.mode"))
-//                .filter(Predicate.not(String::isEmpty))
-//                .orElse("zone");
-//        logger.debug("Starting application in mode '{}'", mode);
-//
-//        switch (mode) {
-//            case "tester": {
-//                logger.info("Running tester");
-//
-//                String testedZone = System.getenv("TESTED_ZONE");
-//                logger.debug("Testing zone '{}'", testedZone);
-//
-//                List<String> allZones = Arrays.asList(System.getenv("ALL_ZONES").split(","));
-//                logger.debug("All zones: {}", allZones);
-//                Tester.main(testedZone, allZones);
-//                break;
-//            }
-//
-//            case "client": {
-//                logger.info("Running client");
-//                Cmd.main(args);
-//                break;
-//            }
-//
-//            case "loader": {
-//                logger.info("Running loader");
-//                Cmd.main(args);
-//                break;
-//            }
-//
-//            case "zone": {
-//                logger.info("Running Spring");
-//                SpringApp.main(args);
-//                break;
-//            }
-//
-//            default: {
-//                logger.error("Unknown mode: {}", mode);
-//                System.exit(1);
-//                break;
-//            }
-//        }
     }
 
     private static void printHelp() {
         logger.info("Usage:");
-        logger.info("  app test <zone id>   -- run tests on the given zone");
-        logger.info("  app client           -- run CLI client");
-        logger.info("  app server           -- run server");
+        logger.info("  app test <zone id>               -- run tests on the given zone");
+        logger.info("  app client                       -- run CLI client");
+        logger.info("  app server                       -- run server");
+        logger.info("  app load <zone id> <graph path>  -- run server");
     }
 }

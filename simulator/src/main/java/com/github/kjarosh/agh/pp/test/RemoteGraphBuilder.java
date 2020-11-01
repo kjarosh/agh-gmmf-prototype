@@ -29,7 +29,7 @@ public class RemoteGraphBuilder {
         Supervisor supervisor = new Supervisor(
                 () -> (double) verticesBuilt.get() / graph.allVertices().size(),
                 () -> (double) edgesBuilt.get() / graph.allEdges().size(),
-                new EventStatsGatherer(client, allZones));
+                allZones != null ? new EventStatsGatherer(client, allZones) : null);
         supervisor.start();
         try {
             graph.allVertices()
