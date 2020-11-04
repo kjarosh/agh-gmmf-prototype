@@ -5,7 +5,6 @@ import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
-import com.github.kjarosh.agh.pp.index.events.EventType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,35 +26,56 @@ public class EventProcessor {
     private Inbox inbox;
 
     public void process(VertexId id, Event event) {
-        if (event.getType() == EventType.CHILD_CHANGE) {
-            processChildChange(id, event);
-        } else if (event.getType() == EventType.PARENT_CHANGE) {
-            processParentChange(id, event);
-        } else {
-            throw new AssertionError();
+        switch (event.getType()) {
+            case CHILD_CHANGE: {
+                processChild(id, event, false);
+                break;
+            }
+
+            case PARENT_CHANGE: {
+                processParent(id, event, false);
+                break;
+            }
+
+            case CHILD_REMOVE: {
+                processChild(id, event, true);
+                break;
+            }
+
+            case PARENT_REMOVE: {
+                processParent(id, event, true);
+                break;
+            }
+
+            default: {
+                throw new AssertionError();
+            }
         }
     }
 
-    public void processParentChange(VertexId id, Event event) {
+    public void processParent(VertexId id, Event event, boolean delete) {
         Graph graph = graphLoader.getGraph();
 
         VertexIndex index = graph.getVertex(id).index();
-        boolean delete = graph.getEdgesBySource(id)
-                .stream()
-                .map(Edge::dst)
-                .noneMatch(event.getSender()::equals);
 
         AtomicBoolean propagate = new AtomicBoolean(false);
-        for (VertexId subjectId : event.getAllSubjects()) {
-            if (delete) {
-                index.removeEffectiveParentIfExists(subjectId, () -> propagate.set(true));
-            } else {
-                index.addEffectiveParentIfNotExists(subjectId, () -> propagate.set(true));
+        if (delete) {
+            VertexId toRemove = event.getOriginalSender();
+            index.getEffectiveParent(toRemove).ifPresent(effectiveVertex -> {
+                effectiveVertex.removeIntermediateVertex(event.getSender(), () -> propagate.set(true));
+                if (effectiveVertex.getIntermediateVertices().isEmpty()) {
+                    index.removeEffectiveParent(toRemove);
+                }
+            });
+        } else {
+            for (VertexId subjectId : event.getAllSubjects()) {
+                EffectiveVertex effectiveVertex = index.getOrAddEffectiveParent(subjectId, () -> propagate.set(true));
+                effectiveVertex.addIntermediateVertex(event.getSender(), () -> propagate.set(true));
             }
         }
 
         if (propagate.get()) {
-            Set<VertexId> effectiveParents = index.getEffectiveParents();
+            Set<VertexId> effectiveParents = index.getEffectiveParents().keySet();
             graph.getEdgesByDestination(id)
                     .stream()
                     .map(Edge::src)
@@ -63,27 +83,21 @@ public class EventProcessor {
         }
     }
 
-    public void processChildChange(VertexId id, Event event) {
+    public void processChild(VertexId id, Event event, boolean delete) {
         Graph graph = graphLoader.getGraph();
 
         VertexIndex index = graph.getVertex(id).index();
         Set<Edge> edgesToCalculate = graph.getEdgesByDestination(id);
-        boolean delete = edgesToCalculate.stream()
-                .map(Edge::src)
-                .noneMatch(event.getSender()::equals);
 
         AtomicBoolean propagate = new AtomicBoolean(false);
         if (delete) {
-            for (VertexId subjectId : event.getAllSubjects()) {
-                index.getEffectiveChild(subjectId).ifPresent(effectiveVertex -> {
-                    effectiveVertex.removeIntermediateVertex(event.getSender(), () -> propagate.set(true));
-                    if (effectiveVertex.getIntermediateVertices().isEmpty()) {
-                        index.removeEffectiveChild(subjectId);
-                    } else {
-                        effectiveVertex.recalculatePermissions(edgesToCalculate);
-                    }
-                });
-            }
+            VertexId toRemove = event.getOriginalSender();
+            index.getEffectiveChild(toRemove).ifPresent(effectiveVertex -> {
+                effectiveVertex.removeIntermediateVertex(event.getSender(), () -> propagate.set(true));
+                if (effectiveVertex.getIntermediateVertices().isEmpty()) {
+                    index.removeEffectiveChild(toRemove);
+                }
+            });
         } else {
             for (VertexId subjectId : event.getAllSubjects()) {
                 EffectiveVertex effectiveVertex = index.getOrAddEffectiveChild(subjectId, () -> propagate.set(true));
@@ -111,6 +125,7 @@ public class EventProcessor {
                 .type(event.getType())
                 .effectiveVertices(effectiveVertices)
                 .sender(sender)
+                .originalSender(event.getOriginalSender())
                 .build();
 
         inbox.post(recipient, newEvent);

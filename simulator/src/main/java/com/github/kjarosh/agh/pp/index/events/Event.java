@@ -38,6 +38,9 @@ public class Event {
     @JsonProperty("sender")
     private VertexId sender;
 
+    @JsonProperty("originalSender")
+    private VertexId originalSender;
+
     @JsonProperty("effectiveVertices")
     private Set<VertexId> effectiveVertices;
 
@@ -45,10 +48,12 @@ public class Event {
             EventType type,
             String trace,
             VertexId sender,
+            VertexId originalSender,
             Set<VertexId> effectiveVertices) {
         this.type = type;
         this.trace = trace;
         this.sender = sender;
+        this.originalSender = originalSender;
         this.effectiveVertices = new HashSet<>(effectiveVertices);
     }
 

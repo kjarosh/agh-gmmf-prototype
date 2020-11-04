@@ -5,9 +5,7 @@ import lombok.Getter;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
  * The index for a vertex which contains pre-computed graph
@@ -18,18 +16,26 @@ import java.util.concurrent.ConcurrentSkipListSet;
 @Getter
 public class VertexIndex {
     private final Map<VertexId, EffectiveVertex> effectiveChildren = new ConcurrentHashMap<>();
-    private final Set<VertexId> effectiveParents = new ConcurrentSkipListSet<>();
+    private final Map<VertexId, EffectiveVertex> effectiveParents = new ConcurrentHashMap<>();
 
-    public void addEffectiveParentIfNotExists(VertexId id, Runnable createListener) {
-        if (effectiveParents.add(id)) {
+    public EffectiveVertex getOrAddEffectiveParent(VertexId id, Runnable createListener) {
+        EffectiveVertex effectiveVertex;
+        if (!effectiveParents.containsKey(id)) {
+            effectiveVertex = new EffectiveVertex();
+            effectiveParents.put(id, effectiveVertex);
             createListener.run();
+        } else {
+            effectiveVertex = effectiveParents.get(id);
         }
+        return effectiveVertex;
     }
 
-    public void removeEffectiveParentIfExists(VertexId id, Runnable createListener) {
-        if (effectiveParents.remove(id)) {
-            createListener.run();
-        }
+    public Optional<EffectiveVertex> getEffectiveParent(VertexId id) {
+        return Optional.ofNullable(effectiveParents.get(id));
+    }
+
+    public void removeEffectiveParent(VertexId subjectId) {
+        effectiveParents.remove(subjectId);
     }
 
     public EffectiveVertex getOrAddEffectiveChild(VertexId id, Runnable createListener) {

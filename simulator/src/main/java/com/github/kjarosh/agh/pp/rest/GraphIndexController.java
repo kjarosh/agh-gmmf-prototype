@@ -60,6 +60,7 @@ public class GraphIndexController {
         return IndexDto.builder()
                 .children(mapEffectiveVertices(vertexIndex.getEffectiveChildren()))
                 .parents(vertexIndex.getEffectiveParents()
+                        .keySet()
                         .stream()
                         .map(VertexId::toString)
                         .collect(Collectors.toSet()))

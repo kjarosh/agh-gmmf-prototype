@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.function.BiConsumer;
 
@@ -66,7 +67,7 @@ public class GraphModificationController {
         }
 
         graph.addEdge(edge);
-        postChangeEvent(successive, trace, edgeId);
+        postChangeEvent(successive, trace, edgeId, false);
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "graph/edges/permissions")
@@ -93,7 +94,7 @@ public class GraphModificationController {
         }
 
         graph.setPermissions(edgeId, permissions);
-        postChangeEvent(successive, trace, edgeId);
+        postChangeEvent(successive, trace, edgeId, false);
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "graph/edges/delete")
@@ -119,7 +120,7 @@ public class GraphModificationController {
         }
 
         graph.removeEdge(edge);
-        postChangeEvent(successive, trace, edgeId);
+        postChangeEvent(successive, trace, edgeId, true);
     }
 
     private void makeSuccessiveRequest(
@@ -156,17 +157,20 @@ public class GraphModificationController {
     private void postChangeEvent(
             boolean successive,
             String trace,
-            EdgeId edgeId) {
+            EdgeId edgeId,
+            boolean delete) {
         Graph graph = graphLoader.getGraph();
         if (successive) {
             Set<VertexId> subjects = graph.getVertex(edgeId.getTo())
                     .index()
-                    .getEffectiveParents();
+                    .getEffectiveParents()
+                    .keySet();
             inbox.post(edgeId.getFrom(), Event.builder()
                     .trace(trace)
-                    .type(EventType.PARENT_CHANGE)
-                    .effectiveVertices(subjects)
+                    .type(delete ? EventType.PARENT_REMOVE : EventType.PARENT_CHANGE)
+                    .effectiveVertices(delete ? Collections.emptySet() : subjects)
                     .sender(edgeId.getTo())
+                    .originalSender(edgeId.getTo())
                     .build());
         } else {
             Set<VertexId> subjects = graph.getVertex(edgeId.getFrom())
@@ -175,9 +179,10 @@ public class GraphModificationController {
                     .keySet();
             inbox.post(edgeId.getTo(), Event.builder()
                     .trace(trace)
-                    .type(EventType.CHILD_CHANGE)
-                    .effectiveVertices(subjects)
+                    .type(delete ? EventType.CHILD_REMOVE : EventType.CHILD_CHANGE)
+                    .effectiveVertices(delete ? Collections.emptySet() : subjects)
                     .sender(edgeId.getFrom())
+                    .originalSender(edgeId.getFrom())
                     .build());
         }
     }
