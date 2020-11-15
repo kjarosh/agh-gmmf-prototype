@@ -1,0 +1,254 @@
+{
+  "vertices": [
+    {
+      "id": "zone2:paris",
+      "type": "provider"
+    },
+    {
+      "id": "zone2:lisbon",
+      "type": "provider"
+    },
+    {
+      "id": "zone2:krakow",
+      "type": "provider"
+    },
+    {
+      "id": "zone2:datahub",
+      "type": "space"
+    },
+    {
+      "id": "zone2:eo_data",
+      "type": "space"
+    },
+    {
+      "id": "zone2:ceric",
+      "type": "space"
+    },
+    {
+      "id": "zone2:eosc",
+      "type": "space"
+    },
+    {
+      "id": "zone2:primage",
+      "type": "space"
+    },
+    {
+      "id": "zone2:dhub_members",
+      "type": "group"
+    },
+    {
+      "id": "zone2:ebi",
+      "type": "group"
+    },
+    {
+      "id": "zone2:dhub_mngrs",
+      "type": "group"
+    },
+    {
+      "id": "zone2:uber_admins",
+      "type": "group"
+    },
+    {
+      "id": "zone2:cyfnet",
+      "type": "group"
+    },
+    {
+      "id": "zone2:admins",
+      "type": "group"
+    },
+    {
+      "id": "zone2:audit",
+      "type": "group"
+    },
+    {
+      "id": "zone2:members",
+      "type": "group"
+    },
+    {
+      "id": "zone2:bob",
+      "type": "user"
+    },
+    {
+      "id": "zone2:alice",
+      "type": "user"
+    },
+    {
+      "id": "zone2:jill",
+      "type": "user"
+    },
+    {
+      "id": "zone2:luke",
+      "type": "user"
+    },
+    {
+      "id": "zone2:anne",
+      "type": "user"
+    },
+    {
+      "id": "zone2:tom",
+      "type": "user"
+    }
+  ],
+  "edges": [
+    {
+      "src": "zone2:datahub",
+      "dst": "zone2:paris",
+      "perms": null
+    },
+    {
+      "src": "zone2:datahub",
+      "dst": "zone2:lisbon",
+      "perms": null
+    },
+    {
+      "src": "zone2:eo_data",
+      "dst": "zone2:paris",
+      "perms": null
+    },
+    {
+      "src": "zone2:eo_data",
+      "dst": "zone2:lisbon",
+      "perms": null
+    },
+    {
+      "src": "zone2:eo_data",
+      "dst": "zone2:krakow",
+      "perms": null
+    },
+    {
+      "src": "zone2:ceric",
+      "dst": "zone2:krakow",
+      "perms": null
+    },
+    {
+      "src": "zone2:eosc",
+      "dst": "zone2:paris",
+      "perms": null
+    },
+    {
+      "src": "zone2:eosc",
+      "dst": "zone2:krakow",
+      "perms": null
+    },
+    {
+      "src": "zone2:primage",
+      "dst": "zone2:krakow",
+      "perms": null
+    },
+    {
+      "src": "zone2:dhub_members",
+      "dst": "zone2:datahub",
+      "perms": "10000"
+    },
+    {
+      "src": "zone2:dhub_members",
+      "dst": "zone2:eo_data",
+      "perms": "10000"
+    },
+    {
+      "src": "zone2:dhub_mngrs",
+      "dst": "zone2:dhub_members",
+      "perms": "11011"
+    },
+    {
+      "src": "zone2:ebi",
+      "dst": "zone2:ceric",
+      "perms": "10000"
+    },
+    {
+      "src": "zone2:admins",
+      "dst": "zone2:dhub_members",
+      "perms": "11111"
+    },
+    {
+      "src": "zone2:admins",
+      "dst": "zone2:eosc",
+      "perms": "11011"
+    },
+    {
+      "src": "zone2:admins",
+      "dst": "zone2:cyfnet",
+      "perms": "11111"
+    },
+    {
+      "src": "zone2:uber_admins",
+      "dst": "zone2:admins",
+      "perms": "11111"
+    },
+    {
+      "src": "zone2:cyfnet",
+      "dst": "zone2:eosc",
+      "perms": "11001"
+    },
+    {
+      "src": "zone2:cyfnet",
+      "dst": "zone2:primage",
+      "perms": "11000"
+    },
+    {
+      "src": "zone2:audit",
+      "dst": "zone2:cyfnet",
+      "perms": "11001"
+    },
+    {
+      "src": "zone2:members",
+      "dst": "zone2:cyfnet",
+      "perms": "10000"
+    },
+    {
+      "src": "zone2:bob",
+      "dst": "zone2:datahub",
+      "perms": "11111"
+    },
+    {
+      "src": "zone2:bob",
+      "dst": "zone2:dhub_mngrs",
+      "perms": "11110"
+    },
+    {
+      "src": "zone2:alice",
+      "dst": "zone2:eo_data",
+      "perms": "11001"
+    },
+    {
+      "src": "zone2:alice",
+      "dst": "zone2:ebi",
+      "perms": "11000"
+    },
+    {
+      "src": "zone2:jill",
+      "dst": "zone2:ebi",
+      "perms": "11111"
+    },
+    {
+      "src": "zone2:luke",
+      "dst": "zone2:uber_admins",
+      "perms": "10001"
+    },
+    {
+      "src": "zone2:anne",
+      "dst": "zone2:ceric",
+      "perms": "10001"
+    },
+    {
+      "src": "zone2:anne",
+      "dst": "zone2:audit",
+      "perms": "10001"
+    },
+    {
+      "src": "zone2:anne",
+      "dst": "zone2:members",
+      "perms": "00000"
+    },
+    {
+      "src": "zone2:tom",
+      "dst": "zone2:members",
+      "perms": "00000"
+    },
+    {
+      "src": "zone2:tom",
+      "dst": "zone2:primage",
+      "perms": "10011"
+    }
+  ]
+}
