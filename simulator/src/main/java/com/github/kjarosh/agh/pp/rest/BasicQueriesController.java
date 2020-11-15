@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -69,6 +70,7 @@ public class BasicQueriesController {
                 .stream()
                 .map(Edge::dst)
                 .map(VertexId::toString)
+                .distinct()
                 .collect(Collectors.toList());
     }
 
@@ -88,6 +90,7 @@ public class BasicQueriesController {
                 .stream()
                 .map(Edge::src)
                 .map(VertexId::toString)
+                .distinct()
                 .collect(Collectors.toList());
     }
 

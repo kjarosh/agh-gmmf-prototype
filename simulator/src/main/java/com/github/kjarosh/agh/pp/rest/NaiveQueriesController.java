@@ -70,7 +70,7 @@ public class NaiveQueriesController {
         ZoneId ofOwner = of.owner();
 
         if (!ofOwner.equals(ZONE_ID)) {
-            return new ZoneClient().naive().members(ofOwner, of);
+            return new ArrayList<>(new ZoneClient().naive().members(ofOwner, of));
         }
 
         Set<String> result = new HashSet<>();

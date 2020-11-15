@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,7 +51,7 @@ public class IndexedQueriesController {
         ZoneId ofOwner = of.owner();
 
         if (!ofOwner.equals(ZONE_ID)) {
-            return new ZoneClient().naive().members(ofOwner, of);
+            return new ArrayList<>(new ZoneClient().naive().members(ofOwner, of));
         }
 
         Vertex ofVertex = graph.getVertex(of);
@@ -58,6 +59,7 @@ public class IndexedQueriesController {
                 .keySet()
                 .stream()
                 .map(VertexId::toString)
+                .distinct()
                 .collect(Collectors.toList());
     }
 

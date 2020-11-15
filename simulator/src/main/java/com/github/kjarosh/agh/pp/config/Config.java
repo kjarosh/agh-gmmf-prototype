@@ -5,7 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.google.common.base.Strings;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,12 +26,11 @@ import java.util.function.Predicate;
  */
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Config {
     private static final Logger logger = LoggerFactory.getLogger(Config.class);
-
-    public static Path CONFIG_PATH = Optional.ofNullable(System.getProperty("app.config_path"))
-            .map(Paths::get)
-            .orElseGet(() -> Paths.get("config.json"));
 
     public static ZoneId ZONE_ID = Optional.ofNullable(System.getProperty("app.zone_id", null))
             .filter(Predicate.not(Strings::isNullOrEmpty))
@@ -39,22 +41,25 @@ public class Config {
     public static ObjectMapper MAPPER = new ObjectMapper()
             .enable(SerializationFeature.INDENT_OUTPUT);
 
-    public static Config CONFIG = loadConfig();
-
     static {
         logger.info("My zone ID: {}", ZONE_ID);
     }
 
     private Map<String, ZoneConfig> zones;
 
-    public static Config getConfig() {
-        return CONFIG;
+    public static Config loadConfig(Path path) {
+        logger.debug("Loading configuration from {}", path);
+        try {
+            return MAPPER.readValue(path.toFile(), Config.class);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
-    private static Config loadConfig() {
-        logger.debug("Loading configuration from {}", CONFIG_PATH);
+    @JsonIgnore
+    public void saveConfig(Path destination) {
         try {
-            return MAPPER.readValue(CONFIG_PATH.toFile(), Config.class);
+            MAPPER.writeValue(destination.toFile(), this);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
