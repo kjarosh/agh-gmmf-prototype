@@ -7,6 +7,7 @@ import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

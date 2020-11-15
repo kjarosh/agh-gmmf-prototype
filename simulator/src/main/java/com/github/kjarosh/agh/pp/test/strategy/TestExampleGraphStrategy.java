@@ -4,7 +4,7 @@ import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.rest.ZoneClient;
+import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.test.Assert;
 import com.google.common.collect.Sets;
 import tech.tablesaw.api.Row;
@@ -61,28 +61,28 @@ public class TestExampleGraphStrategy implements TestStrategy {
         Map<String, Assert.Stats> naiveByType = new HashMap<>();
         Map<String, Assert.Stats> indexedByType = new HashMap<>();
 
-        testReaches(e -> client.naiveReaches(zone, e));
+        testReaches(e -> client.naive().reaches(zone, e));
         naiveByType.put("reaches", Assert.statistics.reset());
-        testMembers((o) -> client.naiveMembers(zone, o));
+        testMembers((o) -> client.naive().members(zone, o));
         naiveByType.put("members", Assert.statistics.reset());
-        testEffectivePermissions(e -> client.naiveEffectivePermissions(zone, e));
+        testEffectivePermissions(e -> client.naive().effectivePermissions(zone, e));
         naiveByType.put("eperms", Assert.statistics.reset());
 
-        testReaches(e -> client.indexedReaches(zone, e));
+        testReaches(e -> client.indexed().reaches(zone, e));
         indexedByType.put("reaches", Assert.statistics.reset());
-        testMembers((o) -> client.indexedMembers(zone, o));
+        testMembers((o) -> client.indexed().members(zone, o));
         indexedByType.put("members", Assert.statistics.reset());
-        testEffectivePermissions(e -> client.indexedEffectivePermissions(zone, e));
+        testEffectivePermissions(e -> client.indexed().effectivePermissions(zone, e));
         indexedByType.put("eperms", Assert.statistics.reset());
 
         modifyPermissions(context);
-        testPermissionsAfterModification(e -> client.naiveEffectivePermissions(zone, e));
+        testPermissionsAfterModification(e -> client.naive().effectivePermissions(zone, e));
         naiveByType.put("perm mod", Assert.statistics.reset());
-        testPermissionsAfterModification(e -> client.indexedEffectivePermissions(zone, e));
+        testPermissionsAfterModification(e -> client.indexed().effectivePermissions(zone, e));
         indexedByType.put("perm mod", Assert.statistics.reset());
-        testMembersAfterModification(e -> client.naiveMembers(zone, e));
+        testMembersAfterModification(e -> client.naive().members(zone, e));
         naiveByType.put("members mod", Assert.statistics.reset());
-        testMembersAfterModification(e -> client.indexedMembers(zone, e));
+        testMembersAfterModification(e -> client.indexed().members(zone, e));
         indexedByType.put("members mod", Assert.statistics.reset());
 
         long time = System.nanoTime() - start;

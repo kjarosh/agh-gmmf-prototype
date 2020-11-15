@@ -7,7 +7,7 @@ import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.rest.ZoneClient;
+import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.test.strategy.TestContext;
 
 import java.util.ArrayList;

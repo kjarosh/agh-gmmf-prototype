@@ -1,4 +1,4 @@
-package com.github.kjarosh.agh.pp.rest;
+package com.github.kjarosh.agh.pp.rest.client;
 
 import com.github.kjarosh.agh.pp.config.Config;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
@@ -23,6 +23,14 @@ import java.util.List;
  * @author Kamil Jarosz
  */
 public class ZoneClient {
+    private GraphQueryClient naiveGraphQueryClient;
+    private GraphQueryClient indexedGraphQueryClient;
+
+    public ZoneClient() {
+        this.naiveGraphQueryClient = new GraphQueryClientImpl("naive");
+        this.indexedGraphQueryClient = new GraphQueryClientImpl("indexed");
+    }
+
     private UriComponentsBuilder baseUri(ZoneId zone) {
         return UriComponentsBuilder.fromHttpUrl("http://" + Config.getConfig().translateZoneToAddress(zone) + "/");
     }
@@ -107,62 +115,12 @@ public class ZoneClient {
         return execute(url, String.class);
     }
 
-    public boolean naiveReaches(ZoneId zone, EdgeId edgeId) {
-        String url = baseUri(zone)
-                .path("naive/reaches")
-                .queryParam("from", edgeId.getFrom())
-                .queryParam("to", edgeId.getTo())
-                .build()
-                .toUriString();
-        return execute(url, Boolean.class);
+    public GraphQueryClient naive() {
+        return naiveGraphQueryClient;
     }
 
-    public List<String> naiveMembers(ZoneId zone, VertexId of) {
-        String url = baseUri(zone)
-                .path("naive/members")
-                .queryParam("of", of)
-                .build()
-                .toUriString();
-        return execute(url, StringList.class);
-    }
-
-    public String naiveEffectivePermissions(ZoneId zone, EdgeId edgeId) {
-        String url = baseUri(zone)
-                .path("naive/effective_permissions")
-                .queryParam("from", edgeId.getFrom())
-                .queryParam("to", edgeId.getTo())
-                .build()
-                .toUriString();
-        return execute(url, String.class);
-    }
-
-    public boolean indexedReaches(ZoneId zone, EdgeId edgeId) {
-        String url = baseUri(zone)
-                .path("indexed/reaches")
-                .queryParam("from", edgeId.getFrom())
-                .queryParam("to", edgeId.getTo())
-                .build()
-                .toUriString();
-        return execute(url, Boolean.class);
-    }
-
-    public String indexedEffectivePermissions(ZoneId zone, EdgeId edgeId) {
-        String url = baseUri(zone)
-                .path("indexed/effective_permissions")
-                .queryParam("from", edgeId.getFrom())
-                .queryParam("to", edgeId.getTo())
-                .build()
-                .toUriString();
-        return execute(url, String.class);
-    }
-
-    public Collection<String> indexedMembers(ZoneId zone, VertexId of) {
-        String url = baseUri(zone)
-                .path("indexed/members")
-                .queryParam("of", of)
-                .build()
-                .toUriString();
-        return execute(url, StringList.class);
+    public GraphQueryClient indexed() {
+        return indexedGraphQueryClient;
     }
 
     public void addEdge(ZoneId zone, EdgeId edgeId, Permissions permissions) {
@@ -262,5 +220,48 @@ public class ZoneClient {
         }
 
         return response.getBody();
+    }
+
+    private class GraphQueryClientImpl implements GraphQueryClient {
+        private final String prefix;
+
+        public GraphQueryClientImpl(String prefix) {
+            this.prefix = prefix;
+        }
+
+        @Override
+        public boolean reaches(ZoneId zone, EdgeId edgeId) {
+            String url = baseUri(zone)
+                    .path(prefix)
+                    .path("/reaches")
+                    .queryParam("from", edgeId.getFrom())
+                    .queryParam("to", edgeId.getTo())
+                    .build()
+                    .toUriString();
+            return execute(url, Boolean.class);
+        }
+
+        @Override
+        public List<String> members(ZoneId zone, VertexId of) {
+            String url = baseUri(zone)
+                    .path(prefix)
+                    .path("/members")
+                    .queryParam("of", of)
+                    .build()
+                    .toUriString();
+            return execute(url, StringList.class);
+        }
+
+        @Override
+        public String effectivePermissions(ZoneId zone, EdgeId edgeId) {
+            String url = baseUri(zone)
+                    .path(prefix)
+                    .path("/effective_permissions")
+                    .queryParam("from", edgeId.getFrom())
+                    .queryParam("to", edgeId.getTo())
+                    .build()
+                    .toUriString();
+            return execute(url, String.class);
+        }
     }
 }

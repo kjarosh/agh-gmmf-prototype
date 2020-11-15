@@ -3,7 +3,7 @@ package com.github.kjarosh.agh.pp.cli;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.rest.ZoneClient;
+import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import jline.console.ConsoleReader;
 import jline.console.completer.ArgumentCompleter;
 import picocli.CommandLine;

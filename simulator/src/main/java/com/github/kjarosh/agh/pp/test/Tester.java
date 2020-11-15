@@ -2,7 +2,7 @@ package com.github.kjarosh.agh.pp.test;
 
 import ch.qos.logback.classic.Level;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.rest.ZoneClient;
+import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.test.strategy.DynamicTestsStrategy;
 import com.github.kjarosh.agh.pp.test.strategy.LoadMeasurementStrategy;
 import com.github.kjarosh.agh.pp.test.strategy.TestContext;

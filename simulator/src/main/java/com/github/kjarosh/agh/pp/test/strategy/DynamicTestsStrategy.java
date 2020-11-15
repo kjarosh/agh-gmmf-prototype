@@ -4,7 +4,7 @@ import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.rest.ZoneClient;
+import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.test.Assert;
 
 import java.util.Collection;
@@ -49,7 +49,7 @@ public class DynamicTestsStrategy implements TestStrategy {
                 from = getRandom(graph.allVertices());
                 to = getRandom(graph.allVertices());
 
-                indexed = client.indexedEffectivePermissions(
+                indexed = client.indexed().effectivePermissions(
                         zone, EdgeId.of(from.id(), to.id()));
                 reaches = indexed != null;
             } while (!reaches && nonReachablePerms.get() * 2 >= allPerms.get());
@@ -59,7 +59,7 @@ public class DynamicTestsStrategy implements TestStrategy {
                 nonReachablePerms.incrementAndGet();
             }
 
-            String naive = client.naiveEffectivePermissions(
+            String naive = client.naive().effectivePermissions(
                     zone, EdgeId.of(from.id(), to.id()));
             assertEqual(naive, indexed,
                     "testing permissions from " + from + ", to " + to);
@@ -69,8 +69,8 @@ public class DynamicTestsStrategy implements TestStrategy {
         makeStream(count, parallel).forEach(i -> {
             Vertex of = getRandom(graph.allVertices());
 
-            List<String> naive = client.naiveMembers(zone, of.id());
-            Collection<String> indexed = client.indexedMembers(zone, of.id());
+            List<String> naive = client.naive().members(zone, of.id());
+            Collection<String> indexed = client.indexed().members(zone, of.id());
             assertEqualSet(naive, indexed, "testing members of " + of.id());
         });
         Assert.Stats members = Assert.statistics.reset();

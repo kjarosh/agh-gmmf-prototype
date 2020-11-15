@@ -7,6 +7,7 @@ import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class NaiveQueriesController {
         ZoneId fromOwner = edgeId.getFrom().owner();
 
         if (!fromOwner.equals(ZONE_ID)) {
-            return new ZoneClient().naiveReaches(fromOwner, edgeId);
+            return new ZoneClient().naive().reaches(fromOwner, edgeId);
         }
 
         if (basicQueriesController.isAdjacent(fromId, toId)) {
@@ -69,7 +70,7 @@ public class NaiveQueriesController {
         ZoneId ofOwner = of.owner();
 
         if (!ofOwner.equals(ZONE_ID)) {
-            return new ZoneClient().naiveMembers(ofOwner, of);
+            return new ZoneClient().naive().members(ofOwner, of);
         }
 
         Set<String> result = new HashSet<>();
@@ -94,7 +95,7 @@ public class NaiveQueriesController {
         ZoneId fromOwner = edgeId.getFrom().owner();
 
         if (!fromOwner.equals(ZONE_ID)) {
-            return new ZoneClient().naiveEffectivePermissions(fromOwner, edgeId);
+            return new ZoneClient().naive().effectivePermissions(fromOwner, edgeId);
         }
 
         Permissions permissions = null;

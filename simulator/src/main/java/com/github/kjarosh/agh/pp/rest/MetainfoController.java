@@ -3,6 +3,7 @@ package com.github.kjarosh.agh.pp.rest;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.InboxProcessor;
+import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.rest.dto.DependentZonesDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;

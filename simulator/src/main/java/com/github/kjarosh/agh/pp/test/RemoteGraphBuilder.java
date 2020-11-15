@@ -3,7 +3,7 @@ package com.github.kjarosh.agh.pp.test;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.rest.ZoneClient;
+import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

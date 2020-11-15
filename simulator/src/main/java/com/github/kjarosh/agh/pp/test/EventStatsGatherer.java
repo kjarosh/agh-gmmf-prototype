@@ -2,7 +2,7 @@ package com.github.kjarosh.agh.pp.test;
 
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
-import com.github.kjarosh.agh.pp.rest.ZoneClient;
+import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

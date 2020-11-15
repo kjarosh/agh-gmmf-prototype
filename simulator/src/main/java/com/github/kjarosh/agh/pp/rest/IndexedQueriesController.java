@@ -7,6 +7,7 @@ import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.EffectiveVertex;
+import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +50,7 @@ public class IndexedQueriesController {
         ZoneId ofOwner = of.owner();
 
         if (!ofOwner.equals(ZONE_ID)) {
-            return new ZoneClient().naiveMembers(ofOwner, of);
+            return new ZoneClient().naive().members(ofOwner, of);
         }
 
         Vertex ofVertex = graph.getVertex(of);
@@ -72,7 +73,7 @@ public class IndexedQueriesController {
         ZoneId toOwner = edgeId.getTo().owner();
 
         if (!toOwner.equals(ZONE_ID)) {
-            return new ZoneClient().indexedEffectivePermissions(toOwner, edgeId);
+            return new ZoneClient().indexed().effectivePermissions(toOwner, edgeId);
         }
 
         Vertex toVertex = graph.getVertex(edgeId.getTo());

@@ -11,6 +11,7 @@ import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.Inbox;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventType;
+import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.rest.utils.OkException;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
