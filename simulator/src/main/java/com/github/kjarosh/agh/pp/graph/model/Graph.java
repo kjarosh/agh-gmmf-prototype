@@ -116,7 +116,7 @@ public class Graph {
                 .stream()
                 .map(Vertex::id)
                 .map(VertexId::owner)
-                .collect(Collectors.toUnmodifiableList());
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     @SneakyThrows

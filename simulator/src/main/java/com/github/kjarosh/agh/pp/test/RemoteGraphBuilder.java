@@ -4,6 +4,8 @@ import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.ZoneClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -13,6 +15,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Kamil Jarosz
  */
 public class RemoteGraphBuilder {
+    private static final Logger logger = LoggerFactory.getLogger(RemoteGraphBuilder.class);
+
     private final Graph graph;
     private final ZoneClient client;
     private final AtomicInteger verticesBuilt = new AtomicInteger(0);
@@ -24,9 +28,13 @@ public class RemoteGraphBuilder {
     }
 
     public void build(ZoneClient client, ZoneId zone) {
+        logger.info("Building graph");
+
         Collection<ZoneId> allZones = graph.allZones();
 
+        logger.debug("Checking all zones if they are healthy: {}", allZones);
         while (notHealthy(allZones)) {
+            logger.trace("Not healthy");
             sleep();
         }
 
@@ -53,7 +61,9 @@ public class RemoteGraphBuilder {
                         edgesBuilt.incrementAndGet();
                     });
 
+            logger.debug("Waiting for index to be built: {}", allZones);
             while (indexNotReady(allZones)) {
+                logger.trace("Index not built");
                 sleep();
             }
         } finally {
@@ -65,6 +75,8 @@ public class RemoteGraphBuilder {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+
+        logger.info("Graph built");
     }
 
     private void sleep() {

@@ -20,10 +20,8 @@ public class TestContext {
     private final ZoneId zone;
 
     public Graph buildGraph(String graphPath) {
-        logger.info("Building graph");
         Graph graph = GraphLoader.loadGraph(graphPath);
         new RemoteGraphBuilder(graph, client).build(client, zone);
-        logger.info("Graph built");
         return graph;
     }
 
