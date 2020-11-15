@@ -26,7 +26,6 @@ services:
     build: .
     command: test zone0
     environment:
-      ALL_ZONES: zone0,zone1
       GRAPH_PATH: graph.json
     networks:
       intranet:

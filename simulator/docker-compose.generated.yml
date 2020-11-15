@@ -37,7 +37,6 @@ services:
     build: .
     command: test zone0
     environment:
-      ALL_ZONES: zone0,zone1,zone2
       GRAPH_PATH: generated_graph.json
       DYNAMIC_TESTS: "true"
       DYNAMIC_TESTS_PARALLEL: "true"

@@ -8,6 +8,7 @@ import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
+import com.github.kjarosh.agh.pp.rest.dto.DependentZonesDto;
 import com.github.kjarosh.agh.pp.util.StringList;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
@@ -15,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -238,6 +240,23 @@ public class ZoneClient {
                 .build()
                 .toUriString();
         ResponseEntity<EventStats> response = new RestTemplate().getForEntity(url, EventStats.class);
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Status: " + response.getStatusCode());
+        }
+
+        return response.getBody();
+    }
+
+    public DependentZonesDto getDependentZones(ZoneId zone) {
+        return getDependentZones(zone, Collections.emptyList());
+    }
+
+    public DependentZonesDto getDependentZones(ZoneId zone, Collection<ZoneId> exclude) {
+        String url = baseUri(zone)
+                .path("dependent_zones")
+                .build()
+                .toUriString();
+        ResponseEntity<DependentZonesDto> response = new RestTemplate().postForEntity(url, exclude, DependentZonesDto.class);
         if (!response.getStatusCode().is2xxSuccessful()) {
             throw new RuntimeException("Status: " + response.getStatusCode());
         }

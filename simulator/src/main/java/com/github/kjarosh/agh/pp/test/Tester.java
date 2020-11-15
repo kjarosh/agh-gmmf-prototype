@@ -13,8 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author Kamil Jarosz
@@ -30,36 +28,28 @@ public class Tester {
     public Tester(
             ZoneClient client,
             String zone,
-            List<String> allZones,
             String graphPath,
             boolean dynamicTests) {
         this.dynamicTests = dynamicTests;
         this.exampleStrategy = new TestExampleGraphStrategy(graphPath);
         this.dynamicStrategy = new DynamicTestsStrategy(graphPath);
         this.context = TestContext.builder()
-                .allZones(allZones.stream()
-                        .map(ZoneId::new)
-                        .collect(Collectors.toList()))
                 .zone(new ZoneId(zone))
                 .client(client)
                 .build();
     }
 
-    public static void main(String zone, List<String> allZones) {
+    public static void main(String zone) {
         LoggerUtils.setLoggingLevel("org.springframework.web", Level.INFO);
 
         boolean dynamicTests = "true".equals(System.getenv("DYNAMIC_TESTS"));
         String graphPath = System.getenv("GRAPH_PATH");
-        new Tester(new ZoneClient(), zone, allZones, graphPath, dynamicTests).test();
+        new Tester(new ZoneClient(), zone, graphPath, dynamicTests).test();
     }
 
     @SneakyThrows
     private void test() {
-        logger.debug("Checking if services are healthy");
-        while (notHealthy(context)) {
-            Thread.sleep(200);
-        }
-        logger.info("Services healthy, starting tests");
+        logger.info("Starting tests");
 
         if (dynamicTests) {
             new LoadMeasurementStrategy("generated_graph.json", Duration.ofSeconds(100))
@@ -69,10 +59,5 @@ public class Tester {
         } else {
             exampleStrategy.execute(context);
         }
-    }
-
-    private boolean notHealthy(TestContext context) {
-        return context.getAllZones().stream()
-                .anyMatch(zone -> !context.getClient().healthcheck(zone));
     }
 }

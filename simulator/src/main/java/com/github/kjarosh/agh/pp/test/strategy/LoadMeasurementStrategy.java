@@ -29,7 +29,7 @@ public class LoadMeasurementStrategy implements TestStrategy {
         Graph graph = context.buildGraph(graphPath);
 
         Supervisor supervisor = new Supervisor(new EventStatsGatherer(
-                context.getClient(), context.getAllZones()));
+                context.getClient(), context.getZone()));
         supervisor.start();
 
         RandomOperationIssuer randomOperationIssuer =

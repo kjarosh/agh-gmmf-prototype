@@ -5,8 +5,8 @@ import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.ZoneClient;
 
+import java.util.Collection;
 import java.util.Comparator;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -15,21 +15,25 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RemoteGraphBuilder {
     private final Graph graph;
     private final ZoneClient client;
-    private final List<ZoneId> allZones;
     private final AtomicInteger verticesBuilt = new AtomicInteger(0);
     private final AtomicInteger edgesBuilt = new AtomicInteger(0);
 
-    public RemoteGraphBuilder(Graph graph, ZoneClient client, List<ZoneId> allZones) {
+    public RemoteGraphBuilder(Graph graph, ZoneClient client) {
         this.graph = graph;
         this.client = client;
-        this.allZones = allZones;
     }
 
     public void build(ZoneClient client, ZoneId zone) {
+        Collection<ZoneId> allZones = graph.allZones();
+
+        while (notHealthy(allZones)) {
+            sleep();
+        }
+
         Supervisor supervisor = new Supervisor(
                 () -> (double) verticesBuilt.get() / graph.allVertices().size(),
                 () -> (double) edgesBuilt.get() / graph.allEdges().size(),
-                allZones != null ? new EventStatsGatherer(client, allZones) : null);
+                new EventStatsGatherer(client, allZones));
         supervisor.start();
         try {
             graph.allVertices()
@@ -49,11 +53,9 @@ public class RemoteGraphBuilder {
                         edgesBuilt.incrementAndGet();
                     });
 
-            while (indexNotReady()) {
-                Thread.sleep(200);
+            while (indexNotReady(allZones)) {
+                sleep();
             }
-        } catch (InterruptedException e) {
-            throw new RuntimeException("Interrupted while building graph");
         } finally {
             supervisor.interrupt();
         }
@@ -65,8 +67,21 @@ public class RemoteGraphBuilder {
         }
     }
 
-    private boolean indexNotReady() {
+    private void sleep() {
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            throw new RuntimeException("Interrupted while building graph");
+        }
+    }
+
+    private boolean indexNotReady(Collection<ZoneId> allZones) {
         return allZones.stream()
                 .anyMatch(zone -> !client.indexReady(zone));
+    }
+
+    private boolean notHealthy(Collection<ZoneId> allZones) {
+        return allZones.stream()
+                .anyMatch(zone -> !client.healthcheck(zone));
     }
 }

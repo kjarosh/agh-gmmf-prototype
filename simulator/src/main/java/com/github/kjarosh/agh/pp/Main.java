@@ -10,9 +10,6 @@ import com.github.kjarosh.agh.pp.test.Tester;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * @author Kamil Jarosz
  */
@@ -40,10 +37,7 @@ public class Main {
 
                 String testedZone = args[1];
                 logger.debug("Testing zone '{}'", testedZone);
-
-                List<String> allZones = Arrays.asList(System.getenv("ALL_ZONES").split(","));
-                logger.debug("All zones: {}", allZones);
-                Tester.main(testedZone, allZones);
+                Tester.main(testedZone);
                 break;
             }
 
@@ -74,7 +68,7 @@ public class Main {
 
                 Graph graph = GraphLoader.loadGraph(graphPath);
                 ZoneClient client = new ZoneClient();
-                new RemoteGraphBuilder(graph, client, null).build(client, new ZoneId(zone));
+                new RemoteGraphBuilder(graph, client).build(client, new ZoneId(zone));
 
                 logger.info("Graph loaded");
                 break;

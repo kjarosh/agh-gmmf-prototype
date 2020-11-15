@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Collectors;
 
 import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
 
@@ -108,6 +109,14 @@ public class Graph {
 
     public Collection<Edge> allEdges() {
         return edges.values();
+    }
+
+    public Collection<ZoneId> allZones() {
+        return allVertices()
+                .stream()
+                .map(Vertex::id)
+                .map(VertexId::owner)
+                .collect(Collectors.toUnmodifiableList());
     }
 
     @SneakyThrows
