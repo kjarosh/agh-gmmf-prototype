@@ -142,7 +142,8 @@ public class GraphModificationController {
             // if successive, we are getting this request from the other zone
             // which is the owner of the source vertex, we should be the destination
             if (!toOwner.equals(ZONE_ID)) {
-                throw new RuntimeException("Destination zone different than this zone");
+                throw new RuntimeException(String.format(
+                        "Destination zone different than this zone (this=%s, dest=%s)", ZONE_ID, toOwner));
             }
         } else {
             // if it's the wrong zone, forward the request
@@ -202,6 +203,7 @@ public class GraphModificationController {
             @RequestParam("type") Vertex.Type type) {
         Graph graph = graphLoader.getGraph();
         VertexId id = new VertexId(ZONE_ID, name);
+        logger.info("Adding vertex {}", id);
         graph.addVertex(new Vertex(id, type));
     }
 }

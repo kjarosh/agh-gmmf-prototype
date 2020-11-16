@@ -1,0 +1,10 @@
+{
+  "zones": {
+    "zone0": {
+      "address": "localhost:8080"
+    },
+    "zone1": {
+      "address": "localhost:8081"
+    }
+  }
+}

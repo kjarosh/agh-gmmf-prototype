@@ -263,5 +263,10 @@ public class ZoneClient {
                     .toUriString();
             return execute(url, String.class);
         }
+
+        @Override
+        public String toString() {
+            return "GraphQueryClient(" + prefix + ')';
+        }
     }
 }
