@@ -32,7 +32,7 @@ public class RemoteGraphBuilder {
 
         Collection<ZoneId> allZones = graph.allZones();
 
-        logger.debug("Checking all zones if they are healthy: {}", allZones);
+        logger.info("Checking all zones if they are healthy: {}", allZones);
         while (notHealthy(allZones)) {
             logger.trace("Not healthy");
             sleep();

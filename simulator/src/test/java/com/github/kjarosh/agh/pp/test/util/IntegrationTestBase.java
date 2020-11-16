@@ -34,7 +34,7 @@ public abstract class IntegrationTestBase {
     @BeforeAll
     void setUp() {
         if (!zone.getId().isEmpty()) {
-            logger.info("Testing zone {}", zone);
+            logger.info("Testing an existing environment, zone {}", zone);
         } else {
             logger.info("Setting up environment...");
             startEnvironment();
@@ -44,8 +44,7 @@ public abstract class IntegrationTestBase {
                 Path configPath = Files.createTempFile("kjarosz_sim_", ".json");
                 Config testConfig = createConfiguration();
                 testConfig.saveConfig(configPath);
-                System.setProperty("app.config_path", configPath.toString());
-                ConfigLoader.reloadConfig();
+                ConfigLoader.reloadConfig(configPath);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }

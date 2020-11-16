@@ -8,16 +8,22 @@ import java.util.Optional;
  * @author Kamil Jarosz
  */
 public class ConfigLoader {
-    private static Config config = loadConfig();
+    private static Config config = loadConfig(null);
 
     public static void reloadConfig() {
-        config = loadConfig();
+        reloadConfig(null);
     }
 
-    private static Config loadConfig() {
-        Path configPath = Optional.ofNullable(System.getProperty("app.config_path"))
-                .map(Paths::get)
-                .orElseGet(() -> Paths.get("config.json"));
+    public static void reloadConfig(Path configPath) {
+        config = loadConfig(configPath);
+    }
+
+    private static Config loadConfig(Path configPath) {
+        if (configPath == null) {
+            configPath = Optional.ofNullable(System.getProperty("app.config_path"))
+                    .map(Paths::get)
+                    .orElseGet(() -> Paths.get("config.json"));
+        }
         return Config.loadConfig(configPath);
     }
 
