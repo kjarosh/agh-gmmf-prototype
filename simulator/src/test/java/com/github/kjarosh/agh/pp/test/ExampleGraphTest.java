@@ -1,20 +1,11 @@
 package com.github.kjarosh.agh.pp.test;
 
-import com.github.kjarosh.agh.pp.config.Config;
-import com.github.kjarosh.agh.pp.config.ZoneConfig;
 import com.github.kjarosh.agh.pp.rest.client.GraphQueryClient;
 import com.github.kjarosh.agh.pp.test.util.ExampleTestBase;
 import com.github.kjarosh.agh.pp.test.util.GraphQueryClientArgumentsProvider;
-import com.github.kjarosh.agh.pp.test.util.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.slf4j.LoggerFactory;
-import org.testcontainers.containers.DockerComposeContainer;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-
-import java.io.File;
-import java.util.HashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
