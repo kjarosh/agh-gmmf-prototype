@@ -8,7 +8,7 @@ import java.util.Optional;
  * @author Kamil Jarosz
  */
 public class ConfigLoader {
-    private static Config config = loadConfig(null);
+    private static Config config;
 
     public static void reloadConfig() {
         reloadConfig(null);
@@ -28,6 +28,9 @@ public class ConfigLoader {
     }
 
     public static Config getConfig() {
+        if (config == null) {
+            config = loadConfig(null);
+        }
         return config;
     }
 }
