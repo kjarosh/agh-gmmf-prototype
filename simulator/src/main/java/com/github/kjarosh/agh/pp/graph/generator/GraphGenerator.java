@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 /**
  * @author Kamil Jarosz
  */
-public class Generator {
+public class GraphGenerator {
     private final Random random = new Random();
     private final Faker faker = new Faker();
 
@@ -36,17 +36,10 @@ public class Generator {
 
     private final Map<ZoneAndType, List<VertexId>> verticesByZoneType = new HashMap<>();
 
-    public Generator(Toml config) {
+    public GraphGenerator(Toml config) {
         this.config = config;
         this.entityGenerator = this.new EntityGenerator();
         this.relationGenerator = this.new RelationGenerator();
-    }
-
-    public static void main(String[] args) throws IOException {
-        Toml config = new Toml().read(new File("config.toml"));
-        Generator generator = new Generator(config);
-        Graph graph = generator.generateGraph();
-        graph.serialize(Files.newOutputStream(Paths.get(config.getString("output"))));
     }
 
     private <T> T chooseByShares(Map<T, Double> shares) {

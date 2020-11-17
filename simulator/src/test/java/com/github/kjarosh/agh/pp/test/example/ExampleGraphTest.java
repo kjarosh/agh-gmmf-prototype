@@ -1,4 +1,4 @@
-package com.github.kjarosh.agh.pp.test;
+package com.github.kjarosh.agh.pp.test.example;
 
 import com.github.kjarosh.agh.pp.rest.client.GraphQueryClient;
 import com.github.kjarosh.agh.pp.test.util.ExampleTestBase;

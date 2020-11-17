@@ -1,4 +1,4 @@
-package com.github.kjarosh.agh.pp.test;
+package com.github.kjarosh.agh.pp.test.example;
 
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.rest.client.GraphQueryClient;
