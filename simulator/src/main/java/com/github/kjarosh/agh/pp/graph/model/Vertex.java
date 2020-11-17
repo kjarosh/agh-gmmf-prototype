@@ -53,15 +53,5 @@ public class Vertex implements Comparable<Vertex> {
         GROUP,
         @JsonProperty("user")
         USER,
-        ;
-
-        @Override
-        public String toString() {
-            try {
-                return Type.class.getField(name()).getAnnotation(JsonProperty.class).value();
-            } catch (NoSuchFieldException e) {
-                throw new AssertionError();
-            }
-        }
     }
 }

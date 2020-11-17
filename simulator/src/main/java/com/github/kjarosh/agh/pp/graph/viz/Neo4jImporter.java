@@ -64,7 +64,7 @@ public class Neo4jImporter implements AutoCloseable {
     private void importVertex(Transaction tx, Vertex vertex) {
         tx.run("CREATE (" + nodeDesc(vertex) + " { id: $id, type: $type })", Values.parameters(
                 "id", vertex.id().toString(),
-                "type", vertex.type().toString()));
+                "type", vertex.type().toString().toLowerCase()));
     }
 
     private String nodeDesc(Vertex vertex) {

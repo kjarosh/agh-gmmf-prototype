@@ -7,7 +7,6 @@ import com.github.kjarosh.agh.pp.test.util.GraphQueryClientArgumentsProvider;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import static com.github.kjarosh.agh.pp.test.Assert.assertEqual;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -36,18 +35,18 @@ public class ExampleModificationGraphTest extends ExampleTestBase {
     @ParameterizedTest
     @ArgumentsSource(GraphQueryClientArgumentsProvider.class)
     void effectivePermissions(GraphQueryClient queryClient) {
-        assertEqual(queryClient.effectivePermissions(zone, eid("zone1:tom", "zone1:primage")),
-                "11001");
-        assertEqual(queryClient.effectivePermissions(zone, eid("zone0:luke", "zone1:admins")),
-                "10100");
-        assertEqual(queryClient.effectivePermissions(zone, eid("zone0:luke", "zone1:eosc")),
-                "10001");
-        assertEqual(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:ceric")),
-                null);
-        assertEqual(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:ebi")),
-                null);
-        assertEqual(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone1:krakow")),
-                "00000");
+        assertThat(queryClient.effectivePermissions(zone, eid("zone1:tom", "zone1:primage")))
+                .isEqualTo("11001");
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:luke", "zone1:admins")))
+                .isEqualTo("10100");
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:luke", "zone1:eosc")))
+                .isEqualTo("10001");
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:ceric")))
+                .isNull();
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:ebi")))
+                .isNull();
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone1:krakow")))
+                .isEqualTo("00000");
     }
 
     @ParameterizedTest
