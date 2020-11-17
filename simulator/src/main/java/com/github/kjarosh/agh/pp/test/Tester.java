@@ -6,7 +6,6 @@ import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.test.strategy.DynamicTestsStrategy;
 import com.github.kjarosh.agh.pp.test.strategy.LoadMeasurementStrategy;
 import com.github.kjarosh.agh.pp.test.strategy.TestContext;
-import com.github.kjarosh.agh.pp.test.strategy.TestExampleGraphStrategy;
 import com.github.kjarosh.agh.pp.util.LoggerUtils;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
@@ -20,18 +19,13 @@ import java.time.Duration;
 public class Tester {
     private static final Logger logger = LoggerFactory.getLogger(Tester.class);
 
-    private final boolean dynamicTests;
-    private final TestExampleGraphStrategy exampleStrategy;
     private final DynamicTestsStrategy dynamicStrategy;
     private final TestContext context;
 
     public Tester(
             ZoneClient client,
             String zone,
-            String graphPath,
-            boolean dynamicTests) {
-        this.dynamicTests = dynamicTests;
-        this.exampleStrategy = new TestExampleGraphStrategy(graphPath);
+            String graphPath) {
         this.dynamicStrategy = new DynamicTestsStrategy(graphPath);
         this.context = TestContext.builder()
                 .zone(new ZoneId(zone))
@@ -42,22 +36,17 @@ public class Tester {
     public static void main(String zone) {
         LoggerUtils.setLoggingLevel("org.springframework.web", Level.INFO);
 
-        boolean dynamicTests = "true".equals(System.getenv("DYNAMIC_TESTS"));
         String graphPath = System.getenv("GRAPH_PATH");
-        new Tester(new ZoneClient(), zone, graphPath, dynamicTests).test();
+        new Tester(new ZoneClient(), zone, graphPath).test();
     }
 
     @SneakyThrows
     private void test() {
         logger.info("Starting tests");
 
-        if (dynamicTests) {
-            new LoadMeasurementStrategy("generated_graph.json", Duration.ofSeconds(100))
-                    .execute(context);
-            if (true) return;
-            dynamicStrategy.execute(context);
-        } else {
-            exampleStrategy.execute(context);
-        }
+        new LoadMeasurementStrategy("generated_graph.json", Duration.ofSeconds(100))
+                .execute(context);
+        if (true) return;
+        dynamicStrategy.execute(context);
     }
 }

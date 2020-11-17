@@ -22,19 +22,6 @@ services:
       - 8081:80
       - 8781:8080
 
-  tester:
-    build: .
-    command: test zone0
-    environment:
-      GRAPH_PATH: graph.json
-    networks:
-      intranet:
-    ports:
-      - 8789:8080
-    depends_on:
-      - zone0
-      - zone1
-
   client:
     build: .
     command: client

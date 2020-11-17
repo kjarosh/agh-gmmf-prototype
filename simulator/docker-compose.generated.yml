@@ -38,7 +38,6 @@ services:
     command: test zone0
     environment:
       GRAPH_PATH: generated_graph.json
-      DYNAMIC_TESTS: "true"
       DYNAMIC_TESTS_PARALLEL: "true"
       DYNAMIC_TESTS_COUNT: 1000
     networks:
