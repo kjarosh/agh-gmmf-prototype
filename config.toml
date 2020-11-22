@@ -1,6 +1,6 @@
 # graph generator config
 
-output = 'src/main/resources/generated_graph.json'
+output = 'generated_test.json'
 
 [count]
 zone = 3
