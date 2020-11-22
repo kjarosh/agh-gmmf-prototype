@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 
 import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
@@ -161,6 +162,10 @@ public class GraphModificationController {
             String trace,
             EdgeId edgeId,
             boolean delete) {
+        if (trace == null) {
+            trace = UUID.randomUUID().toString();
+        }
+
         Graph graph = graphLoader.getGraph();
         if (successive) {
             Set<VertexId> subjects = graph.getVertex(edgeId.getTo())
