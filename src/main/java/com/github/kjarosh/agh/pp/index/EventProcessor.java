@@ -5,6 +5,8 @@ import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
+import com.github.kjarosh.agh.pp.instrumentation.Instrumentation;
+import com.github.kjarosh.agh.pp.instrumentation.Notification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,30 +27,47 @@ public class EventProcessor {
     @Autowired
     private Inbox inbox;
 
+    private Instrumentation instrumentation = Instrumentation.getInstance();
+
     public void process(VertexId id, Event event) {
-        switch (event.getType()) {
-            case CHILD_CHANGE: {
-                processChild(id, event, false);
-                break;
-            }
+        instrumentation.notify(new Notification(
+                Notification.Type.START_EVENT_PROCESSING, event));
+        boolean successful = false;
 
-            case PARENT_CHANGE: {
-                processParent(id, event, false);
-                break;
-            }
+        try {
+            switch (event.getType()) {
+                case CHILD_CHANGE: {
+                    processChild(id, event, false);
+                    break;
+                }
 
-            case CHILD_REMOVE: {
-                processChild(id, event, true);
-                break;
-            }
+                case PARENT_CHANGE: {
+                    processParent(id, event, false);
+                    break;
+                }
 
-            case PARENT_REMOVE: {
-                processParent(id, event, true);
-                break;
-            }
+                case CHILD_REMOVE: {
+                    processChild(id, event, true);
+                    break;
+                }
 
-            default: {
-                throw new AssertionError();
+                case PARENT_REMOVE: {
+                    processParent(id, event, true);
+                    break;
+                }
+
+                default: {
+                    throw new AssertionError();
+                }
+            }
+            successful = true;
+        } finally {
+            if (successful) {
+                instrumentation.notify(new Notification(
+                        Notification.Type.END_EVENT_PROCESSING, event));
+            } else {
+                instrumentation.notify(new Notification(
+                        Notification.Type.FAIL_EVENT_PROCESSING, event));
             }
         }
     }

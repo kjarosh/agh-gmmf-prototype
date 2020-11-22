@@ -15,7 +15,7 @@ public enum EventType {
 
     /**
      * When some parent changed. E.g. a group changes permissions in a space.
-     * The event is then propagated to all childrem.
+     * The event is then propagated to all children.
      */
     @JsonProperty("parent")
     PARENT_CHANGE,

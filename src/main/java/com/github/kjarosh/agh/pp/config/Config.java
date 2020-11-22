@@ -1,6 +1,7 @@
 package com.github.kjarosh.agh.pp.config;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
@@ -39,12 +40,15 @@ public class Config {
             .orElse(null);
 
     public static ObjectMapper MAPPER = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT);
+            .enable(SerializationFeature.INDENT_OUTPUT)
+            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     static {
         logger.info("My zone ID: {}", ZONE_ID);
     }
 
+    private boolean instrumentationEnabled = false;
+    private String instrumentationReportPath = "instrumentation.csv";
     private Map<String, ZoneConfig> zones;
 
     public static Config loadConfig(Path path) {
