@@ -1,0 +1,29 @@
+version: '3'
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: admin
+    ports:
+      - 5432:5432
+
+  postgres-admin:
+    image: dpage/pgadmin4
+    user: root
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - ./sql/:/var/lib/pgadmin/storage/admin/sqls/:ro
+    ports:
+      - 5433:80
+    depends_on:
+      - postgres
+
+  neo4j:
+    image: neo4j
+    environment:
+      NEO4J_AUTH: neo4j/admin
+    ports:
+      - 7687:7687
+      - 7474:7474
