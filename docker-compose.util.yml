@@ -9,12 +9,9 @@ services:
 
   postgres-admin:
     image: dpage/pgadmin4
-    user: root
     environment:
       PGADMIN_DEFAULT_EMAIL: admin
       PGADMIN_DEFAULT_PASSWORD: admin
-    volumes:
-      - ./sql/:/var/lib/pgadmin/storage/admin/sqls/:ro
     ports:
       - 5433:80
     depends_on:

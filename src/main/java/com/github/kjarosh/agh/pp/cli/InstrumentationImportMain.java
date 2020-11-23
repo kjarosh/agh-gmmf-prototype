@@ -2,6 +2,7 @@ package com.github.kjarosh.agh.pp.cli;
 
 import com.github.kjarosh.agh.pp.instrumentation.Notification;
 import com.github.kjarosh.agh.pp.instrumentation.jpa.DbNotification;
+import com.google.common.io.CharStreams;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,6 +22,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 /**
@@ -52,15 +56,29 @@ public class InstrumentationImportMain {
         EntityManager em = factory.createEntityManager();
         try {
             em.getTransaction().begin();
+            createViews(em);
+            em.getTransaction().commit();
 
+            em.getTransaction().begin();
             for (Path csvFile : csvFiles) {
                 logger.info("Importing {}", csvFile);
                 importCsv(csvFile, em);
             }
-
             em.getTransaction().commit();
         } finally {
             em.close();
+        }
+    }
+
+    private static void createViews(EntityManager em) {
+        try (InputStream is = InstrumentationImportMain.class
+                .getClassLoader()
+                .getResourceAsStream("postgres/views.sql")) {
+            Objects.requireNonNull(is);
+            String sql = CharStreams.toString(new InputStreamReader(is));
+            em.createNativeQuery(sql).executeUpdate();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -77,9 +95,7 @@ public class InstrumentationImportMain {
     private static DbNotification parseNotification(String line) {
         List<String> values = getCsvFields(line);
         List<String> fields = new ArrayList<>();
-        Notification.serializers.forEach((field, v) -> {
-            fields.add(field);
-        });
+        Notification.serializers.forEach((field, v) -> fields.add(field));
 
         DbNotification notification = new DbNotification();
 
