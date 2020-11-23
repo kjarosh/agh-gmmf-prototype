@@ -60,6 +60,7 @@ public class InstrumentationImportMain {
             em.getTransaction().commit();
 
             em.getTransaction().begin();
+            em.createQuery("delete from DbNotification n").executeUpdate();
             for (Path csvFile : csvFiles) {
                 logger.info("Importing {}", csvFile);
                 importCsv(csvFile, em);
@@ -137,8 +138,14 @@ public class InstrumentationImportMain {
             case "trace":
                 notification.setTrace(value);
                 break;
+            case "eventId":
+                notification.setEventId(value);
+                break;
             case "eventType":
                 notification.setEventType(value);
+                break;
+            case "vertex":
+                notification.setVertex(value);
                 break;
             case "sender":
                 notification.setSender(value);

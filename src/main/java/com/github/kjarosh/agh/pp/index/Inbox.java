@@ -3,6 +3,8 @@ package com.github.kjarosh.agh.pp.index;
 import com.github.kjarosh.agh.pp.config.Config;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
+import com.github.kjarosh.agh.pp.instrumentation.Instrumentation;
+import com.github.kjarosh.agh.pp.instrumentation.Notification;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
@@ -36,6 +38,8 @@ public class Inbox {
     private final Map<VertexId, Deque<Event>> inboxes = new ConcurrentHashMap<>();
     private final List<Consumer<VertexId>> listeners = new CopyOnWriteArrayList<>();
 
+    private final Instrumentation instrumentation = Instrumentation.getInstance();
+
     @SneakyThrows
     public void post(VertexId id, Event event) {
         if (!id.owner().equals(Config.ZONE_ID)) {
@@ -43,6 +47,7 @@ public class Inbox {
             return;
         }
 
+        instrumentation.notify(Notification.queued(id, event));
         logger.trace("Event posted at " + id + ": " + event);
         inboxes.computeIfAbsent(id, i -> new ConcurrentLinkedDeque<>()).addLast(event);
         listeners.forEach(l -> l.accept(id));

@@ -13,6 +13,7 @@ import lombok.ToString;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * An entity which may be transmitted between vertices.
@@ -29,6 +30,9 @@ import java.util.Set;
 @EqualsAndHashCode
 @ToString
 public class Event {
+    @JsonIgnore
+    private final String id = UUID.randomUUID().toString();
+
     @JsonProperty("type")
     private EventType type;
 

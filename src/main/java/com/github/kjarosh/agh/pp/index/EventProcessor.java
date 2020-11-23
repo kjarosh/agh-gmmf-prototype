@@ -29,10 +29,10 @@ public class EventProcessor {
     @Autowired
     private Inbox inbox;
 
-    private Instrumentation instrumentation = Instrumentation.getInstance();
+    private final Instrumentation instrumentation = Instrumentation.getInstance();
 
     public void process(VertexId id, Event event) {
-        instrumentation.notify(Notification.startProcessing(event));
+        instrumentation.notify(Notification.startProcessing(id, event));
         boolean successful = false;
 
         try {
@@ -64,9 +64,9 @@ public class EventProcessor {
             successful = true;
         } finally {
             if (successful) {
-                instrumentation.notify(Notification.endProcessing(event));
+                instrumentation.notify(Notification.endProcessing(id, event));
             } else {
-                instrumentation.notify(Notification.failProcessing(event));
+                instrumentation.notify(Notification.failProcessing(id, event));
             }
         }
     }
@@ -142,7 +142,7 @@ public class EventProcessor {
             Set<VertexId> effectiveVertices) {
         int size = recipients.size();
         if (size > 0) {
-            instrumentation.notify(Notification.forkEvent(event, size));
+            instrumentation.notify(Notification.forkEvent(sender, event, size));
         }
         recipients.forEach(r -> {
             Event newEvent = Event.builder()

@@ -27,7 +27,9 @@ public class DbNotification {
     private String thread;
     private String type;
     private String trace;
+    private String eventId;
     private String eventType;
+    private String vertex;
     private String sender;
     private String originalSender;
     private int forkChildren;
