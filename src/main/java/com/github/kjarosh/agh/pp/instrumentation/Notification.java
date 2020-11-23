@@ -28,7 +28,7 @@ public class Notification {
         serializers.put("zone", Notification::getZone);
         serializers.put("time", n -> n.getTime().toString());
         serializers.put("thread", Notification::getThread);
-        serializers.put("value", notification -> notification.getType().getValue());
+        serializers.put("type", notification -> notification.getType().getValue());
         serializers.put("trace", Notification::getTrace);
         serializers.put("eventType", notification -> notification.getEventType().toString());
         serializers.put("sender", Notification::getSender);
