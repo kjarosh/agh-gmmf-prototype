@@ -28,13 +28,13 @@ import java.util.Scanner;
 /**
  * @author Kamil Jarosz
  */
-public class InstrumentationImportMain {
-    private static final Logger logger = LoggerFactory.getLogger(InstrumentationImportMain.class);
+public class PostgresImportMain {
+    private static final Logger logger = LoggerFactory.getLogger(PostgresImportMain.class);
 
     private static final String PERSISTENCE_UNIT_NAME = "postgres-import";
 
     public static void main(String[] args) throws IOException {
-        if (args.length < 1) System.exit(1);
+        if (args.length != 1) System.exit(1);
 
         Path csv = Paths.get(args[0]);
         List<Path> csvFiles = new ArrayList<>();
@@ -72,7 +72,7 @@ public class InstrumentationImportMain {
     }
 
     private static void createViews(EntityManager em) {
-        try (InputStream is = InstrumentationImportMain.class
+        try (InputStream is = PostgresImportMain.class
                 .getClassLoader()
                 .getResourceAsStream("postgres/views.sql")) {
             Objects.requireNonNull(is);
@@ -86,7 +86,7 @@ public class InstrumentationImportMain {
     private static void importCsv(Path csv, EntityManager em) {
         try (BufferedReader reader = Files.newBufferedReader(csv)) {
             reader.lines()
-                    .map(InstrumentationImportMain::parseNotification)
+                    .map(PostgresImportMain::parseNotification)
                     .forEach(em::persist);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

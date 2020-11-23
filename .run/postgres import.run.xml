@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="postgres import" type="Application" factoryName="Application">
-    <option name="MAIN_CLASS_NAME" value="com.github.kjarosh.agh.pp.cli.InstrumentationImportMain" />
+    <option name="MAIN_CLASS_NAME" value="com.github.kjarosh.agh.pp.cli.PostgresImportMain" />
     <module name="agh-pp-simulator" />
     <option name="PROGRAM_PARAMETERS" value="remote/artifacts/" />
     <extension name="coverage">
