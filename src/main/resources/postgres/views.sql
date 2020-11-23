@@ -59,3 +59,55 @@ from (
     where type in ('start', 'queue')
     group by zone, eventid, trace, vertex) as b
 order by b.start_time;
+
+
+create or replace view stats as
+select
+    b.name,
+    b.value
+from (
+    select
+        'time in queue / average' as name,
+        avg(wait_duration)::text as value
+    from queue_summary
+    union
+    select
+        'time in queue / min' as name,
+        min(wait_duration)::text as value
+    from queue_summary
+    union
+    select
+        'time in queue / max' as name,
+        max(wait_duration)::text as value
+    from queue_summary
+    union
+    select
+        'time processing / average' as name,
+        avg(duration)::text as value
+    from event_processing_summary
+    union
+    select
+        'time processing / min' as name,
+        min(duration)::text as value
+    from event_processing_summary
+    union
+    select
+        'time processing / max' as name,
+        max(duration)::text as value
+    from event_processing_summary
+    union
+    select
+        'events failed / count' as name,
+        sum(failed_events)::text as value
+    from event_processing_summary
+    union
+    select
+        'events started / count' as name,
+        sum(started_events)::text as value
+    from event_processing_summary
+    union
+    select
+        'events queued / count' as name,
+        sum(queued_events)::text as value
+    from queue_summary) as b
+order by b.name;
