@@ -8,20 +8,13 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Collection;
 
 /**
  * @author Kamil Jarosz
  */
 public class CsvFileInstrumentationListener implements InstrumentationListener {
-    private static final NotificationFieldSerializer[] serializers = {
-            n -> n.getTime().toString(),
-            Notification::getThread,
-            notification -> notification.getType().getValue(),
-            Notification::getTrace,
-            notification -> notification.getEventType().toString(),
-            Notification::getSender,
-            Notification::getOriginalSender,
-    };
+    private static final Collection<NotificationFieldSerializer> serializers = Notification.serializers.values();
 
     private final Path target;
     private BufferedWriter writer;

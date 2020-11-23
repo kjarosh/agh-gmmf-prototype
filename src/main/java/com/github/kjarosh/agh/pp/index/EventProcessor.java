@@ -10,8 +10,10 @@ import com.github.kjarosh.agh.pp.instrumentation.Notification;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * Class responsible for processing {@link Event}s and
@@ -30,8 +32,7 @@ public class EventProcessor {
     private Instrumentation instrumentation = Instrumentation.getInstance();
 
     public void process(VertexId id, Event event) {
-        instrumentation.notify(new Notification(
-                Notification.Type.START_EVENT_PROCESSING, event));
+        instrumentation.notify(Notification.startProcessing(event));
         boolean successful = false;
 
         try {
@@ -63,11 +64,9 @@ public class EventProcessor {
             successful = true;
         } finally {
             if (successful) {
-                instrumentation.notify(new Notification(
-                        Notification.Type.END_EVENT_PROCESSING, event));
+                instrumentation.notify(Notification.endProcessing(event));
             } else {
-                instrumentation.notify(new Notification(
-                        Notification.Type.FAIL_EVENT_PROCESSING, event));
+                instrumentation.notify(Notification.failProcessing(event));
             }
         }
     }
@@ -95,10 +94,11 @@ public class EventProcessor {
 
         if (propagate.get()) {
             Set<VertexId> effectiveParents = index.getEffectiveParents().keySet();
-            graph.getEdgesByDestination(id)
+            Set<VertexId> recipients = graph.getEdgesByDestination(id)
                     .stream()
                     .map(Edge::src)
-                    .forEach(recipient -> propagateEvent(id, recipient, event, effectiveParents));
+                    .collect(Collectors.toSet());
+            propagateEvent(id, recipients, event, effectiveParents);
         }
     }
 
@@ -127,26 +127,33 @@ public class EventProcessor {
 
         if (propagate.get()) {
             Set<VertexId> effectiveChildren = index.getEffectiveChildren().keySet();
-            graph.getEdgesBySource(id)
+            Set<VertexId> recipients = graph.getEdgesBySource(id)
                     .stream()
                     .map(Edge::dst)
-                    .forEach(recipient -> propagateEvent(id, recipient, event, effectiveChildren));
+                    .collect(Collectors.toSet());
+            propagateEvent(id, recipients, event, effectiveChildren);
         }
     }
 
     private void propagateEvent(
             VertexId sender,
-            VertexId recipient,
+            Collection<VertexId> recipients,
             Event event,
             Set<VertexId> effectiveVertices) {
-        Event newEvent = Event.builder()
-                .trace(event.getTrace())
-                .type(event.getType())
-                .effectiveVertices(effectiveVertices)
-                .sender(sender)
-                .originalSender(event.getOriginalSender())
-                .build();
+        int size = recipients.size();
+        if (size > 0) {
+            instrumentation.notify(Notification.forkEvent(event, size));
+        }
+        recipients.forEach(r -> {
+            Event newEvent = Event.builder()
+                    .trace(event.getTrace())
+                    .type(event.getType())
+                    .effectiveVertices(effectiveVertices)
+                    .sender(sender)
+                    .originalSender(event.getOriginalSender())
+                    .build();
 
-        inbox.post(recipient, newEvent);
+            inbox.post(r, newEvent);
+        });
     }
 }
