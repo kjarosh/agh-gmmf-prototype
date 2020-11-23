@@ -4,7 +4,7 @@ select
     b.start_time,
     b.finish_time,
     b.duration,
-    started_events = ended_events as finished,
+    started_events = ended_events + failed_events as finished,
     failed_events = 0 and started_events = ended_events as success,
     failed_events > 0 as failed,
     b.all_events,
