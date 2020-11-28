@@ -15,17 +15,15 @@ import java.util.function.Supplier;
 public class EventStatsGatherer implements Supplier<EventStats> {
     private static final Logger logger = LoggerFactory.getLogger(EventStatsGatherer.class);
 
-    private final ZoneClient client;
+    private final ZoneClient client = new ZoneClient();
     private final Collection<? extends ZoneId> allZones;
 
-    public EventStatsGatherer(ZoneClient client, ZoneId zone) {
-        this.client = client;
+    public EventStatsGatherer(ZoneId zone) {
         this.allZones = client.getDependentZones(zone).getZones();
         logger.debug("Queried all zones: {}", allZones);
     }
 
-    public EventStatsGatherer(ZoneClient client, Collection<? extends ZoneId> allZones) {
-        this.client = client;
+    public EventStatsGatherer(Collection<? extends ZoneId> allZones) {
         this.allZones = allZones;
     }
 

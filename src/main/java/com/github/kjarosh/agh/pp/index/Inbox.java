@@ -64,7 +64,7 @@ public class Inbox {
         return Optional.ofNullable(event);
     }
 
-    public void addListener(Consumer<VertexId> listener) {
+    public void addInboxChangeListener(Consumer<VertexId> listener) {
         listeners.add(listener);
     }
 

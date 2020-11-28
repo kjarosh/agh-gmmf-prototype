@@ -64,10 +64,14 @@ public class EffectiveVertex {
                 .map(Edge::permissions)
                 .collect(Collectors.toList());
         if (perms.size() != intermediateVertices.size()) {
-            throw new IllegalArgumentException(String.format("Invalid edges to calculate passed! " +
-                            "intermediateVertices=%s perms=%s",
+            throw new IllegalArgumentException(String.format(
+                    "Invalid edges to calculate passed! " +
+                            "intermediateVertices=%s " +
+                            "perms=%s " +
+                            "edges=%s",
                     intermediateVertices,
-                    perms));
+                    perms,
+                    edgesToCalculate));
         }
         setEffectivePermissions(perms.stream()
                 .reduce(Permissions.NONE, Permissions::combine));

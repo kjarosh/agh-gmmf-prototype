@@ -8,13 +8,16 @@ import lombok.SneakyThrows;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * @author Kamil Jarosz
  */
 public class LoadMeasurementStrategy implements TestStrategy {
+    private static final Executor executor = Executors.newFixedThreadPool(16);
+
     private final int maxQueuedEvents = 10000;
-    private final boolean allowCycles = false;
     private final String graphPath;
     private final Duration duration;
 
@@ -28,12 +31,11 @@ public class LoadMeasurementStrategy implements TestStrategy {
     public void execute(TestContext context) {
         Graph graph = context.buildGraph(graphPath);
 
-        Supervisor supervisor = new Supervisor(new EventStatsGatherer(
-                context.getClient(), context.getZone()));
+        Supervisor supervisor = new Supervisor(new EventStatsGatherer(context.getZone()));
         supervisor.start();
 
         RandomOperationIssuer randomOperationIssuer =
-                new RandomOperationIssuer(graph, context, allowCycles);
+                new RandomOperationIssuer(graph, context.getZone());
         Thread delegate = new Thread(() -> {
             while (!Thread.interrupted()) {
                 if (supervisor.getLastStats().getQueued() > maxQueuedEvents) {
@@ -45,7 +47,7 @@ public class LoadMeasurementStrategy implements TestStrategy {
                     }
                 }
 
-                randomOperationIssuer.perform();
+                executor.execute(randomOperationIssuer::perform);
             }
         });
         delegate.start();

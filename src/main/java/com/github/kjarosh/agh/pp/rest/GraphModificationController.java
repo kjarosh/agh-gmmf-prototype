@@ -149,6 +149,7 @@ public class GraphModificationController {
         } else {
             // if it's the wrong zone, forward the request
             if (!fromOwner.equals(ZONE_ID)) {
+                logger.info("Propagating request to zone " + fromOwner);
                 propagator.accept(fromOwner, false);
                 throw new OkException();
             }

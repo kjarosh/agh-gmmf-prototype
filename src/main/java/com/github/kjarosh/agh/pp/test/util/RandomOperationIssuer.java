@@ -4,95 +4,110 @@ import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
-import com.github.kjarosh.agh.pp.graph.model.Vertex;
-import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
-import com.github.kjarosh.agh.pp.test.strategy.TestContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
+import java.util.concurrent.Future;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Kamil Jarosz
  */
 public class RandomOperationIssuer {
-    private static final Executor clientExecutor = Executors.newFixedThreadPool(16);
+    private static final Logger logger = LoggerFactory.getLogger(RandomOperationIssuer.class);
+
+    private final Lock performLock = new ReentrantLock();
+    private final ZoneClient client = new ZoneClient();
     private final Random random = new Random();
     private final Graph graph;
-    private final TestContext context;
-    private final List<VertexId> vertices;
-    private final boolean allowCycles;
+    private final ZoneId zone;
+    private final Set<Edge> removedEdges = new HashSet<>();
 
-    public RandomOperationIssuer(Graph graph, TestContext context, boolean allowCycles) {
+    // config
+    private double permissionsProbability = 0.8;
+    private ExecutorService requestExecutor = Executors.newSingleThreadExecutor();
+
+    public RandomOperationIssuer(Graph graph, ZoneId zone) {
         this.graph = graph;
-        this.context = context;
-        this.allowCycles = allowCycles;
-        this.vertices = graph.allVertices()
-                .stream()
-                .map(Vertex::id)
-                .collect(Collectors.toList());
+        this.zone = zone;
+    }
+
+    public void setPermissionsProbability(double permissionsProbability) {
+        this.permissionsProbability = permissionsProbability;
+    }
+
+    public void setExecutor(ExecutorService requestExecutor) {
+        this.requestExecutor = requestExecutor;
     }
 
     public void perform() {
-        ZoneClient client = context.getClient();
-        ZoneId zone = context.getZone();
-
-        if (random.nextDouble() > 0.2) {
-            EdgeId edgeId = randomEdge(graph, vertices, true);
-            clientExecutor.execute(() ->
-                    client.setPermissions(zone, edgeId, randomPermissions()));
-        } else if (random.nextBoolean()) {
-            EdgeId edgeId = randomEdge(graph, vertices, true);
-            clientExecutor.execute(() ->
-                    client.removeEdge(zone, edgeId));
-        } else {
-            EdgeId edgeId = randomEdge(graph, vertices, false);
-            clientExecutor.execute(() ->
-                    client.addEdge(zone, edgeId, randomPermissions()));
+        Lock lock = performLock;
+        if (!lock.tryLock()) {
+            logger.warn("Can't keep up");
+            lock.lock();
+        }
+        try {
+            perform0();
+        } finally {
+            lock.unlock();
         }
     }
 
-    private EdgeId randomEdge(Graph graph, List<VertexId> vertices, boolean existing) {
-        if (!existing) {
-            while (true) {
-                List<VertexId> vx = new ArrayList<>();
-                vx.add(randomVertex(vertices));
-                vx.add(randomVertex(vertices));
+    private void perform0() {
+        boolean mustAddEdge = graph.allEdges().isEmpty();
+        boolean mustRemoveEdge = removedEdges.isEmpty();
 
-                if (!allowCycles) {
-                    vx.sort(Comparator.naturalOrder());
-                }
+        if (mustAddEdge && mustRemoveEdge) {
+            logger.error("Cannot perform random operation: empty graph");
+            return;
+        }
 
-                EdgeId e = EdgeId.of(vx.get(0), vx.get(1));
-                if (graph.getEdge(e) == null) {
-                    return e;
-                }
-            }
+        if (!mustAddEdge && random.nextDouble() < permissionsProbability) {
+            EdgeId id = randomElement(graph.allEdges()).id();
+            logger.debug("Changing permissions of {}", id);
+            submit(() -> client.setPermissions(zone, id, randomPermissions()));
+            return;
+        }
+
+        if (mustRemoveEdge || random.nextBoolean()) {
+            Edge e = randomElement(graph.allEdges());
+            graph.removeEdge(e);
+            removedEdges.add(e);
+            logger.debug("Removing edge {}", e);
+            submit(() -> client.removeEdge(zone, e.id()));
         } else {
-            while (true) {
-                VertexId from = randomVertex(vertices);
-                Set<Edge> possibleDestinations = graph.getEdgesBySource(from);
-                if (possibleDestinations.isEmpty()) {
-                    continue;
-                }
-                VertexId to = randomVertex(possibleDestinations
-                        .stream()
-                        .map(Edge::dst)
-                        .collect(Collectors.toList()));
-                return EdgeId.of(from, to);
-            }
+            Edge e = randomElement(removedEdges);
+            removedEdges.remove(e);
+            graph.addEdge(e);
+            logger.debug("Adding edge {}", e);
+            submit(() -> client.addEdge(zone, e.id(), randomPermissions()));
         }
     }
 
-    private VertexId randomVertex(List<VertexId> vertices) {
-        return vertices.get(random.nextInt(vertices.size()));
+    private Future<?> submit(Runnable runnable) {
+        return requestExecutor.submit(() -> {
+            try {
+                runnable.run();
+            } catch (Throwable e) {
+                logger.error("Error from request executor", e);
+            }
+        });
+    }
+
+    private <X> X randomElement(Collection<? extends X> collection) {
+        List<X> list = new ArrayList<>(collection);
+        return list.get(random.nextInt(list.size()));
     }
 
     private Permissions randomPermissions() {

@@ -55,7 +55,7 @@ public class InboxProcessor {
 
     @PostConstruct
     public void init() {
-        inbox.addListener(this::inboxChanged);
+        inbox.addInboxChangeListener(this::inboxChanged);
     }
 
     private void inboxChanged(VertexId id) {

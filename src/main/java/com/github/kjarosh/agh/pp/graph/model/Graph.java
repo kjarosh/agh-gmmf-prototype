@@ -76,9 +76,18 @@ public class Graph {
     }
 
     public void removeEdge(Edge e) {
-        edges.remove(e);
-        edgesBySrc.get(e.src()).remove(e);
-        edgesByDst.get(e.dst()).remove(e);
+        if (e != null) {
+            edges.remove(e.id());
+            edgesBySrc.get(e.src()).remove(e);
+            edgesByDst.get(e.dst()).remove(e);
+        }
+    }
+
+    public void removeEdge(EdgeId e) {
+        Edge edge = edges.get(e);
+        if (edge != null) {
+            removeEdge(edge);
+        }
     }
 
     public Edge getEdge(EdgeId edgeId) {
@@ -88,7 +97,7 @@ public class Graph {
     public void setPermissions(EdgeId edgeId, Permissions permissions) {
         Edge edge = getEdge(edgeId);
         if (edge == null) {
-            throw new IllegalStateException();
+            throw new IllegalStateException("Edge " + edgeId + " doesn't exist");
         }
 
         removeEdge(edge);
