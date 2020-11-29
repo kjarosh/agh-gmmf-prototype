@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.cli;
 
+import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
@@ -27,6 +28,10 @@ public class ConstantLoadClientMain {
     private static final Logger logger = LoggerFactory.getLogger(ConstantLoadClientMain.class);
 
     private static final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(1);
+
+    static {
+        LogbackUtils.loadLogbackCli();
+    }
 
     public static void main(String[] args) throws ParseException {
         Options options = new Options();

@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.cli;
 
+import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.instrumentation.Notification;
 import com.github.kjarosh.agh.pp.instrumentation.jpa.DbNotification;
 import com.google.common.io.CharStreams;
@@ -32,6 +33,10 @@ public class PostgresImportMain {
     private static final Logger logger = LoggerFactory.getLogger(PostgresImportMain.class);
 
     private static final String PERSISTENCE_UNIT_NAME = "postgres-import";
+
+    static {
+        LogbackUtils.loadLogbackCli();
+    }
 
     public static void main(String[] args) throws IOException {
         if (args.length != 1) System.exit(1);

@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.cli;
 
+import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.viz.Neo4jImporter;
 import org.apache.commons.cli.CommandLine;
@@ -12,6 +13,10 @@ import org.apache.commons.cli.ParseException;
  * @author Kamil Jarosz
  */
 public class Neo4jImportMain {
+    static {
+        LogbackUtils.loadLogbackCli();
+    }
+
     public static void main(String[] args) throws ParseException {
         Options options = new Options();
         options.addRequiredOption("a", "address", true, "neo4j address");

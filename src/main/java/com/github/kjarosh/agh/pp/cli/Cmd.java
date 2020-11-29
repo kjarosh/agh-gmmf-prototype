@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.cli;
 
+import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
@@ -24,6 +25,10 @@ import java.util.concurrent.Callable;
 public class Cmd {
     private static final ZoneClient client = new ZoneClient();
     private static ZoneId zone = null;
+
+    static {
+        LogbackUtils.loadLogbackCli();
+    }
 
     private static boolean checkZone() {
         if (zone == null) {
