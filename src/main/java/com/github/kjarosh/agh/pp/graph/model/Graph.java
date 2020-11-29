@@ -54,6 +54,10 @@ public class Graph {
         return vertices.containsKey(id);
     }
 
+    public boolean hasEdge(EdgeId edgeId) {
+        return edges.containsKey(edgeId);
+    }
+
     public Vertex getVertex(VertexId id) {
         Vertex vertex = vertices.get(id);
         if (vertex == null && !hasVertex(id)) {

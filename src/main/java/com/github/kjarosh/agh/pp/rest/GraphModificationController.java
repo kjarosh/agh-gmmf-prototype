@@ -12,6 +12,8 @@ import com.github.kjarosh.agh.pp.index.Inbox;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventType;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
+import com.github.kjarosh.agh.pp.rest.utils.GraphOperationPropagator;
+import com.github.kjarosh.agh.pp.rest.utils.NotFoundException;
 import com.github.kjarosh.agh.pp.rest.utils.OkException;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
@@ -26,7 +28,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 
 import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
 
@@ -57,13 +58,28 @@ public class GraphModificationController {
                 new VertexId(toId));
         Permissions permissions = Strings.isNullOrEmpty(permissionsString) ? null :
                 new Permissions(permissionsString);
+        GraphOperationPropagator propagator = (zone, s) -> new ZoneClient()
+                .addEdge(zone, edgeId, permissions, s);
 
-        makeSuccessiveRequest(successive, edgeId,
-                (zone, s) -> new ZoneClient()
-                        .addEdge(zone, edgeId, permissions, s));
+        optionallyForwardRequest(successive, edgeId, propagator);
+
+        if (!successive) {
+            if (!graph.hasVertex(edgeId.getFrom())) {
+                String message = "Vertex " + edgeId.getFrom() + " not found in this graph while adding edge " + edgeId;
+                logger.error(message);
+                throw new NotFoundException(message);
+            }
+        } else {
+            if (!graph.hasVertex(edgeId.getTo())) {
+                String message = "Vertex " + edgeId.getTo() + " not found in this graph while adding edge " + edgeId;
+                logger.error(message);
+                throw new NotFoundException(message);
+            }
+        }
+
+        makeSuccessiveRequest(successive, edgeId, propagator);
 
         Edge edge = new Edge(edgeId.getFrom(), edgeId.getTo(), permissions);
-
         if (shouldLogOperation(successive, edgeId)) {
             logger.info("Adding edge {}", edge);
         }
@@ -86,10 +102,18 @@ public class GraphModificationController {
                 new VertexId(toId));
         Permissions permissions = Strings.isNullOrEmpty(permissionsString) ? null :
                 new Permissions(permissionsString);
+        GraphOperationPropagator propagator = (zone, s) -> new ZoneClient()
+                .setPermissions(zone, edgeId, permissions, s);
 
-        makeSuccessiveRequest(successive, edgeId,
-                (zone, s) -> new ZoneClient()
-                        .setPermissions(zone, edgeId, permissions, s));
+        optionallyForwardRequest(successive, edgeId, propagator);
+
+        if (!graph.hasEdge(edgeId)) {
+            String message = "Edge " + edgeId + " not found in this graph while setting permissions";
+            logger.error(message);
+            throw new NotFoundException(message);
+        }
+
+        makeSuccessiveRequest(successive, edgeId, propagator);
 
         if (shouldLogOperation(successive, edgeId)) {
             logger.info("Setting permissions of {} to {}", edgeId, permissions);
@@ -110,12 +134,19 @@ public class GraphModificationController {
         EdgeId edgeId = EdgeId.of(
                 new VertexId(fromId),
                 new VertexId(toId));
+        GraphOperationPropagator propagator = (zone, s) ->
+                new ZoneClient().removeEdge(zone, edgeId, s);
 
-        makeSuccessiveRequest(successive, edgeId,
-                (zone, s) -> new ZoneClient()
-                        .removeEdge(zone, edgeId, s));
+        optionallyForwardRequest(successive, edgeId, propagator);
 
         Edge edge = graph.getEdge(edgeId);
+        if (edge == null) {
+            String message = "Edge " + edgeId + " not found in this graph while removing it";
+            logger.error(message);
+            throw new NotFoundException(message);
+        }
+
+        makeSuccessiveRequest(successive, edgeId, propagator);
 
         if (shouldLogOperation(successive, edgeId)) {
             logger.info("Removing edge {}", edge);
@@ -125,10 +156,10 @@ public class GraphModificationController {
         postChangeEvent(successive, trace, edgeId, true);
     }
 
-    private void makeSuccessiveRequest(
+    private void optionallyForwardRequest(
             boolean successive,
             EdgeId edgeId,
-            BiConsumer<ZoneId, Boolean> propagator) {
+            GraphOperationPropagator propagator) {
         ZoneId fromOwner = edgeId.getFrom().owner();
         ZoneId toOwner = edgeId.getTo().owner();
         if (fromOwner == null) {
@@ -139,6 +170,23 @@ public class GraphModificationController {
             throw new RuntimeException("To vertex is unknown: " + edgeId.getTo());
         }
 
+        if (!successive) {
+            // if it's the wrong zone, forward the request
+            if (!fromOwner.equals(ZONE_ID)) {
+                logger.info("Propagating request to zone " + fromOwner);
+                propagator.propagate(fromOwner, false);
+                throw new OkException();
+            }
+        }
+    }
+
+    private void makeSuccessiveRequest(
+            boolean successive,
+            EdgeId edgeId,
+            GraphOperationPropagator propagator) {
+        ZoneId fromOwner = edgeId.getFrom().owner();
+        ZoneId toOwner = edgeId.getTo().owner();
+
         if (successive) {
             // if successive, we are getting this request from the other zone
             // which is the owner of the source vertex, we should be the destination
@@ -147,14 +195,12 @@ public class GraphModificationController {
                         "Destination zone different than this zone (this=%s, dest=%s)", ZONE_ID, toOwner));
             }
         } else {
-            // if it's the wrong zone, forward the request
             if (!fromOwner.equals(ZONE_ID)) {
-                logger.info("Propagating request to zone " + fromOwner);
-                propagator.accept(fromOwner, false);
-                throw new OkException();
+                throw new RuntimeException(String.format(
+                        "Source zone different than this zone (this=%s, src=%s)", ZONE_ID, fromOwner));
             }
 
-            propagator.accept(toOwner, true);
+            propagator.propagate(toOwner, true);
         }
     }
 
