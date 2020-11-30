@@ -95,12 +95,26 @@ public class Notification {
                 .build();
     }
 
+    public static Notification markedDirty(VertexId currentVertex, Event event) {
+        return fromEvent(currentVertex, event)
+                .type(Type.MARKED_DIRTY)
+                .build();
+    }
+
+    public static Notification markedClean(VertexId currentVertex, Event event) {
+        return fromEvent(currentVertex, event)
+                .type(Type.MARKED_CLEAN)
+                .build();
+    }
+
     public enum Type {
         START_EVENT_PROCESSING("start"),
         END_EVENT_PROCESSING("end"),
         FAIL_EVENT_PROCESSING("fail"),
         FORK_EVENT("fork"),
         EVENT_QUEUED("queue"),
+        MARKED_DIRTY("dirty"),
+        MARKED_CLEAN("clean"),
         ;
 
         @Getter

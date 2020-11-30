@@ -26,6 +26,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Builder
 public class EffectiveVertex {
+    @JsonProperty("dirty")
+    private boolean dirty = false;
     @JsonProperty("effectivePermissions")
     private Permissions effectivePermissions = Permissions.NONE;
     @JsonProperty("intermediateVertices")
@@ -57,29 +59,36 @@ public class EffectiveVertex {
     }
 
     @JsonIgnore
-    public void recalculatePermissions(Set<Edge> edgesToCalculate) {
+    public RecalculationResult recalculatePermissions(Set<Edge> edgesToCalculate) {
         Set<VertexId> intermediateVertices = getIntermediateVertices();
         List<Permissions> perms = edgesToCalculate.stream()
                 .filter(x -> intermediateVertices.contains(x.src()))
                 .map(Edge::permissions)
                 .collect(Collectors.toList());
-        if (perms.size() != intermediateVertices.size()) {
-            throw new IllegalArgumentException(String.format(
-                    "Invalid edges to calculate passed! " +
-                            "intermediateVertices=%s " +
-                            "perms=%s " +
-                            "edges=%s",
-                    intermediateVertices,
-                    perms,
-                    edgesToCalculate));
-        }
+
         setEffectivePermissions(perms.stream()
                 .reduce(Permissions.NONE, Permissions::combine));
+
+        if (perms.size() != intermediateVertices.size()) {
+            dirty = true;
+            return RecalculationResult.DIRTY;
+        } else if (dirty) {
+            dirty = false;
+            return RecalculationResult.CLEANED;
+        } else {
+            return RecalculationResult.CLEAN;
+        }
     }
 
     @Override
     public String toString() {
         return "EffectiveVertex(" + effectivePermissions +
                 " by " + intermediateVertices + ')';
+    }
+
+    public enum RecalculationResult {
+        CLEAN,
+        CLEANED,
+        DIRTY,
     }
 }
