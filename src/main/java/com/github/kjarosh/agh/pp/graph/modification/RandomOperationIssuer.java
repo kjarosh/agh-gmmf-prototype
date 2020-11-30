@@ -1,4 +1,4 @@
-package com.github.kjarosh.agh.pp.test.util;
+package com.github.kjarosh.agh.pp.graph.modification;
 
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
@@ -15,9 +15,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -28,7 +25,6 @@ public class RandomOperationIssuer {
     private static final Logger logger = LoggerFactory.getLogger(RandomOperationIssuer.class);
 
     private final Lock performLock = new ReentrantLock();
-    private final ZoneClient client = new ZoneClient();
     private final Random random = new Random();
     private final Graph graph;
     private final ZoneId zone;
@@ -36,19 +32,21 @@ public class RandomOperationIssuer {
 
     // config
     private double permissionsProbability = 0.8;
-    private ExecutorService requestExecutor = Executors.newSingleThreadExecutor();
+    private OperationIssuer operationIssuer = new ZoneClient();
 
     public RandomOperationIssuer(Graph graph, ZoneId zone) {
         this.graph = graph;
         this.zone = zone;
     }
 
-    public void setPermissionsProbability(double permissionsProbability) {
+    public RandomOperationIssuer withPermissionsProbability(double permissionsProbability) {
         this.permissionsProbability = permissionsProbability;
+        return this;
     }
 
-    public void setExecutor(ExecutorService requestExecutor) {
-        this.requestExecutor = requestExecutor;
+    public RandomOperationIssuer withOperationIssuer(OperationIssuer operationIssuer) {
+        this.operationIssuer = operationIssuer;
+        return this;
     }
 
     public void perform() {
@@ -76,33 +74,39 @@ public class RandomOperationIssuer {
         if (!mustAddEdge && random.nextDouble() < permissionsProbability) {
             EdgeId id = randomElement(graph.allEdges()).id();
             logger.debug("Changing permissions of {}", id);
-            submit(() -> client.setPermissions(zone, id, randomPermissions()));
+            operationIssuer.setPermissions(zone, id, randomPermissions());
             return;
         }
 
-        if (mustRemoveEdge || random.nextBoolean()) {
-            Edge e = randomElement(graph.allEdges());
-            graph.removeEdge(e);
-            removedEdges.add(e);
-            logger.debug("Removing edge {}", e);
-            submit(() -> client.removeEdge(zone, e.id()));
+        if (mustRemoveEdge) {
+            removeEdge();
+            return;
+        } else if (mustAddEdge) {
+            addEdge();
+            return;
+        }
+
+        if (random.nextBoolean()) {
+            removeEdge();
         } else {
-            Edge e = randomElement(removedEdges);
-            removedEdges.remove(e);
-            graph.addEdge(e);
-            logger.debug("Adding edge {}", e);
-            submit(() -> client.addEdge(zone, e.id(), randomPermissions()));
+            addEdge();
         }
     }
 
-    private Future<?> submit(Runnable runnable) {
-        return requestExecutor.submit(() -> {
-            try {
-                runnable.run();
-            } catch (Throwable e) {
-                logger.error("Error from request executor", e);
-            }
-        });
+    private void addEdge() {
+        Edge e = randomElement(removedEdges);
+        removedEdges.remove(e);
+        graph.addEdge(e);
+        logger.debug("Adding edge {}", e);
+        operationIssuer.addEdge(zone, e.id(), randomPermissions());
+    }
+
+    private void removeEdge() {
+        Edge e = randomElement(graph.allEdges());
+        graph.removeEdge(e);
+        removedEdges.add(e);
+        logger.debug("Removing edge {}", e);
+        operationIssuer.removeEdge(zone, e.id());
     }
 
     private <X> X randomElement(Collection<? extends X> collection) {

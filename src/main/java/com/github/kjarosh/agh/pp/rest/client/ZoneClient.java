@@ -9,6 +9,7 @@ import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.rest.dto.DependentZonesDto;
+import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
 import com.github.kjarosh.agh.pp.util.StringList;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
@@ -22,7 +23,7 @@ import java.util.List;
 /**
  * @author Kamil Jarosz
  */
-public class ZoneClient {
+public class ZoneClient implements OperationIssuer {
     private final GraphQueryClient naiveGraphQueryClient;
     private final GraphQueryClient indexedGraphQueryClient;
 
@@ -123,6 +124,7 @@ public class ZoneClient {
         return indexedGraphQueryClient;
     }
 
+    @Override
     public void addEdge(ZoneId zone, EdgeId edgeId, Permissions permissions) {
         addEdge(zone, edgeId, permissions, false);
     }
@@ -139,6 +141,7 @@ public class ZoneClient {
         execute(url);
     }
 
+    @Override
     public void removeEdge(ZoneId zone, EdgeId edgeId) {
         removeEdge(zone, edgeId, false);
     }
@@ -154,6 +157,7 @@ public class ZoneClient {
         execute(url);
     }
 
+    @Override
     public void setPermissions(ZoneId zone, EdgeId edgeId, Permissions permissions) {
         setPermissions(zone, edgeId, permissions, false);
     }
@@ -170,6 +174,7 @@ public class ZoneClient {
         execute(url);
     }
 
+    @Override
     public void addVertex(VertexId id, Vertex.Type type) {
         String url = baseUri(id.owner())
                 .path("graph/vertices")

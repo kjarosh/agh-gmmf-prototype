@@ -4,11 +4,11 @@ import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.graph.modification.RandomOperationIssuer;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.test.EventStatsGatherer;
 import com.github.kjarosh.agh.pp.test.RemoteGraphBuilder;
-import com.github.kjarosh.agh.pp.test.util.RandomOperationIssuer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -27,7 +27,13 @@ import java.util.concurrent.TimeUnit;
 public class ConstantLoadClientMain {
     private static final Logger logger = LoggerFactory.getLogger(ConstantLoadClientMain.class);
 
-    private static final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(1);
+    private static final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(3);
+    private static boolean loadGraph;
+    private static boolean exitOnFail;
+    private static int requestsPerSecond;
+    private static ZoneId zone;
+    private static Graph graph;
+    private static double permsProbability;
 
     static {
         LogbackUtils.loadLogbackCli();
@@ -39,35 +45,37 @@ public class ConstantLoadClientMain {
         options.addRequiredOption("z", "zone-id", true, "zone ID");
         options.addRequiredOption("g", "graph", true, "path to graph");
         options.addRequiredOption("l", "load", false, "decide whether to load graph before running tests");
+        options.addOption("x", "exit-on-fail", false, "exit on first fail");
         options.addOption(null, "prob.perms", true,
                 "probability that a random operation changes permissions");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
 
-        boolean load = cmd.hasOption("l");
-        int requestsPerSecond = Integer.parseInt(cmd.getOptionValue("n"));
-        ZoneId zone = new ZoneId(cmd.getOptionValue("z"));
-        Graph graph = GraphLoader.loadGraph(cmd.getOptionValue("g"));
-        double permsProbability = Double.parseDouble(cmd.getOptionValue("prob.perms", "0.8"));
+        loadGraph = cmd.hasOption("l");
+        exitOnFail = cmd.hasOption("x");
+        requestsPerSecond = Integer.parseInt(cmd.getOptionValue("n"));
+        zone = new ZoneId(cmd.getOptionValue("z"));
+        graph = GraphLoader.loadGraph(cmd.getOptionValue("g"));
+        permsProbability = Double.parseDouble(cmd.getOptionValue("prob.perms", "0.8"));
 
-        if (load) {
-            load(graph, zone);
+        if (loadGraph) {
+            loadGraph();
         }
 
-        runRandomOperations(requestsPerSecond, zone, graph, permsProbability);
+        runRandomOperations();
     }
 
-    private static void load(Graph graph, ZoneId zone) {
+    private static void loadGraph() {
         ZoneClient client = new ZoneClient();
         new RemoteGraphBuilder(graph, client).build(client, zone);
     }
 
-    private static void runRandomOperations(int requestsPerSecond, ZoneId zone, Graph graph, double permsProbability) {
+    private static void runRandomOperations() {
         RandomOperationIssuer randomOperationIssuer =
-                new RandomOperationIssuer(graph, zone);
-        randomOperationIssuer.setPermissionsProbability(permsProbability);
-        randomOperationIssuer.setExecutor(Executors.newFixedThreadPool(24));
+                new RandomOperationIssuer(graph, zone)
+                        .withPermissionsProbability(permsProbability);
+//                        .withOperationIssuer(new ConcurrentOperationIssuer(5, new ZoneClient()));
 
         long period = (long) (1e9 / requestsPerSecond);
         scheduledExecutor.scheduleAtFixedRate(() -> {
@@ -75,6 +83,7 @@ public class ConstantLoadClientMain {
                 randomOperationIssuer.perform();
             } catch (Throwable t) {
                 logger.error("Error while performing operation", t);
+                if (exitOnFail) System.exit(1);
             }
         }, 0, period, TimeUnit.NANOSECONDS);
 
