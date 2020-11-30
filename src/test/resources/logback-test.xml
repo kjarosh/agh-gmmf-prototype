@@ -6,9 +6,9 @@
             </pattern>
         </encoder>
     </appender>
-    <root level="error">
+    <root level="info">
         <appender-ref ref="STDOUT"/>
     </root>
-    <root level="info"/>
     <logger name="org.springframework.web.client.RestTemplate" level="info"/>
+    <logger name="org.springframework.web.HttpLogging" level="info"/>
 </configuration>
