@@ -12,9 +12,10 @@ import com.github.kjarosh.agh.pp.index.Inbox;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventType;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
+import com.github.kjarosh.agh.pp.rest.error.EdgeNotFoundException;
+import com.github.kjarosh.agh.pp.rest.error.OkException;
+import com.github.kjarosh.agh.pp.rest.error.VertexNotFoundException;
 import com.github.kjarosh.agh.pp.rest.utils.GraphOperationPropagator;
-import com.github.kjarosh.agh.pp.rest.utils.NotFoundException;
-import com.github.kjarosh.agh.pp.rest.utils.OkException;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,15 +66,11 @@ public class GraphModificationController {
 
         if (!successive) {
             if (!graph.hasVertex(edgeId.getFrom())) {
-                String message = "Vertex " + edgeId.getFrom() + " not found in this graph while adding edge " + edgeId;
-                logger.error(message);
-                throw new NotFoundException(message);
+                throw new VertexNotFoundException(edgeId.getFrom(), "adding edge " + edgeId);
             }
         } else {
             if (!graph.hasVertex(edgeId.getTo())) {
-                String message = "Vertex " + edgeId.getTo() + " not found in this graph while adding edge " + edgeId;
-                logger.error(message);
-                throw new NotFoundException(message);
+                throw new VertexNotFoundException(edgeId.getTo(), "adding edge " + edgeId);
             }
         }
 
@@ -108,9 +105,7 @@ public class GraphModificationController {
         optionallyForwardRequest(successive, edgeId, propagator);
 
         if (!graph.hasEdge(edgeId)) {
-            String message = "Edge " + edgeId + " not found in this graph while setting permissions";
-            logger.error(message);
-            throw new NotFoundException(message);
+            throw new EdgeNotFoundException(edgeId, "setting permissions");
         }
 
         makeSuccessiveRequest(successive, edgeId, propagator);
@@ -141,9 +136,7 @@ public class GraphModificationController {
 
         Edge edge = graph.getEdge(edgeId);
         if (edge == null) {
-            String message = "Edge " + edgeId + " not found in this graph while removing it";
-            logger.error(message);
-            throw new NotFoundException(message);
+            throw new EdgeNotFoundException(edgeId, "removing it");
         }
 
         makeSuccessiveRequest(successive, edgeId, propagator);

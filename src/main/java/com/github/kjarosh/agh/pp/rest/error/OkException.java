@@ -1,4 +1,4 @@
-package com.github.kjarosh.agh.pp.rest.utils;
+package com.github.kjarosh.agh.pp.rest.error;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
