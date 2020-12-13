@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Neo4jImporter implements AutoCloseable {
     private static final Logger logger = LoggerFactory.getLogger(Neo4jImporter.class);
-    private static final int LOGGING_INTERVAL = 1000;
+    private static final int BATCH_SIZE = 2000;
 
     private final Driver driver;
     private final Session session;
@@ -31,14 +31,18 @@ public class Neo4jImporter implements AutoCloseable {
         logger.info("Importing graph");
         int vertexCount = graph.allVertices().size();
         int edgeCount = graph.allEdges().size();
-        try (Transaction tx = session.beginTransaction()) {
+        Transaction tx = session.beginTransaction();
+        try {
             int imported = 0;
             for (Vertex vertex : graph.allVertices()) {
                 importVertex(tx, vertex);
                 ++imported;
 
-                if (imported % LOGGING_INTERVAL == 0) {
+                if (BATCH_SIZE > 0 && imported % BATCH_SIZE == 0) {
                     printStatus("vertices", imported, vertexCount);
+                    tx.commit();
+                    tx.close();
+                    tx = session.beginTransaction();
                 }
             }
             imported = 0;
@@ -46,14 +50,20 @@ public class Neo4jImporter implements AutoCloseable {
                 importEdge(tx, v);
                 ++imported;
 
-                if (imported % LOGGING_INTERVAL == 0) {
+                if (BATCH_SIZE > 0 && imported % BATCH_SIZE == 0) {
                     printStatus("edges", imported, edgeCount);
+                    tx.commit();
+                    tx.close();
+                    tx = session.beginTransaction();
                 }
             }
 
             logger.info("Committing transaction");
             tx.commit();
+        } finally {
+            tx.close();
         }
+
         logger.info("Graph imported");
     }
 
