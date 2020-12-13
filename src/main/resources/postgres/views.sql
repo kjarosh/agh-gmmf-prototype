@@ -68,46 +68,46 @@ select
 from (
     select
         'time in queue / average' as name,
-        avg(wait_duration)::text as value
+        cast(avg(wait_duration) as text) as value
     from queue_summary
     union
     select
         'time in queue / min' as name,
-        min(wait_duration)::text as value
+        cast(min(wait_duration) as text) as value
     from queue_summary
     union
     select
         'time in queue / max' as name,
-        max(wait_duration)::text as value
+        cast(max(wait_duration) as text) as value
     from queue_summary
     union
     select
         'time processing / average' as name,
-        avg(duration)::text as value
+        cast(avg(duration) as text) as value
     from event_processing_summary
     union
     select
         'time processing / min' as name,
-        min(duration)::text as value
+        cast(min(duration) as text) as value
     from event_processing_summary
     union
     select
         'time processing / max' as name,
-        max(duration)::text as value
+        cast(max(duration) as text) as value
     from event_processing_summary
     union
     select
         'events failed / count' as name,
-        sum(failed_events)::text as value
+        cast(sum(failed_events) as text) as value
     from event_processing_summary
     union
     select
         'events started / count' as name,
-        sum(started_events)::text as value
+        cast(sum(started_events) as text) as value
     from event_processing_summary
     union
     select
         'events queued / count' as name,
-        sum(queued_events)::text as value
+        cast(sum(queued_events) as text) as value
     from queue_summary) as b
 order by b.name;

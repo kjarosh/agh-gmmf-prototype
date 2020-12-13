@@ -44,7 +44,7 @@ public class ConstantLoadClientMain {
         options.addRequiredOption("n", "requests", true, "number of requests per second");
         options.addRequiredOption("z", "zone-id", true, "zone ID");
         options.addRequiredOption("g", "graph", true, "path to graph");
-        options.addRequiredOption("l", "load", false, "decide whether to load graph before running tests");
+        options.addOption("l", "load", false, "decide whether to load graph before running tests");
         options.addOption("x", "exit-on-fail", false, "exit on first fail");
         options.addOption(null, "prob.perms", true,
                 "probability that a random operation changes permissions");
