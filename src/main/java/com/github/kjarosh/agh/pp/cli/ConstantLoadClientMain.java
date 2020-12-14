@@ -4,6 +4,7 @@ import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.graph.modification.ConcurrentOperationIssuer;
 import com.github.kjarosh.agh.pp.graph.modification.RandomOperationIssuer;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
@@ -17,9 +18,12 @@ import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Kamil Jarosz
@@ -63,6 +67,7 @@ public class ConstantLoadClientMain {
             loadGraph();
         }
 
+        logger.info("Running constant load: {} requests per second", requestsPerSecond);
         runRandomOperations();
     }
 
@@ -74,13 +79,15 @@ public class ConstantLoadClientMain {
     private static void runRandomOperations() {
         RandomOperationIssuer randomOperationIssuer =
                 new RandomOperationIssuer(graph, zone)
-                        .withPermissionsProbability(permsProbability);
-//                        .withOperationIssuer(new ConcurrentOperationIssuer(5, new ZoneClient()));
+                        .withPermissionsProbability(permsProbability)
+                        .withOperationIssuer(new ConcurrentOperationIssuer(10, new ZoneClient()));
 
+        AtomicInteger count = new AtomicInteger(0);
         long period = (long) (1e9 / requestsPerSecond);
         scheduledExecutor.scheduleAtFixedRate(() -> {
             try {
                 randomOperationIssuer.perform();
+                count.incrementAndGet();
             } catch (Throwable t) {
                 logger.error("Error while performing operation", t);
                 if (exitOnFail) System.exit(1);
@@ -89,6 +96,7 @@ public class ConstantLoadClientMain {
 
         EventStatsGatherer eventStatsGatherer = new EventStatsGatherer(zone);
 
+        Instant last = Instant.now();
         while (!Thread.interrupted()) {
             try {
                 Thread.sleep(1000);
@@ -96,8 +104,12 @@ public class ConstantLoadClientMain {
                 break;
             }
 
+            Instant now = Instant.now();
+
             EventStats stats = eventStatsGatherer.get();
-            logger.info(stats.toString());
+            double rps = (double) count.getAndSet(0) / Duration.between(last, now).toSeconds();
+            last = now;
+            logger.info("{}  (rps={})", stats.toString(), rps);
         }
 
         logger.info("Interrupted. Shutting down gracefully...");
