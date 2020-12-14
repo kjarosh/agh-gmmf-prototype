@@ -61,6 +61,7 @@ public class PostgresImportMain {
         EntityManager em = factory.createEntityManager();
         try {
             em.getTransaction().begin();
+            logger.info("Creating views");
             createViews(em);
             em.getTransaction().commit();
 
@@ -70,6 +71,7 @@ public class PostgresImportMain {
                 logger.info("Importing {}", csvFile);
                 importCsv(csvFile, em);
             }
+            logger.info("Committing transaction");
             em.getTransaction().commit();
         } finally {
             em.close();
