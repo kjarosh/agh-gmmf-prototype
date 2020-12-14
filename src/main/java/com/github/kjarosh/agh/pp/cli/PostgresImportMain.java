@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Kamil Jarosz
@@ -33,6 +34,7 @@ public class PostgresImportMain {
     private static final Logger logger = LoggerFactory.getLogger(PostgresImportMain.class);
 
     private static final String PERSISTENCE_UNIT_NAME = "postgres-import";
+    private static final int BATCH_SIZE = 100000;
 
     static {
         LogbackUtils.loadLogbackCli();
@@ -91,10 +93,26 @@ public class PostgresImportMain {
     }
 
     private static void importCsv(Path csv, EntityManager em) {
+        long total;
         try (BufferedReader reader = Files.newBufferedReader(csv)) {
+            total = reader.lines().count();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+
+        try (BufferedReader reader = Files.newBufferedReader(csv)) {
+            AtomicInteger count = new AtomicInteger(0);
             reader.lines()
                     .map(PostgresImportMain::parseNotification)
-                    .forEach(em::persist);
+                    .forEach(o -> {
+                        count.incrementAndGet();
+                        if (count.get() % BATCH_SIZE == 0) {
+                            logger.info("Imported {}/{} ({} %)", count.get(), total, 100D * count.get() / total);
+                            em.getTransaction().commit();
+                            em.getTransaction().begin();
+                        }
+                        em.persist(o);
+                    });
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
