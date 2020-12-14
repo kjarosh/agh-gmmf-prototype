@@ -12,8 +12,8 @@ select
     b.ended_events,
     b.failed_events,
     b.original_sender,
-    b.all_senders,
-    b.all_participants,
+--     b.all_senders,
+--     b.all_participants,
     b.zone_participants
 from (
     select
@@ -26,8 +26,8 @@ from (
         max(time) as finish_time,
         (max(time) - min(time)) as duration,
         array_agg(distinct originalsender) as original_sender,
-        array_agg(distinct sender) as all_senders,
-        array_agg(distinct vertex) as all_participants,
+--         array_agg(distinct sender) as all_senders,
+--         array_agg(distinct vertex) as all_participants,
         array_agg(distinct zone) as zone_participants
     from dbnotification
     where type in ('start', 'end', 'fail', 'fork')
