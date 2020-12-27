@@ -2,19 +2,28 @@ package com.github.kjarosh.agh.pp.test;
 
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
+import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
+import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
+import com.github.kjarosh.agh.pp.rest.dto.VertexCreationRequestDto;
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * @author Kamil Jarosz
  */
 @Slf4j
 public class RemoteGraphBuilder {
+    private static final int BULK_SIZE = 20_000;
+
     private final Graph graph;
     private final ZoneClient client;
     private final AtomicInteger verticesBuilt = new AtomicInteger(0);
@@ -42,13 +51,8 @@ public class RemoteGraphBuilder {
                 new EventStatsGatherer(allZones));
         supervisor.start();
         try {
-            graph.allVertices()
-                    .stream()
-                    .parallel()
-                    .forEach(v -> {
-                        client.addVertex(v.id(), v.type());
-                        verticesBuilt.incrementAndGet();
-                    });
+            buildVertices(client, verticesBuilt);
+
             graph.allEdges()
                     .stream()
                     .sorted(Comparator.comparing(Edge::src)
@@ -93,5 +97,22 @@ public class RemoteGraphBuilder {
     private boolean notHealthy(Collection<ZoneId> allZones) {
         return allZones.stream()
                 .anyMatch(zone -> !client.healthcheck(zone));
+    }
+
+    private void buildVertices(ZoneClient client, AtomicInteger verticesBuilt) {
+        Map<ZoneId, List<Vertex>> groupedByOwner = graph.allVertices()
+                .stream()
+                .collect(Collectors.groupingBy(v -> v.id().owner()));
+
+        for (ZoneId owner : groupedByOwner.keySet()) {
+            List<Vertex> vertices = groupedByOwner.get(owner);
+            for (List<Vertex> bulk : Lists.partition(vertices, BULK_SIZE)) {
+                List<VertexCreationRequestDto> requests = bulk.stream()
+                        .map(v -> new VertexCreationRequestDto(v.id().name(), v.type()))
+                        .collect(Collectors.toList());
+                client.addVertices(owner, new BulkVertexCreationRequestDto(requests));
+                verticesBuilt.addAndGet(requests.size());
+            }
+        }
     }
 }

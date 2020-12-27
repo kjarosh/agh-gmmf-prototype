@@ -1,0 +1,8 @@
+remote/
+graphs/
+src/
+results/
+generator-configs/
+.run/
+.idea/
+generated.json

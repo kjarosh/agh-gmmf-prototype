@@ -1,7 +1,7 @@
 version: '3'
 services:
   zone0:
-    build: .
+    image: kjarosh/ms-graph-simulator:latest
     command: server
     environment:
       ZONE_ID: zone0
@@ -12,7 +12,7 @@ services:
       - 8780:8080
 
   zone1:
-    build: .
+    image: kjarosh/ms-graph-simulator:latest
     command: server
     environment:
       ZONE_ID: zone1
@@ -23,7 +23,7 @@ services:
       - 8781:8080
 
   client:
-    build: .
+    image: kjarosh/ms-graph-simulator:latest
     command: client
     stdin_open: true
     tty: true

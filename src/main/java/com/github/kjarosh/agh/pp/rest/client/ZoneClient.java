@@ -8,6 +8,7 @@ import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
+import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.DependentZonesDto;
 import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
 import com.github.kjarosh.agh.pp.util.StringList;
@@ -38,15 +39,17 @@ public class ZoneClient implements OperationIssuer {
 
     private <R> R execute(String url, Class<R> cls) {
         ResponseEntity<R> response = new RestTemplate().postForEntity(url, null, cls);
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Status: " + response.getStatusCode());
-        }
+        checkResponse(response);
 
         return response.getBody();
     }
 
     private void execute(String url) {
         ResponseEntity<?> response = new RestTemplate().postForEntity(url, null, null);
+        checkResponse(response);
+    }
+
+    private void checkResponse(ResponseEntity<?> response) {
         if (!response.getStatusCode().is2xxSuccessful()) {
             throw new RuntimeException("Status: " + response.getStatusCode());
         }
@@ -183,6 +186,16 @@ public class ZoneClient implements OperationIssuer {
                 .build()
                 .toUriString();
         execute(url);
+    }
+
+    @Override
+    public void addVertices(ZoneId zone, BulkVertexCreationRequestDto bulkRequest) {
+        String url = baseUri(zone)
+                .path("graph/vertices/bulk")
+                .build()
+                .toUriString();
+        ResponseEntity<?> response = new RestTemplate().postForEntity(url, bulkRequest, null);
+        checkResponse(response);
     }
 
     public void postEvent(VertexId id, Event event) {

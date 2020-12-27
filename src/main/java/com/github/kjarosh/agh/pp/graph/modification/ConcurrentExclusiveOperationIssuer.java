@@ -5,6 +5,7 @@ import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -67,6 +68,14 @@ public class ConcurrentExclusiveOperationIssuer implements OperationIssuer {
     public void addVertex(VertexId id, Vertex.Type type) {
         synchronized (lock) {
             unsyncd.push(() -> delegate.addVertex(id, type));
+            lock.notifyAll();
+        }
+    }
+
+    @Override
+    public void addVertices(ZoneId zone, BulkVertexCreationRequestDto bulkRequest) {
+        synchronized (lock) {
+            unsyncd.push(() -> delegate.addVertices(zone, bulkRequest));
             lock.notifyAll();
         }
     }

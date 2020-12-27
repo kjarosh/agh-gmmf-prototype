@@ -12,6 +12,8 @@ import com.github.kjarosh.agh.pp.index.Inbox;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventType;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
+import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
+import com.github.kjarosh.agh.pp.rest.dto.VertexCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.error.EdgeNotFoundException;
 import com.github.kjarosh.agh.pp.rest.error.OkException;
 import com.github.kjarosh.agh.pp.rest.error.VertexNotFoundException;
@@ -20,6 +22,7 @@ import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -248,5 +251,20 @@ public class GraphModificationController {
         VertexId id = new VertexId(ZONE_ID, name);
         log.info("Adding vertex {}", id);
         graph.addVertex(new Vertex(id, type));
+    }
+
+    @RequestMapping(method = RequestMethod.POST, path = "graph/vertices/bulk")
+    @ResponseBody
+    public void addVertices(@RequestBody BulkVertexCreationRequestDto bulkRequest) {
+        Graph graph = graphLoader.getGraph();
+
+        int count = bulkRequest.getVertices().size();
+        log.info("Bulk adding {} vertices", count);
+
+        for (VertexCreationRequestDto request : bulkRequest.getVertices()) {
+            VertexId id = new VertexId(ZONE_ID, request.getName());
+            log.trace("Adding vertex {}", id);
+            graph.addVertex(new Vertex(id, request.getType()));
+        }
     }
 }

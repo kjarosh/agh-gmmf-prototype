@@ -5,6 +5,7 @@ import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -40,5 +41,10 @@ public class ConcurrentOperationIssuer implements OperationIssuer {
     @Override
     public void addVertex(VertexId id, Vertex.Type type) {
         executor.submit(() -> delegate.addVertex(id, type));
+    }
+
+    @Override
+    public void addVertices(ZoneId zone, BulkVertexCreationRequestDto bulkRequest) {
+        executor.submit(() -> delegate.addVertices(zone, bulkRequest));
     }
 }

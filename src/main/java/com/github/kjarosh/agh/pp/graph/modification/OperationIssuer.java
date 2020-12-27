@@ -5,6 +5,7 @@ import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
 
 /**
  * @author Kamil Jarosz
@@ -17,4 +18,6 @@ public interface OperationIssuer {
     void setPermissions(ZoneId zone, EdgeId id, Permissions permissions);
 
     void addVertex(VertexId id, Vertex.Type type);
+
+    void addVertices(ZoneId zone, BulkVertexCreationRequestDto bulkRequest);
 }
