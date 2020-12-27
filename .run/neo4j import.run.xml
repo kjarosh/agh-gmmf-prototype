@@ -2,7 +2,7 @@
   <configuration default="false" name="neo4j import" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="com.github.kjarosh.agh.pp.cli.Neo4jImportMain" />
     <module name="agh-pp-simulator" />
-    <option name="PROGRAM_PARAMETERS" value="-a neo4j://localhost -u neo4j -p admin -g generated.json" />
+    <option name="PROGRAM_PARAMETERS" value="-a neo4j://localhost -u neo4j -p admin -g generated.json -x" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="com.github.kjarosh.agh.pp.cli.*" />

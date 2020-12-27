@@ -1,6 +1,7 @@
 package com.github.kjarosh.agh.pp;
 
 import com.github.kjarosh.agh.pp.cli.Cmd;
+import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
@@ -14,6 +15,10 @@ import org.slf4j.LoggerFactory;
  * @author Kamil Jarosz
  */
 public class Main {
+    static {
+        LogbackUtils.loadLogbackCli();
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) {

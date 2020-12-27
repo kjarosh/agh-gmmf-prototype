@@ -3,20 +3,19 @@ package com.github.kjarosh.agh.pp.graph.viz;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
+import lombok.extern.slf4j.Slf4j;
 import org.neo4j.driver.AuthTokens;
 import org.neo4j.driver.Driver;
 import org.neo4j.driver.GraphDatabase;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Transaction;
 import org.neo4j.driver.Values;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author Kamil Jarosz
  */
+@Slf4j
 public class Neo4jImporter implements AutoCloseable {
-    private static final Logger logger = LoggerFactory.getLogger(Neo4jImporter.class);
     private static final int BATCH_SIZE = 2000;
 
     private final Driver driver;
@@ -27,8 +26,17 @@ public class Neo4jImporter implements AutoCloseable {
         session = driver.session();
     }
 
+    public void purge() {
+        log.info("Purging database");
+        try (Transaction tx = session.beginTransaction()) {
+            tx.run("match (n) detach delete n");
+            tx.commit();
+        }
+        log.info("Database purged");
+    }
+
     public void importGraph(Graph graph) {
-        logger.info("Importing graph");
+        log.info("Importing graph");
         int vertexCount = graph.allVertices().size();
         int edgeCount = graph.allEdges().size();
         Transaction tx = session.beginTransaction();
@@ -58,17 +66,17 @@ public class Neo4jImporter implements AutoCloseable {
                 }
             }
 
-            logger.info("Committing transaction");
+            log.info("Committing transaction");
             tx.commit();
         } finally {
             tx.close();
         }
 
-        logger.info("Graph imported");
+        log.info("Graph imported");
     }
 
     private void printStatus(String desc, int imported, int count) {
-        logger.info("Importing {}: {}/{} ({} %)", desc, imported, count, 100D * imported / count);
+        log.info("Importing {}: {}/{} ({} %)", desc, imported, count, 100D * imported / count);
     }
 
     private void importVertex(Transaction tx, Vertex vertex) {

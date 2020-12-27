@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="remote load generated" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.github.kjarosh.agh.pp.Main" />
+    <module name="agh-pp-simulator" />
+    <option name="PROGRAM_PARAMETERS" value="load zone0 generated.json" />
+    <option name="VM_PARAMETERS" value="-Dapp.config_path=remote/sync/config.json" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

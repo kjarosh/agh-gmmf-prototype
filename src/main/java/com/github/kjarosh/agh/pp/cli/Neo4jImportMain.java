@@ -23,6 +23,7 @@ public class Neo4jImportMain {
         options.addRequiredOption("u", "user", true, "user");
         options.addRequiredOption("p", "pass", true, "password");
         options.addRequiredOption("g", "graph", true, "path to the graph");
+        options.addOption("x", "purge", false, "purge database before importing");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
@@ -33,6 +34,10 @@ public class Neo4jImportMain {
         String graph = cmd.getOptionValue("g");
 
         try (Neo4jImporter importer = new Neo4jImporter(uri, username, password)) {
+            if(cmd.hasOption("x")){
+                importer.purge();
+            }
+
             importer.importGraph(GraphLoader.loadGraph(graph));
         }
     }
