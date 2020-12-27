@@ -12,22 +12,6 @@ public class Assert {
     public static final Stats statistics = new Stats();
     public static boolean showPassed = true;
 
-    public static void assertTrue(boolean a) {
-        if (!a) {
-            failTest("Expected " + a + " to be true");
-        } else {
-            passTest();
-        }
-    }
-
-    public static void assertFalse(boolean a) {
-        if (a) {
-            failTest("Expected " + a + " to be false");
-        } else {
-            passTest();
-        }
-    }
-
     public static void assertEqual(Object a, Object b) {
         assertEqual(a, b, null);
     }

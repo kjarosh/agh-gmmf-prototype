@@ -1,8 +1,7 @@
 package com.github.kjarosh.agh.pp.graph;
 
 import com.github.kjarosh.agh.pp.graph.model.Graph;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
@@ -18,15 +17,14 @@ import java.nio.file.Paths;
  *
  * @author Kamil Jarosz
  */
+@Slf4j
 @Service
 @Scope("singleton")
 public class GraphLoader {
-    private static final Logger logger = LoggerFactory.getLogger(GraphLoader.class);
-
     public Graph graph;
 
     public static Graph loadGraph(String path) {
-        logger.debug("Loading graph");
+        log.debug("Loading graph");
         try (InputStream is = open(path)) {
             return Graph.deserialize(is);
         } catch (IOException e) {

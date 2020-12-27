@@ -8,8 +8,6 @@ import com.github.kjarosh.agh.pp.index.EffectiveVertex;
 import com.github.kjarosh.agh.pp.index.VertexIndex;
 import com.github.kjarosh.agh.pp.rest.dto.IndexDto;
 import com.github.kjarosh.agh.pp.rest.dto.IndexDto.EffectiveVertexDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,8 +26,6 @@ import java.util.stream.Stream;
  */
 @Controller
 public class GraphIndexController {
-    private static final Logger logger = LoggerFactory.getLogger(GraphIndexController.class);
-
     @Autowired
     private GraphLoader graphLoader;
 

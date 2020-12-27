@@ -8,8 +8,7 @@ import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.util.ClockX60;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -33,11 +32,10 @@ import java.util.concurrent.ThreadFactory;
  *
  * @author Kamil Jarosz
  */
+@Slf4j
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class InboxProcessor {
-    private static final Logger logger = LoggerFactory.getLogger(InboxProcessor.class);
-
     private final ThreadFactory treadFactory = new ThreadFactoryBuilder()
             .setNameFormat("worker-" + Config.ZONE_ID + "-%d")
             .build();
@@ -73,13 +71,13 @@ public class InboxProcessor {
 
             processing.add(id);
             executor.submit(() -> {
-                logger.trace("Processing event " + event + " at " + id);
+                log.trace("Processing event " + event + " at " + id);
 
                 try {
                     eventProcessor.process(id, event);
                     eventsMeter.mark();
                 } catch (Exception e) {
-                    logger.error("An exception occurred while processing an event", e);
+                    log.error("An exception occurred while processing an event", e);
                 } finally {
                     synchronized (processing) {
                         processing.remove(id);

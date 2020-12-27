@@ -8,8 +8,7 @@ import com.github.kjarosh.agh.pp.index.EffectiveVertex.RecalculationResult;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.instrumentation.Instrumentation;
 import com.github.kjarosh.agh.pp.instrumentation.Notification;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,10 +23,9 @@ import java.util.stream.Collectors;
  *
  * @author Kamil Jarosz
  */
+@Slf4j
 @Service
 public class EventProcessor {
-    private static final Logger logger = LoggerFactory.getLogger(EventProcessor.class);
-
     private final Instrumentation instrumentation = Instrumentation.getInstance();
 
     @Autowired
@@ -130,10 +128,10 @@ public class EventProcessor {
 
                 if (result == RecalculationResult.DIRTY) {
                     instrumentation.notify(Notification.markedDirty(id, event));
-                    logger.warn("Marking vertex {} as dirty", subjectId);
+                    log.warn("Marking vertex {} as dirty", subjectId);
                 } else if (result == RecalculationResult.CLEANED) {
                     instrumentation.notify(Notification.markedClean(id, event));
-                    logger.info("Marking vertex {} as not dirty", subjectId);
+                    log.info("Marking vertex {} as not dirty", subjectId);
                 }
             }
         }

@@ -8,22 +8,20 @@ import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.test.RemoteGraphBuilder;
 import com.github.kjarosh.agh.pp.test.Tester;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Kamil Jarosz
  */
+@Slf4j
 public class Main {
     static {
         LogbackUtils.loadLogbackCli();
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(Main.class);
-
     public static void main(String[] args) {
         if (args.length < 1) {
-            logger.error("Too few arguments");
+            log.error("Too few arguments");
             printHelp();
             System.exit(1);
             return;
@@ -32,36 +30,36 @@ public class Main {
         switch (args[0]) {
             case "test": {
                 if (args.length != 2) {
-                    logger.error("Invalid number of arguments for test");
+                    log.error("Invalid number of arguments for test");
                     printHelp();
                     System.exit(1);
                     return;
                 }
 
-                logger.info("Running tester");
+                log.info("Running tester");
 
                 String testedZone = args[1];
-                logger.debug("Testing zone '{}'", testedZone);
+                log.debug("Testing zone '{}'", testedZone);
                 Tester.main(testedZone);
                 break;
             }
 
             case "client": {
                 if (args.length != 1) {
-                    logger.error("Invalid number of arguments for client");
+                    log.error("Invalid number of arguments for client");
                     printHelp();
                     System.exit(1);
                     return;
                 }
 
-                logger.info("Running client");
+                log.info("Running client");
                 Cmd.main(args);
                 break;
             }
 
             case "load": {
                 if (args.length != 3) {
-                    logger.error("Invalid number of arguments for load");
+                    log.error("Invalid number of arguments for load");
                     printHelp();
                     System.exit(1);
                     return;
@@ -69,31 +67,31 @@ public class Main {
 
                 String zone = args[1];
                 String graphPath = args[2];
-                logger.info("Loading graph {} into zone {}", graphPath, zone);
+                log.info("Loading graph {} into zone {}", graphPath, zone);
 
                 Graph graph = GraphLoader.loadGraph(graphPath);
                 ZoneClient client = new ZoneClient();
                 new RemoteGraphBuilder(graph, client).build(client, new ZoneId(zone));
 
-                logger.info("Graph loaded");
+                log.info("Graph loaded");
                 break;
             }
 
             case "server": {
                 if (args.length != 1) {
-                    logger.error("Invalid number of arguments for server");
+                    log.error("Invalid number of arguments for server");
                     printHelp();
                     System.exit(1);
                     return;
                 }
 
-                logger.info("Running server");
+                log.info("Running server");
                 SpringApp.main(args);
                 break;
             }
 
             default: {
-                logger.error("Unknown command: {}", args[0]);
+                log.error("Unknown command: {}", args[0]);
                 System.exit(1);
                 break;
             }
@@ -101,10 +99,10 @@ public class Main {
     }
 
     private static void printHelp() {
-        logger.info("Usage:");
-        logger.info("  app test <zone id>               -- run tests on the given zone");
-        logger.info("  app client                       -- run CLI client");
-        logger.info("  app server                       -- run server");
-        logger.info("  app load <zone id> <graph path>  -- run server");
+        log.info("Usage:");
+        log.info("  app test <zone id>               -- run tests on the given zone");
+        log.info("  app client                       -- run CLI client");
+        log.info("  app server                       -- run server");
+        log.info("  app load <zone id> <graph path>  -- run server");
     }
 }

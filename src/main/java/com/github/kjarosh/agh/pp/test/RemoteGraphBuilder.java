@@ -4,8 +4,7 @@ import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -14,9 +13,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author Kamil Jarosz
  */
+@Slf4j
 public class RemoteGraphBuilder {
-    private static final Logger logger = LoggerFactory.getLogger(RemoteGraphBuilder.class);
-
     private final Graph graph;
     private final ZoneClient client;
     private final AtomicInteger verticesBuilt = new AtomicInteger(0);
@@ -28,13 +26,13 @@ public class RemoteGraphBuilder {
     }
 
     public void build(ZoneClient client, ZoneId zone) {
-        logger.info("Building graph");
+        log.info("Building graph");
 
         Collection<ZoneId> allZones = graph.allZones();
 
-        logger.info("Checking all zones if they are healthy: {}", allZones);
+        log.info("Checking all zones if they are healthy: {}", allZones);
         while (notHealthy(allZones)) {
-            logger.trace("Not healthy");
+            log.trace("Not healthy");
             sleep();
         }
 
@@ -61,9 +59,9 @@ public class RemoteGraphBuilder {
                         edgesBuilt.incrementAndGet();
                     });
 
-            logger.debug("Waiting for index to be built: {}", allZones);
+            log.debug("Waiting for index to be built: {}", allZones);
             while (indexNotReady(allZones)) {
-                logger.trace("Index not built");
+                log.trace("Index not built");
                 sleep();
             }
         } finally {
@@ -76,7 +74,7 @@ public class RemoteGraphBuilder {
             Thread.currentThread().interrupt();
         }
 
-        logger.info("Graph built");
+        log.info("Graph built");
     }
 
     private void sleep() {

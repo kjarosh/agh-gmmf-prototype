@@ -4,9 +4,8 @@ import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.instrumentation.Notification;
 import com.github.kjarosh.agh.pp.instrumentation.jpa.DbNotification;
 import com.google.common.io.CharStreams;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -30,9 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author Kamil Jarosz
  */
+@Slf4j
 public class PostgresImportMain {
-    private static final Logger logger = LoggerFactory.getLogger(PostgresImportMain.class);
-
     private static final String PERSISTENCE_UNIT_NAME = "postgres-import";
     private static final int BATCH_SIZE = 100000;
 
@@ -47,33 +45,33 @@ public class PostgresImportMain {
         List<Path> csvFiles = new ArrayList<>();
 
         if (Files.isRegularFile(csv)) {
-            logger.info("{} is a regular file, importing it", csv);
+            log.info("{} is a regular file, importing it", csv);
             csvFiles.add(csv);
         } else if (Files.isDirectory(csv)) {
-            logger.info("{} is a directory, searching for CSV files", csv);
+            log.info("{} is a directory, searching for CSV files", csv);
             Files.walk(csv)
                     .filter(file -> file.toString().endsWith(".csv"))
                     .forEach(csvFiles::add);
         }
 
-        logger.info("Importing the following files: {}", csvFiles);
+        log.info("Importing the following files: {}", csvFiles);
 
         Persistence.generateSchema(PERSISTENCE_UNIT_NAME, new HashMap<>());
         EntityManagerFactory factory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
         EntityManager em = factory.createEntityManager();
         try {
             em.getTransaction().begin();
-            logger.info("Creating views");
+            log.info("Creating views");
             createViews(em);
             em.getTransaction().commit();
 
             em.getTransaction().begin();
             em.createQuery("delete from DbNotification n").executeUpdate();
             for (Path csvFile : csvFiles) {
-                logger.info("Importing {}", csvFile);
+                log.info("Importing {}", csvFile);
                 importCsv(csvFile, em);
             }
-            logger.info("Committing transaction");
+            log.info("Committing transaction");
             em.getTransaction().commit();
         } finally {
             em.close();
@@ -107,7 +105,7 @@ public class PostgresImportMain {
                     .forEach(o -> {
                         count.incrementAndGet();
                         if (count.get() % BATCH_SIZE == 0) {
-                            logger.info("Imported {}/{} ({} %)", count.get(), total, 100D * count.get() / total);
+                            log.info("Imported {}/{} ({} %)", count.get(), total, 100D * count.get() / total);
                             em.getTransaction().commit();
                             em.getTransaction().begin();
                         }

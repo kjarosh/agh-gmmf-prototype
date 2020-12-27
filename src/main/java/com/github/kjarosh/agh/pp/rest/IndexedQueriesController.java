@@ -8,8 +8,6 @@ import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.EffectiveVertex;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,8 +26,6 @@ import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
  */
 @Controller
 public class IndexedQueriesController {
-    private static final Logger logger = LoggerFactory.getLogger(NaiveQueriesController.class);
-
     @Autowired
     private GraphLoader graphLoader;
 

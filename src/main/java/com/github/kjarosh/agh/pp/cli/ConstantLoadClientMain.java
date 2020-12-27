@@ -10,13 +10,12 @@ import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.test.EventStatsGatherer;
 import com.github.kjarosh.agh.pp.test.RemoteGraphBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -28,9 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author Kamil Jarosz
  */
+@Slf4j
 public class ConstantLoadClientMain {
-    private static final Logger logger = LoggerFactory.getLogger(ConstantLoadClientMain.class);
-
     private static final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(3);
     private static boolean loadGraph;
     private static boolean exitOnFail;
@@ -67,7 +65,7 @@ public class ConstantLoadClientMain {
             loadGraph();
         }
 
-        logger.info("Running constant load: {} requests per second", requestsPerSecond);
+        log.info("Running constant load: {} requests per second", requestsPerSecond);
         runRandomOperations();
     }
 
@@ -89,7 +87,7 @@ public class ConstantLoadClientMain {
                 randomOperationIssuer.perform();
                 count.incrementAndGet();
             } catch (Throwable t) {
-                logger.error("Error while performing operation", t);
+                log.error("Error while performing operation", t);
                 if (exitOnFail) System.exit(1);
             }
         }, 0, period, TimeUnit.NANOSECONDS);
@@ -109,15 +107,15 @@ public class ConstantLoadClientMain {
             EventStats stats = eventStatsGatherer.get();
             double rps = (double) count.getAndSet(0) / Duration.between(last, now).toSeconds();
             last = now;
-            logger.info("{}  (rps={})", stats.toString(), rps);
+            log.info("{}  (rps={})", stats.toString(), rps);
         }
 
-        logger.info("Interrupted. Shutting down gracefully...");
+        log.info("Interrupted. Shutting down gracefully...");
         scheduledExecutor.shutdown();
         try {
             scheduledExecutor.awaitTermination(10, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            logger.info("Interrupted. Exiting...");
+            log.info("Interrupted. Exiting...");
         }
     }
 }

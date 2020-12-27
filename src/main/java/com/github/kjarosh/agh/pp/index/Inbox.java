@@ -7,8 +7,7 @@ import com.github.kjarosh.agh.pp.instrumentation.Instrumentation;
 import com.github.kjarosh.agh.pp.instrumentation.Notification;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import lombok.SneakyThrows;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -30,11 +29,10 @@ import java.util.function.Consumer;
  *
  * @author Kamil Jarosz
  */
+@Slf4j
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class Inbox {
-    private static final Logger logger = LoggerFactory.getLogger(Inbox.class);
-
     private final Map<VertexId, Deque<Event>> inboxes = new ConcurrentHashMap<>();
     private final List<Consumer<VertexId>> listeners = new CopyOnWriteArrayList<>();
 
@@ -48,7 +46,7 @@ public class Inbox {
         }
 
         instrumentation.notify(Notification.queued(id, event));
-        logger.trace("Event posted at " + id + ": " + event);
+        log.trace("Event posted at " + id + ": " + event);
         inboxes.computeIfAbsent(id, i -> new ConcurrentLinkedDeque<>()).addLast(event);
         listeners.forEach(l -> l.accept(id));
     }

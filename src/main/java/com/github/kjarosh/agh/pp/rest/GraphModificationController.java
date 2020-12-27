@@ -17,8 +17,7 @@ import com.github.kjarosh.agh.pp.rest.error.OkException;
 import com.github.kjarosh.agh.pp.rest.error.VertexNotFoundException;
 import com.github.kjarosh.agh.pp.rest.utils.GraphOperationPropagator;
 import com.google.common.base.Strings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,10 +34,9 @@ import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
 /**
  * @author Kamil Jarosz
  */
+@Slf4j
 @Controller
 public class GraphModificationController {
-    private static final Logger logger = LoggerFactory.getLogger(GraphModificationController.class);
-
     @Autowired
     private GraphLoader graphLoader;
 
@@ -78,7 +76,7 @@ public class GraphModificationController {
 
         Edge edge = new Edge(edgeId.getFrom(), edgeId.getTo(), permissions);
         if (shouldLogOperation(successive, edgeId)) {
-            logger.info("Adding edge {}", edge);
+            log.info("Adding edge {}", edge);
         }
 
         graph.addEdge(edge);
@@ -111,7 +109,7 @@ public class GraphModificationController {
         makeSuccessiveRequest(successive, edgeId, propagator);
 
         if (shouldLogOperation(successive, edgeId)) {
-            logger.info("Setting permissions of {} to {}", edgeId, permissions);
+            log.info("Setting permissions of {} to {}", edgeId, permissions);
         }
 
         graph.setPermissions(edgeId, permissions);
@@ -142,7 +140,7 @@ public class GraphModificationController {
         makeSuccessiveRequest(successive, edgeId, propagator);
 
         if (shouldLogOperation(successive, edgeId)) {
-            logger.info("Removing edge {}", edge);
+            log.info("Removing edge {}", edge);
         }
 
         graph.removeEdge(edge);
@@ -166,7 +164,7 @@ public class GraphModificationController {
         if (!successive) {
             // if it's the wrong zone, forward the request
             if (!fromOwner.equals(ZONE_ID)) {
-                logger.info("Propagating request to zone " + fromOwner);
+                log.info("Propagating request to zone " + fromOwner);
                 propagator.propagate(fromOwner, false);
                 throw new OkException();
             }
@@ -248,7 +246,7 @@ public class GraphModificationController {
             @RequestParam("type") Vertex.Type type) {
         Graph graph = graphLoader.getGraph();
         VertexId id = new VertexId(ZONE_ID, name);
-        logger.info("Adding vertex {}", id);
+        log.info("Adding vertex {}", id);
         graph.addVertex(new Vertex(id, type));
     }
 }

@@ -8,17 +8,15 @@ import com.github.kjarosh.agh.pp.test.strategy.LoadMeasurementStrategy;
 import com.github.kjarosh.agh.pp.test.strategy.TestContext;
 import com.github.kjarosh.agh.pp.util.LoggerUtils;
 import lombok.SneakyThrows;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 
 /**
  * @author Kamil Jarosz
  */
+@Slf4j
 public class Tester {
-    private static final Logger logger = LoggerFactory.getLogger(Tester.class);
-
     private final DynamicTestsStrategy dynamicStrategy;
     private final TestContext context;
 
@@ -42,7 +40,7 @@ public class Tester {
 
     @SneakyThrows
     private void test() {
-        logger.info("Starting tests");
+        log.info("Starting tests");
 
         new LoadMeasurementStrategy("generated_graph.json", Duration.ofSeconds(100))
                 .execute(context);

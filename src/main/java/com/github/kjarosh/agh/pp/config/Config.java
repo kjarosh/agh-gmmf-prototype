@@ -11,13 +11,11 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -25,14 +23,13 @@ import java.util.function.Predicate;
 /**
  * @author Kamil Jarosz
  */
+@Slf4j
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Config {
-    private static final Logger logger = LoggerFactory.getLogger(Config.class);
-
     public static ZoneId ZONE_ID = Optional.ofNullable(System.getProperty("app.zone_id", null))
             .filter(Predicate.not(Strings::isNullOrEmpty))
             .or(() -> Optional.ofNullable(System.getenv("ZONE_ID")))
@@ -44,7 +41,7 @@ public class Config {
             .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
     static {
-        logger.info("My zone ID: {}", ZONE_ID);
+        log.info("My zone ID: {}", ZONE_ID);
     }
 
     private boolean instrumentationEnabled = false;
@@ -52,7 +49,7 @@ public class Config {
     private Map<String, ZoneConfig> zones;
 
     public static Config loadConfig(Path path) {
-        logger.debug("Loading configuration from {}", path);
+        log.debug("Loading configuration from {}", path);
         try {
             return MAPPER.readValue(path.toFile(), Config.class);
         } catch (IOException e) {

@@ -2,8 +2,7 @@ package com.github.kjarosh.agh.pp.instrumentation;
 
 import com.github.kjarosh.agh.pp.config.ConfigLoader;
 import lombok.Getter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Paths;
 import java.util.concurrent.BlockingDeque;
@@ -12,9 +11,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 /**
  * @author Kamil Jarosz
  */
+@Slf4j
 public class Instrumentation {
-    private static final Logger logger = LoggerFactory.getLogger(Instrumentation.class);
-
     @Getter
     private static final Instrumentation instance = new Instrumentation();
 
@@ -27,14 +25,14 @@ public class Instrumentation {
 
     private Instrumentation() {
         if (!enabled) {
-            logger.info("Instrumentation disabled");
+            log.info("Instrumentation disabled");
             this.handlerThread = null;
             this.listener = null;
             return;
         }
 
         String reportPath = ConfigLoader.getConfig().getInstrumentationReportPath();
-        logger.info("Instrumentation enabled, writing to {}", reportPath);
+        log.info("Instrumentation enabled, writing to {}", reportPath);
         this.listener = new CsvFileInstrumentationListener(Paths.get(reportPath));
         this.handlerThread = new Thread(this::runHandler);
         this.handlerThread.start();
@@ -61,7 +59,7 @@ public class Instrumentation {
                 listener.handle(bulk, size);
             }
         } catch (InterruptedException e) {
-            logger.info("Instrumentation notification thread has been interrupted", e);
+            log.info("Instrumentation notification thread has been interrupted", e);
         }
     }
 
@@ -71,7 +69,7 @@ public class Instrumentation {
         boolean success = notificationQueue.offer(notification);
         if (!success) {
             String message = "Can't keep up with notifications!";
-            logger.error(message);
+            log.error(message);
             throw new InstrumentationException(message);
         }
     }

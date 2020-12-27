@@ -1,7 +1,6 @@
 package com.github.kjarosh.agh.pp.rest.error;
 
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
-import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import lombok.Getter;
 
 /**

@@ -6,8 +6,7 @@ import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,9 +20,8 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author Kamil Jarosz
  */
+@Slf4j
 public class RandomOperationIssuer {
-    private static final Logger logger = LoggerFactory.getLogger(RandomOperationIssuer.class);
-
     private final Lock performLock = new ReentrantLock();
     private final Random random = new Random();
     private final Graph graph;
@@ -52,7 +50,7 @@ public class RandomOperationIssuer {
     public void perform() {
         Lock lock = performLock;
         if (!lock.tryLock()) {
-            logger.warn("Can't keep up");
+            log.warn("Can't keep up");
             lock.lock();
         }
         try {
@@ -67,13 +65,13 @@ public class RandomOperationIssuer {
         boolean mustRemoveEdge = removedEdges.isEmpty();
 
         if (mustAddEdge && mustRemoveEdge) {
-            logger.error("Cannot perform random operation: empty graph");
+            log.error("Cannot perform random operation: empty graph");
             return;
         }
 
         if (!mustAddEdge && random.nextDouble() < permissionsProbability) {
             EdgeId id = randomElement(graph.allEdges()).id();
-            logger.debug("Changing permissions of {}", id);
+            log.debug("Changing permissions of {}", id);
             operationIssuer.setPermissions(zone, id, randomPermissions());
             return;
         }
@@ -97,7 +95,7 @@ public class RandomOperationIssuer {
         Edge e = randomElement(removedEdges);
         removedEdges.remove(e);
         graph.addEdge(e);
-        logger.debug("Adding edge {}", e);
+        log.debug("Adding edge {}", e);
         operationIssuer.addEdge(zone, e.id(), randomPermissions());
     }
 
@@ -105,7 +103,7 @@ public class RandomOperationIssuer {
         Edge e = randomElement(graph.allEdges());
         graph.removeEdge(e);
         removedEdges.add(e);
-        logger.debug("Removing edge {}", e);
+        log.debug("Removing edge {}", e);
         operationIssuer.removeEdge(zone, e.id());
     }
 
