@@ -71,7 +71,7 @@ public class ConstantLoadClientMain {
 
     private static void loadGraph() {
         ZoneClient client = new ZoneClient();
-        new RemoteGraphBuilder(graph, client).build(client, zone);
+        new RemoteGraphBuilder(graph, client).build(client);
     }
 
     private static void runRandomOperations() {

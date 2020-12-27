@@ -8,6 +8,7 @@ import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
+import com.github.kjarosh.agh.pp.rest.dto.BulkEdgeCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.DependentZonesDto;
 import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
@@ -132,6 +133,16 @@ public class ZoneClient implements OperationIssuer {
         addEdge(zone, edgeId, permissions, false);
     }
 
+    @Override
+    public void addEdges(ZoneId zone, BulkEdgeCreationRequestDto bulkRequest) {
+        String url = baseUri(zone)
+                .path("graph/edges/bulk")
+                .build()
+                .toUriString();
+        ResponseEntity<?> response = new RestTemplate().postForEntity(url, bulkRequest, null);
+        checkResponse(response);
+    }
+
     public void addEdge(ZoneId zone, EdgeId edgeId, Permissions permissions, boolean successive) {
         String url = baseUri(zone)
                 .path("graph/edges")
@@ -238,6 +249,22 @@ public class ZoneClient implements OperationIssuer {
         }
 
         return response.getBody();
+    }
+
+    public boolean isInstrumentationEnabled(ZoneId zone) {
+        String url = baseUri(zone)
+                .path("instrumentation")
+                .build()
+                .toUriString();
+        return new RestTemplate().getForObject(url, Boolean.class);
+    }
+
+    public void setInstrumentationEnabled(ZoneId zone, boolean enabled) {
+        String url = baseUri(zone)
+                .path("instrumentation")
+                .build()
+                .toUriString();
+        new RestTemplate().put(url, enabled);
     }
 
     private class GraphQueryClientImpl implements GraphQueryClient {

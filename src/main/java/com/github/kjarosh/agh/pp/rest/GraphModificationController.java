@@ -12,7 +12,9 @@ import com.github.kjarosh.agh.pp.index.Inbox;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventType;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
+import com.github.kjarosh.agh.pp.rest.dto.BulkEdgeCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
+import com.github.kjarosh.agh.pp.rest.dto.EdgeCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.VertexCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.error.EdgeNotFoundException;
 import com.github.kjarosh.agh.pp.rest.error.OkException;
@@ -84,6 +86,34 @@ public class GraphModificationController {
 
         graph.addEdge(edge);
         postChangeEvent(successive, trace, edgeId, false);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, path = "graph/edges/bulk")
+    @ResponseBody
+    public void addEdges(@RequestBody BulkEdgeCreationRequestDto bulkRequest) {
+        Graph graph = graphLoader.getGraph();
+
+        if (!bulkRequest.isSuccessive()) {
+            BulkEdgeCreationRequestDto successiveBulkRequest = BulkEdgeCreationRequestDto.builder()
+                    .successive(true)
+                    .sourceZone(bulkRequest.getSourceZone())
+                    .destinationZone(bulkRequest.getDestinationZone())
+                    .edges(bulkRequest.getEdges())
+                    .build();
+            new ZoneClient().addEdges(bulkRequest.getDestinationZone(), successiveBulkRequest);
+        }
+
+        if (!bulkRequest.isSuccessive() || !bulkRequest.getDestinationZone().equals(ZONE_ID)) {
+            log.info("Bulk adding {} edges", bulkRequest.getEdges().size());
+        }
+
+        for (EdgeCreationRequestDto request : bulkRequest.getEdges()) {
+            VertexId src = new VertexId(bulkRequest.getSourceZone(), request.getFromName());
+            VertexId dst = new VertexId(bulkRequest.getDestinationZone(), request.getToName());
+            Edge edge = new Edge(src, dst, new Permissions(request.getPermissions()));
+            graph.addEdge(edge);
+            postChangeEvent(bulkRequest.isSuccessive(), request.getTrace(), edge.id(), false);
+        }
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "graph/edges/permissions")

@@ -5,6 +5,7 @@ import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.rest.dto.BulkEdgeCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
 
 /**
@@ -12,6 +13,8 @@ import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
  */
 public interface OperationIssuer {
     void addEdge(ZoneId zone, EdgeId id, Permissions permissions);
+
+    void addEdges(ZoneId zone, BulkEdgeCreationRequestDto bulkRequest);
 
     void removeEdge(ZoneId zone, EdgeId id);
 

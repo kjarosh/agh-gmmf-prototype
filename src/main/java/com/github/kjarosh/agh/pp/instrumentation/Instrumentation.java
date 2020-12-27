@@ -17,11 +17,12 @@ public class Instrumentation {
     private static final Instrumentation instance = new Instrumentation();
 
     private static final int BULK_SIZE = 500;
-    private static final int QUEUE_CAPACITY = 5 * BULK_SIZE;
-    private final boolean enabled = ConfigLoader.getConfig().isInstrumentationEnabled();
+    private static final int QUEUE_CAPACITY = 100 * BULK_SIZE;
     private final BlockingDeque<Notification> notificationQueue = new LinkedBlockingDeque<>(QUEUE_CAPACITY);
     private final Thread handlerThread;
     private final InstrumentationListener listener;
+
+    private boolean enabled = ConfigLoader.getConfig().isInstrumentationEnabled();
 
     private Instrumentation() {
         if (!enabled) {
@@ -36,6 +37,14 @@ public class Instrumentation {
         this.listener = new CsvFileInstrumentationListener(Paths.get(reportPath));
         this.handlerThread = new Thread(this::runHandler);
         this.handlerThread.start();
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean isEnabled() {
+        return this.enabled;
     }
 
     private void runHandler() {

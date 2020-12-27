@@ -2,7 +2,7 @@
   <configuration default="false" name="postgres import" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="com.github.kjarosh.agh.pp.cli.PostgresImportMain" />
     <module name="agh-pp-simulator" />
-    <option name="PROGRAM_PARAMETERS" value="remote/artifacts/" />
+    <option name="PROGRAM_PARAMETERS" value="results/3-nodes-generated-1k-4k/load-10/artifacts" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="com.github.kjarosh.agh.pp.cli.*" />

@@ -71,7 +71,7 @@ public class Main {
 
                 Graph graph = GraphLoader.loadGraph(graphPath);
                 ZoneClient client = new ZoneClient();
-                new RemoteGraphBuilder(graph, client).build(client, new ZoneId(zone));
+                new RemoteGraphBuilder(graph, client).build(client);
 
                 log.info("Graph loaded");
                 break;

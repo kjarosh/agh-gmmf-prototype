@@ -94,9 +94,11 @@ public class GraphGenerator {
         }
 
         // generate space trees
-        for (Vertex space : spaces) {
+        for (int i = 0; i < spaces.size(); ++i) {
+            Vertex space = spaces.get(i);
             int depth = config.getTreeDepth().nextInt();
-            log.info("Generating space {}, depth {}", space.id(), depth);
+            log.info("[{}/{}] Generating space {}, depth {}",
+                    i + 1, spaces.size(), space.id(), depth);
             try {
                 generateUserTree(graph, space, depth);
             } catch (StackOverflowError e) {

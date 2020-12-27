@@ -19,7 +19,7 @@ public class TestContext {
 
     public Graph buildGraph(String graphPath) {
         Graph graph = GraphLoader.loadGraph(graphPath);
-        new RemoteGraphBuilder(graph, client).build(client, zone);
+        new RemoteGraphBuilder(graph, client).build(client);
         return graph;
     }
 

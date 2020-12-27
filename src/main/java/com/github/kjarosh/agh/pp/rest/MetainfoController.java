@@ -3,6 +3,7 @@ package com.github.kjarosh.agh.pp.rest;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.InboxProcessor;
+import com.github.kjarosh.agh.pp.instrumentation.Instrumentation;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.rest.dto.DependentZonesDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,5 +61,17 @@ public class MetainfoController {
         return DependentZonesDto.builder()
                 .zones(dependent)
                 .build();
+    }
+
+    @RequestMapping(method = RequestMethod.GET, path = "instrumentation")
+    @ResponseBody
+    public boolean isInstrumentationEnabled() {
+        return Instrumentation.getInstance().isEnabled();
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, path = "instrumentation")
+    @ResponseBody
+    public void setInstrumentationEnabled(@RequestBody boolean enabled) {
+        Instrumentation.getInstance().setEnabled(enabled);
     }
 }

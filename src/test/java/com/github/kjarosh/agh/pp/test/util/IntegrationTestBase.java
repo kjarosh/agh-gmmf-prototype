@@ -58,7 +58,7 @@ public abstract class IntegrationTestBase {
         String graphPath = getGraphPath();
         if (graphPath != null) {
             Graph graph = GraphLoader.loadGraph(graphPath);
-            new RemoteGraphBuilder(graph, client).build(client, zone);
+            new RemoteGraphBuilder(graph, client).build(client);
         }
 
         logger.info("Setup complete");

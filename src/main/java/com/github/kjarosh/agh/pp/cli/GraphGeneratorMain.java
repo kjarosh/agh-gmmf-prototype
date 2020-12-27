@@ -26,6 +26,7 @@ public class GraphGeneratorMain {
         LogbackUtils.loadLogbackCli();
     }
 
+    @Deprecated
     public static void oldmain(String[] args) throws IOException {
         Toml config = new Toml().read(new File("config.toml"));
         GraphGeneratorOld generator = new GraphGeneratorOld(config);
