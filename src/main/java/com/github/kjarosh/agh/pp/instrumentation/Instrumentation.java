@@ -16,7 +16,7 @@ public class Instrumentation {
     @Getter
     private static final Instrumentation instance = new Instrumentation();
 
-    private static final int BULK_SIZE = 500;
+    private static final int BULK_SIZE = 10_000;
     private static final int QUEUE_CAPACITY = 100 * BULK_SIZE;
     private final BlockingDeque<Notification> notificationQueue = new LinkedBlockingDeque<>(QUEUE_CAPACITY);
     private final Thread handlerThread;

@@ -9,6 +9,7 @@ import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.rest.dto.BulkEdgeCreationRequestDto;
+import com.github.kjarosh.agh.pp.rest.dto.BulkMessagesDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.DependentZonesDto;
 import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
@@ -75,9 +76,7 @@ public class ZoneClient implements OperationIssuer {
                 .build()
                 .toUriString();
         ResponseEntity<Boolean> response = new RestTemplate().getForEntity(url, Boolean.class);
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Status: " + response.getStatusCode());
-        }
+        checkResponse(response);
         Boolean body = response.getBody();
         return body != null && body;
     }
@@ -216,9 +215,16 @@ public class ZoneClient implements OperationIssuer {
                 .build()
                 .toUriString();
         ResponseEntity<?> response = new RestTemplate().postForEntity(url, event, null);
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Status: " + response.getStatusCode());
-        }
+        checkResponse(response);
+    }
+
+    public void postEvents(ZoneId zone, BulkMessagesDto messages) {
+        String url = baseUri(zone)
+                .path("events/bulk")
+                .build()
+                .toUriString();
+        ResponseEntity<?> response = new RestTemplate().postForEntity(url, messages, null);
+        checkResponse(response);
     }
 
     public EventStats getEventStats(ZoneId zone) {
@@ -227,9 +233,7 @@ public class ZoneClient implements OperationIssuer {
                 .build()
                 .toUriString();
         ResponseEntity<EventStats> response = new RestTemplate().getForEntity(url, EventStats.class);
-        if (!response.getStatusCode().is2xxSuccessful()) {
-            throw new RuntimeException("Status: " + response.getStatusCode());
-        }
+        checkResponse(response);
 
         return response.getBody();
     }

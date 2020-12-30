@@ -103,7 +103,7 @@ public class GraphModificationController {
             new ZoneClient().addEdges(bulkRequest.getDestinationZone(), successiveBulkRequest);
         }
 
-        if (!bulkRequest.isSuccessive() || !bulkRequest.getDestinationZone().equals(ZONE_ID)) {
+        if (!bulkRequest.isSuccessive() || !bulkRequest.getDestinationZone().equals(bulkRequest.getSourceZone())) {
             log.info("Bulk adding {} edges", bulkRequest.getEdges().size());
         }
 

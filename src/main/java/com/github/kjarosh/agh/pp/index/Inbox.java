@@ -41,7 +41,7 @@ public class Inbox {
     @SneakyThrows
     public void post(VertexId id, Event event) {
         if (!id.owner().equals(Config.ZONE_ID)) {
-            new ZoneClient().postEvent(id, event);
+            Outbox.forZone(id.owner()).postEvent(id, event);
             return;
         }
 

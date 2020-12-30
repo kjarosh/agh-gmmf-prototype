@@ -90,7 +90,7 @@ public class InboxProcessor {
 
     public boolean isStalled() {
         synchronized (processing) {
-            return inbox.isEmpty() && processing.isEmpty();
+            return processing.isEmpty() && inbox.isEmpty() && Outbox.allEmpty();
         }
     }
 
