@@ -131,7 +131,7 @@ public class GraphGenerator {
 
         int users = config.getUsersPerGroup().nextInt();
         for (int i = 0; i < users; ++i) {
-            Vertex user = entityGenerator.generateVertex(randomZone(), Vertex.Type.USER);
+            Vertex user = entityGenerator.generateVertex(parent.id().owner(), Vertex.Type.USER);
             graph.addVertex(user);
             graph.addEdge(new Edge(user.id(), parent.id(), Permissions.random(random)));
         }
@@ -142,7 +142,7 @@ public class GraphGenerator {
 
         int groups = config.getGroupsPerGroup().nextInt();
         for (int i = 0; i < groups; ++i) {
-            Vertex group = entityGenerator.generateVertex(randomZone(), Vertex.Type.GROUP);
+            Vertex group = entityGenerator.generateVertex(parent.id().owner(), Vertex.Type.GROUP);
             graph.addVertex(group);
             graph.addEdge(new Edge(group.id(), parent.id(), Permissions.random(random)));
 
