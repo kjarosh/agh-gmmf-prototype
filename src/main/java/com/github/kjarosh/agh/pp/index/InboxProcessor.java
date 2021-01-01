@@ -98,6 +98,7 @@ public class InboxProcessor {
         return EventStats.builder()
                 .processing(processing.size())
                 .queued(inbox.queuedCount())
+                .outbox(Outbox.allCount())
                 .total(eventsMeter.getCount())
                 .load1(eventsMeter.getOneMinuteRate())
                 .load5(eventsMeter.getFiveMinuteRate() / 5)

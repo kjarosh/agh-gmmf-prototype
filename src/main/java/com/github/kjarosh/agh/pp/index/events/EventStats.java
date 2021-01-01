@@ -30,6 +30,11 @@ public class EventStats {
     private int queued;
 
     /**
+     * Number of events that are waiting to be sent in the outbox.
+     */
+    private int outbox;
+
+    /**
      * Total number of events.
      */
     private long total;
@@ -50,7 +55,7 @@ public class EventStats {
     private double load15;
 
     public static EventStats empty() {
-        return new EventStats(0, 0, 0, 0, 0, 0);
+        return new EventStats(0, 0, 0, 0, 0, 0, 0);
     }
 
     @JsonIgnore
@@ -59,6 +64,7 @@ public class EventStats {
                 .processing(processing + other.processing)
                 .total(total + other.total)
                 .queued(queued + other.queued)
+                .outbox(outbox + other.outbox)
                 .load1(load1 + other.load1)
                 .load5(load5 + other.load5)
                 .load15(load15 + other.load15)
@@ -67,7 +73,8 @@ public class EventStats {
 
     @Override
     public String toString() {
-        return String.format("events: %d/%d", processing, processing + queued) +
+        return String.format("events: %d/%d", processing, queued) +
+                String.format("  out: %d", outbox) +
                 String.format("  load: %.0f/%.0f/%.0f", load1, load5, load15) +
                 String.format("  total: %d", total);
     }

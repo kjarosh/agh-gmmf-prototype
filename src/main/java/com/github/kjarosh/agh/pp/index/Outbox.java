@@ -44,8 +44,19 @@ public class Outbox {
                 .allMatch(Outbox::isEmpty);
     }
 
+    public static int allCount() {
+        return outboxes.values()
+                .stream()
+                .mapToInt(Outbox::count)
+                .sum();
+    }
+
     public boolean isEmpty() {
         return queue.isEmpty();
+    }
+
+    public int count() {
+        return queue.size();
     }
 
     public void postEvent(VertexId id, Event event) {
