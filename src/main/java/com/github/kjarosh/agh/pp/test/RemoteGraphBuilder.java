@@ -13,6 +13,8 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -32,6 +34,7 @@ public class RemoteGraphBuilder {
     private final ZoneClient client;
     private final AtomicInteger verticesBuilt = new AtomicInteger(0);
     private final AtomicInteger edgesBuilt = new AtomicInteger(0);
+
     public RemoteGraphBuilder(Graph graph, ZoneClient client) {
         this.graph = graph;
         this.client = client;
@@ -42,6 +45,7 @@ public class RemoteGraphBuilder {
                 EnumSet.noneOf(BulkOption.class) :
                 EnumSet.copyOf(Arrays.asList(options));
         log.info("Building graph");
+        Instant start = Instant.now();
 
         Collection<ZoneId> allZones = graph.allZones();
 
@@ -89,7 +93,7 @@ public class RemoteGraphBuilder {
             Thread.currentThread().interrupt();
         }
 
-        log.info("Graph built");
+        log.info("Graph built in {}", Duration.between(start, Instant.now()));
     }
 
     private void sleep() {
