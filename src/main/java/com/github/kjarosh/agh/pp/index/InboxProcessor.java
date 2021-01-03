@@ -3,6 +3,8 @@ package com.github.kjarosh.agh.pp.index;
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.SlidingTimeWindowMovingAverages;
 import com.github.kjarosh.agh.pp.config.Config;
+import com.github.kjarosh.agh.pp.graph.GraphLoader;
+import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
@@ -15,7 +17,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,6 +53,9 @@ public class InboxProcessor {
 
     @Autowired
     private Inbox inbox;
+
+    @Autowired
+    private GraphLoader graphLoader;
 
     @Autowired
     private EventProcessor eventProcessor;
@@ -95,8 +104,21 @@ public class InboxProcessor {
     }
 
     public EventStats stats() {
+        List<VertexId> currentProcessing;
+        synchronized (processing) {
+            currentProcessing = new ArrayList<>(processing);
+        }
+
+        Map<Vertex.Type, Integer> processingByType = new HashMap<>();
+        currentProcessing.forEach(id -> {
+            Vertex vertex = graphLoader.getGraph().getVertex(id);
+            processingByType.computeIfAbsent(vertex.type(), i -> 0);
+            processingByType.computeIfPresent(vertex.type(), (k, v) -> v + 1);
+        });
+
         return EventStats.builder()
-                .processing(processing.size())
+                .processing(currentProcessing.size())
+                .processingByType(processingByType)
                 .queued(inbox.queuedCount())
                 .outbox(Outbox.allCount())
                 .total(eventsMeter.getCount())
