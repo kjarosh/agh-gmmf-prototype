@@ -46,7 +46,7 @@ public class Graph {
 
     public void addVertex(Vertex v) {
         if (ZONE_ID == null || v.id().owner().equals(ZONE_ID)) {
-            vertices.put(v.id(), v);
+            vertices.putIfAbsent(v.id(), v);
         }
     }
 
