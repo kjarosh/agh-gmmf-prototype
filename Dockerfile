@@ -12,5 +12,6 @@ EXPOSE 8080
 ENTRYPOINT ["java", \
     "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8080", \
     "-Dapp.config_path=config/config.json", \
+    "-Xmx2G", \
     "-jar", \
     "app.jar"]

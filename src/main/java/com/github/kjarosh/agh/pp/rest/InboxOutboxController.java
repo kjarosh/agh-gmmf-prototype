@@ -7,6 +7,7 @@ import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.rest.dto.BulkMessagesDto;
 import com.github.kjarosh.agh.pp.rest.dto.MessageDto;
+import com.github.kjarosh.agh.pp.rest.error.TooManyEventsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,6 +34,8 @@ public class InboxOutboxController {
     public void postEvent(
             @RequestParam("id") String idString,
             @RequestBody Event event) {
+        failIfInboxSizeTooBig();
+
         VertexId id = new VertexId(idString);
         if (!ZONE_ID.equals(id.owner())) {
             throw new IllegalArgumentException();
@@ -42,10 +45,18 @@ public class InboxOutboxController {
 
     @RequestMapping(method = RequestMethod.POST, path = "events/bulk")
     @ResponseBody
-    public void postEvent(@RequestBody BulkMessagesDto messages) {
+    public void postEvents(@RequestBody BulkMessagesDto messages) {
+        failIfInboxSizeTooBig();
+
         for (MessageDto message : messages.getMessages()) {
             VertexId id = new VertexId(ZONE_ID, message.getVertexName());
             inbox.post(id, message.getEvent());
+        }
+    }
+
+    private void failIfInboxSizeTooBig() {
+        if (inbox.size() > 1_000_000) {
+            throw new TooManyEventsException();
         }
     }
 

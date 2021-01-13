@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 /**
@@ -33,10 +34,15 @@ import java.util.function.Consumer;
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class Inbox {
+    private final AtomicInteger inboxSize = new AtomicInteger(0);
     private final Map<VertexId, Deque<Event>> inboxes = new ConcurrentHashMap<>();
     private final List<Consumer<VertexId>> listeners = new CopyOnWriteArrayList<>();
 
     private final Instrumentation instrumentation = Instrumentation.getInstance();
+
+    public int size() {
+        return inboxSize.get();
+    }
 
     @SneakyThrows
     public void post(VertexId id, Event event) {
@@ -48,6 +54,7 @@ public class Inbox {
         instrumentation.notify(Notification.queued(id, event));
         log.trace("Event posted at " + id + ": " + event);
         inboxes.computeIfAbsent(id, i -> new ConcurrentLinkedDeque<>()).addLast(event);
+        inboxSize.incrementAndGet();
         listeners.forEach(l -> l.accept(id));
     }
 
@@ -59,6 +66,7 @@ public class Inbox {
         }
 
         Event event = queue.pollFirst();
+        inboxSize.decrementAndGet();
         return Optional.ofNullable(event);
     }
 
