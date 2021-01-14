@@ -43,7 +43,7 @@ import java.util.concurrent.ThreadFactory;
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class InboxProcessor {
     private final ThreadFactory treadFactory = new ThreadFactoryBuilder()
-            .setNameFormat("worker-" + Config.ZONE_ID + "-%d")
+            .setNameFormat(Config.ZONE_ID + "-worker-%d")
             .build();
     private final ExecutorService executor =
             Executors.newFixedThreadPool(5, treadFactory);

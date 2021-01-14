@@ -1,11 +1,13 @@
 package com.github.kjarosh.agh.pp.index;
 
+import com.github.kjarosh.agh.pp.config.Config;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.rest.dto.BulkMessagesDto;
 import com.github.kjarosh.agh.pp.rest.dto.MessageDto;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -23,7 +26,10 @@ import java.util.stream.Collectors;
 public class Outbox {
     private static final int BULK_SIZE = 100_000;
 
-    private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(10);
+    private static final ThreadFactory treadFactory = new ThreadFactoryBuilder()
+            .setNameFormat(Config.ZONE_ID + "-outbox-%d")
+            .build();
+    private static final ScheduledExecutorService executor = Executors.newScheduledThreadPool(2, treadFactory);
     private static final ConcurrentMap<ZoneId, Outbox> outboxes = new ConcurrentHashMap<>();
 
     private final ZoneId zone;
