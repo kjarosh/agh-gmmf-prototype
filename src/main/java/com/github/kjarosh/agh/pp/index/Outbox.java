@@ -24,6 +24,9 @@ import java.util.stream.Collectors;
  * @author Kamil Jarosz
  */
 public class Outbox {
+    private static final int INITIAL_DELAY = 10;
+    private static final int MAX_DELAY = 1000;
+    private static final double BACKOFF_COEFF = 1.2;
     private static final int BULK_SIZE = 100_000;
 
     private static final ThreadFactory treadFactory = new ThreadFactoryBuilder()
@@ -34,10 +37,12 @@ public class Outbox {
 
     private final ZoneId zone;
     private final ConcurrentLinkedDeque<Message> queue = new ConcurrentLinkedDeque<>();
+    private long lastDelay;
 
     private Outbox(ZoneId zone) {
         this.zone = zone;
-        executor.scheduleAtFixedRate(this::flush, 100, 100, TimeUnit.MILLISECONDS);
+        this.lastDelay = INITIAL_DELAY;
+        executor.schedule(this::flush, this.lastDelay, TimeUnit.MILLISECONDS);
     }
 
     public static Outbox forZone(ZoneId zone) {
@@ -74,32 +79,46 @@ public class Outbox {
     }
 
     private void flush() {
-        List<Message> toSend = new ArrayList<>();
-        while (toSend.size() < BULK_SIZE && !queue.isEmpty()) {
-            toSend.add(queue.removeFirst());
-        }
-
-        if (toSend.isEmpty()) {
-            return;
-        }
-
-        boolean success = false;
+        int sent = 0;
         try {
-            new ZoneClient().postEvents(zone, BulkMessagesDto.builder()
-                    .messages(toSend.stream()
-                            .map(m -> MessageDto.builder()
-                                    .vertexName(m.getId().name())
-                                    .event(m.getEvent())
-                                    .build())
-                            .collect(Collectors.toList()))
-                    .build());
-            success = true;
-        } finally {
-            if (!success) {
-                for (int i = toSend.size() - 1; i >= 0; --i) {
-                    queue.addFirst(toSend.get(i));
+            List<Message> toSend = new ArrayList<>();
+            while (toSend.size() < BULK_SIZE && !queue.isEmpty()) {
+                toSend.add(queue.removeFirst());
+            }
+
+            if (toSend.isEmpty()) {
+                return;
+            }
+
+            boolean success = false;
+            try {
+                new ZoneClient().postEvents(zone, BulkMessagesDto.builder()
+                        .messages(toSend.stream()
+                                .map(m -> MessageDto.builder()
+                                        .vertexName(m.getId().name())
+                                        .event(m.getEvent())
+                                        .build())
+                                .collect(Collectors.toList()))
+                        .build());
+                success = true;
+                sent = toSend.size();
+            } finally {
+                if (!success) {
+                    for (int i = toSend.size() - 1; i >= 0; --i) {
+                        queue.addFirst(toSend.get(i));
+                    }
                 }
             }
+        } finally {
+            if (sent != 0) {
+                this.lastDelay = INITIAL_DELAY;
+            } else {
+                this.lastDelay *= BACKOFF_COEFF;
+                if (this.lastDelay > MAX_DELAY) {
+                    this.lastDelay = MAX_DELAY;
+                }
+            }
+            executor.schedule(this::flush, this.lastDelay, TimeUnit.MILLISECONDS);
         }
     }
 }
