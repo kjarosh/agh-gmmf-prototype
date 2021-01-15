@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
 
@@ -47,6 +48,8 @@ public class Graph {
     public void addVertex(Vertex v) {
         if (ZONE_ID == null || v.id().owner().equals(ZONE_ID)) {
             vertices.putIfAbsent(v.id(), v);
+        } else {
+            throw new IllegalStateException("Wrong vertex zone");
         }
     }
 
@@ -68,10 +71,8 @@ public class Graph {
     }
 
     public void addEdge(Edge e) {
-        if (ZONE_ID != null &&
-                !hasVertex(e.src()) &&
-                !hasVertex(e.dst())) {
-            return;
+        if (!hasVertex(e.src()) && !hasVertex(e.dst())) {
+            throw new IllegalStateException("No src or dst vertex: " + e);
         }
 
         edges.put(e.id(), e);
@@ -125,10 +126,15 @@ public class Graph {
     }
 
     public Collection<ZoneId> allZones() {
-        return allVertices()
+        Stream<ZoneId> fromVertices = allVertices()
                 .stream()
                 .map(Vertex::id)
-                .map(VertexId::owner)
+                .map(VertexId::owner);
+        Stream<ZoneId> fromEdges = allEdges()
+                .stream()
+                .flatMap(e -> Stream.of(e.src(), e.dst()))
+                .map(VertexId::owner);
+        return Stream.concat(fromVertices, fromEdges)
                 .collect(Collectors.toUnmodifiableSet());
     }
 

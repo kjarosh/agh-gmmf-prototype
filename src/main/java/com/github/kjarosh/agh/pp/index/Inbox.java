@@ -5,7 +5,6 @@ import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.instrumentation.Instrumentation;
 import com.github.kjarosh.agh.pp.instrumentation.Notification;
-import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -66,7 +65,9 @@ public class Inbox {
         }
 
         Event event = queue.pollFirst();
-        inboxSize.decrementAndGet();
+        if (event != null) {
+            inboxSize.decrementAndGet();
+        }
         return Optional.ofNullable(event);
     }
 
