@@ -29,6 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 public class ConstantLoadClientMain {
+    private static final int MAX_POOL_SIZE = 50;
+
     private static final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(3);
     private static boolean loadGraph;
     private static boolean exitOnFail;
@@ -36,6 +38,9 @@ public class ConstantLoadClientMain {
     private static ZoneId zone;
     private static Graph graph;
     private static double permsProbability;
+
+    private static RandomOperationIssuer randomOperationIssuer;
+    private static ConcurrentOperationIssuer operationIssuer;
 
     static {
         LogbackUtils.loadLogbackCli();
@@ -65,6 +70,14 @@ public class ConstantLoadClientMain {
             loadGraph();
         }
 
+
+        operationIssuer = new ConcurrentOperationIssuer(MAX_POOL_SIZE, new ZoneClient());
+        randomOperationIssuer =
+                new RandomOperationIssuer(graph, zone)
+                        .withPermissionsProbability(permsProbability)
+                        .withOperationIssuer(operationIssuer);
+
+
         log.info("Running constant load: {} requests per second", requestsPerSecond);
         runRandomOperations();
     }
@@ -75,26 +88,14 @@ public class ConstantLoadClientMain {
     }
 
     private static void runRandomOperations() {
-        RandomOperationIssuer randomOperationIssuer =
-                new RandomOperationIssuer(graph, zone)
-                        .withPermissionsProbability(permsProbability)
-                        .withOperationIssuer(new ConcurrentOperationIssuer(10, new ZoneClient()));
-
         AtomicInteger count = new AtomicInteger(0);
-        long period = (long) (1e9 / requestsPerSecond);
-        scheduledExecutor.scheduleAtFixedRate(() -> {
-            try {
-                randomOperationIssuer.perform();
-                count.incrementAndGet();
-            } catch (Throwable t) {
-                log.error("Error while performing operation", t);
-                if (exitOnFail) System.exit(1);
-            }
-        }, 0, period, TimeUnit.NANOSECONDS);
+        AtomicInteger errored = new AtomicInteger(0);
+        scheduleRequestExecutor(count, errored);
 
-        EventStatsGatherer eventStatsGatherer = new EventStatsGatherer(zone);
+        EventStatsGatherer eventStatsGatherer = new EventStatsGatherer(graph.allZones());
 
         Instant last = Instant.now();
+        long total = 0;
         while (!Thread.interrupted()) {
             try {
                 Thread.sleep(1000);
@@ -105,17 +106,45 @@ public class ConstantLoadClientMain {
             Instant now = Instant.now();
 
             EventStats stats = eventStatsGatherer.get();
-            double rps = (double) count.getAndSet(0) / Duration.between(last, now).toSeconds();
+            int currentCount = count.getAndSet(0);
+            total += currentCount;
+            double rps = (double) currentCount / Duration.between(last, now).toMillis() * Duration.ofSeconds(1).toMillis();
             last = now;
-            log.info("{}  (rps={})", stats.toString(), rps);
+            log.info("{}  (rps={}, err={}, tot={}, sat={}, rt={})",
+                    stats.toString(),
+                    fd(rps),
+                    errored.get(),
+                    total,
+                    fd(operationIssuer.getSaturation()),
+                    fd(operationIssuer.getRequestTime()));
         }
 
         log.info("Interrupted. Shutting down gracefully...");
         scheduledExecutor.shutdown();
         try {
-            scheduledExecutor.awaitTermination(10, TimeUnit.SECONDS);
+            scheduledExecutor.awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             log.info("Interrupted. Exiting...");
         }
+    }
+
+    private static void scheduleRequestExecutor(AtomicInteger count, AtomicInteger errored) {
+        if (requestsPerSecond == 0) return;
+
+        long period = (long) (1e9 / requestsPerSecond);
+        scheduledExecutor.scheduleAtFixedRate(() -> {
+            try {
+                randomOperationIssuer.perform();
+            } catch (Throwable t) {
+                log.error("Error while performing operation", t);
+                errored.incrementAndGet();
+                if (exitOnFail) System.exit(1);
+            }
+            count.incrementAndGet();
+        }, 0, period, TimeUnit.NANOSECONDS);
+    }
+
+    private static String fd(double d) {
+        return String.format("%.2f", d);
     }
 }

@@ -4,7 +4,6 @@ import com.github.kjarosh.agh.pp.cli.Cmd;
 import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
-import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.test.RemoteGraphBuilder;
 import com.github.kjarosh.agh.pp.test.Tester;

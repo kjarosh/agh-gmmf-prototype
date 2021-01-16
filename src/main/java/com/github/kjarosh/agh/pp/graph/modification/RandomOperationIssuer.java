@@ -50,7 +50,7 @@ public class RandomOperationIssuer {
     public void perform() {
         Lock lock = performLock;
         if (!lock.tryLock()) {
-            log.warn("Can't keep up");
+            log.warn("Can't keep up with generating requests");
             lock.lock();
         }
         try {

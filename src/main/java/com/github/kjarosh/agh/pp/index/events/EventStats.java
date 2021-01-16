@@ -92,11 +92,11 @@ public class EventStats {
 
     @Override
     public String toString() {
-        return String.format("events: %d/%d", processing, queued) +
+        return String.format("eq: %d/%d", processing, queued) +
                 String.format("  out: %d", outbox) +
-                String.format("  load: %.0f/%.0f/%.0f", load1, load5, load15) +
-                String.format("  total: %d", total) +
-                String.format("  processing: %dp %ds %dg %du",
+                String.format("  ld: %.0f/%.0f/%.0f", load1, load5, load15) +
+                String.format("  tot: %d", total) +
+                String.format("  %dp %ds %dg %du",
                         processingByType.getOrDefault(Vertex.Type.PROVIDER, 0),
                         processingByType.getOrDefault(Vertex.Type.SPACE, 0),
                         processingByType.getOrDefault(Vertex.Type.GROUP, 0),
