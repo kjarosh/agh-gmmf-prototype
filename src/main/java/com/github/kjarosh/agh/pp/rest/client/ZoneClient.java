@@ -27,6 +27,8 @@ import java.util.List;
  * @author Kamil Jarosz
  */
 public class ZoneClient implements OperationIssuer {
+    private static final RestTemplate restTemplate = new RestTemplate();
+
     private final GraphQueryClient naiveGraphQueryClient;
     private final GraphQueryClient indexedGraphQueryClient;
 
@@ -40,14 +42,14 @@ public class ZoneClient implements OperationIssuer {
     }
 
     private <R> R execute(String url, Class<R> cls) {
-        ResponseEntity<R> response = new RestTemplate().postForEntity(url, null, cls);
+        ResponseEntity<R> response = restTemplate.postForEntity(url, null, cls);
         checkResponse(response);
 
         return response.getBody();
     }
 
     private void execute(String url) {
-        ResponseEntity<?> response = new RestTemplate().postForEntity(url, null, null);
+        ResponseEntity<?> response = restTemplate.postForEntity(url, null, null);
         checkResponse(response);
     }
 
@@ -63,7 +65,7 @@ public class ZoneClient implements OperationIssuer {
                     .path("healthcheck")
                     .build()
                     .toUriString();
-            ResponseEntity<?> response = new RestTemplate().getForEntity(url, String.class);
+            ResponseEntity<?> response = restTemplate.getForEntity(url, String.class);
             return response.getStatusCode().is2xxSuccessful();
         } catch (RestClientException e) {
             return false;
@@ -75,7 +77,7 @@ public class ZoneClient implements OperationIssuer {
                 .path("index_ready")
                 .build()
                 .toUriString();
-        ResponseEntity<Boolean> response = new RestTemplate().getForEntity(url, Boolean.class);
+        ResponseEntity<Boolean> response = restTemplate.getForEntity(url, Boolean.class);
         checkResponse(response);
         Boolean body = response.getBody();
         return body != null && body;
@@ -138,7 +140,7 @@ public class ZoneClient implements OperationIssuer {
                 .path("graph/edges/bulk")
                 .build()
                 .toUriString();
-        ResponseEntity<?> response = new RestTemplate().postForEntity(url, bulkRequest, null);
+        ResponseEntity<?> response = restTemplate.postForEntity(url, bulkRequest, null);
         checkResponse(response);
     }
 
@@ -204,7 +206,7 @@ public class ZoneClient implements OperationIssuer {
                 .path("graph/vertices/bulk")
                 .build()
                 .toUriString();
-        ResponseEntity<?> response = new RestTemplate().postForEntity(url, bulkRequest, null);
+        ResponseEntity<?> response = restTemplate.postForEntity(url, bulkRequest, null);
         checkResponse(response);
     }
 
@@ -214,7 +216,7 @@ public class ZoneClient implements OperationIssuer {
                 .queryParam("id", id.toString())
                 .build()
                 .toUriString();
-        ResponseEntity<?> response = new RestTemplate().postForEntity(url, event, null);
+        ResponseEntity<?> response = restTemplate.postForEntity(url, event, null);
         checkResponse(response);
     }
 
@@ -223,7 +225,7 @@ public class ZoneClient implements OperationIssuer {
                 .path("events/bulk")
                 .build()
                 .toUriString();
-        ResponseEntity<?> response = new RestTemplate().postForEntity(url, messages, null);
+        ResponseEntity<?> response = restTemplate.postForEntity(url, messages, null);
         checkResponse(response);
     }
 
@@ -232,7 +234,7 @@ public class ZoneClient implements OperationIssuer {
                 .path("events/stats")
                 .build()
                 .toUriString();
-        ResponseEntity<EventStats> response = new RestTemplate().getForEntity(url, EventStats.class);
+        ResponseEntity<EventStats> response = restTemplate.getForEntity(url, EventStats.class);
         checkResponse(response);
 
         return response.getBody();
@@ -247,7 +249,7 @@ public class ZoneClient implements OperationIssuer {
                 .path("dependent_zones")
                 .build()
                 .toUriString();
-        ResponseEntity<DependentZonesDto> response = new RestTemplate().postForEntity(url, exclude, DependentZonesDto.class);
+        ResponseEntity<DependentZonesDto> response = restTemplate.postForEntity(url, exclude, DependentZonesDto.class);
         if (!response.getStatusCode().is2xxSuccessful()) {
             throw new RuntimeException("Status: " + response.getStatusCode());
         }
@@ -260,7 +262,7 @@ public class ZoneClient implements OperationIssuer {
                 .path("instrumentation")
                 .build()
                 .toUriString();
-        return new RestTemplate().getForObject(url, Boolean.class);
+        return restTemplate.getForObject(url, Boolean.class);
     }
 
     public void setInstrumentationEnabled(ZoneId zone, boolean enabled) {
@@ -268,7 +270,7 @@ public class ZoneClient implements OperationIssuer {
                 .path("instrumentation")
                 .build()
                 .toUriString();
-        new RestTemplate().put(url, enabled);
+        restTemplate.put(url, enabled);
     }
 
     private class GraphQueryClientImpl implements GraphQueryClient {
