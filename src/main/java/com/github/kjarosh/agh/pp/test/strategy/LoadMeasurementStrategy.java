@@ -35,7 +35,7 @@ public class LoadMeasurementStrategy implements TestStrategy {
         supervisor.start();
 
         RandomOperationIssuer randomOperationIssuer =
-                new RandomOperationIssuer(graph, context.getZone());
+                new RandomOperationIssuer(graph);
         Thread delegate = new Thread(() -> {
             while (!Thread.interrupted()) {
                 if (supervisor.getLastStats().getQueued() > maxQueuedEvents) {

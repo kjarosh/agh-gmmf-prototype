@@ -25,16 +25,14 @@ public class RandomOperationIssuer {
     private final Lock performLock = new ReentrantLock();
     private final Random random = new Random();
     private final Graph graph;
-    private final ZoneId zone;
     private final Set<Edge> removedEdges = new HashSet<>();
 
     // config
     private double permissionsProbability = 0.8;
     private OperationIssuer operationIssuer = new ZoneClient();
 
-    public RandomOperationIssuer(Graph graph, ZoneId zone) {
+    public RandomOperationIssuer(Graph graph) {
         this.graph = graph;
-        this.zone = zone;
     }
 
     public RandomOperationIssuer withPermissionsProbability(double permissionsProbability) {
@@ -72,7 +70,7 @@ public class RandomOperationIssuer {
         if (!mustAddEdge && random.nextDouble() < permissionsProbability) {
             EdgeId id = randomElement(graph.allEdges()).id();
             log.debug("Changing permissions of {}", id);
-            operationIssuer.setPermissions(zone, id, randomPermissions());
+            operationIssuer.setPermissions(id.getFrom().owner(), id, randomPermissions());
             return;
         }
 
@@ -96,7 +94,7 @@ public class RandomOperationIssuer {
         removedEdges.remove(e);
         graph.addEdge(e);
         log.debug("Adding edge {}", e);
-        operationIssuer.addEdge(zone, e.id(), randomPermissions());
+        operationIssuer.addEdge(e.src().owner(), e.id(), randomPermissions());
     }
 
     private void removeEdge() {
@@ -104,7 +102,7 @@ public class RandomOperationIssuer {
         graph.removeEdge(e);
         removedEdges.add(e);
         log.debug("Removing edge {}", e);
-        operationIssuer.removeEdge(zone, e.id());
+        operationIssuer.removeEdge(e.src().owner(), e.id());
     }
 
     private <X> X randomElement(Collection<? extends X> collection) {

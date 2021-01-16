@@ -29,13 +29,12 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 public class ConstantLoadClientMain {
-    private static final int MAX_POOL_SIZE = 50;
+    private static final int MAX_POOL_SIZE = 200;
 
     private static final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(3);
     private static boolean loadGraph;
     private static boolean exitOnFail;
     private static int requestsPerSecond;
-    private static ZoneId zone;
     private static Graph graph;
     private static double permsProbability;
 
@@ -49,7 +48,6 @@ public class ConstantLoadClientMain {
     public static void main(String[] args) throws ParseException {
         Options options = new Options();
         options.addRequiredOption("n", "requests", true, "number of requests per second");
-        options.addRequiredOption("z", "zone-id", true, "zone ID");
         options.addRequiredOption("g", "graph", true, "path to graph");
         options.addOption("l", "load", false, "decide whether to load graph before running tests");
         options.addOption("x", "exit-on-fail", false, "exit on first fail");
@@ -62,7 +60,6 @@ public class ConstantLoadClientMain {
         loadGraph = cmd.hasOption("l");
         exitOnFail = cmd.hasOption("x");
         requestsPerSecond = Integer.parseInt(cmd.getOptionValue("n"));
-        zone = new ZoneId(cmd.getOptionValue("z"));
         graph = GraphLoader.loadGraph(cmd.getOptionValue("g"));
         permsProbability = Double.parseDouble(cmd.getOptionValue("prob.perms", "0.8"));
 
@@ -73,7 +70,7 @@ public class ConstantLoadClientMain {
 
         operationIssuer = new ConcurrentOperationIssuer(MAX_POOL_SIZE, new ZoneClient());
         randomOperationIssuer =
-                new RandomOperationIssuer(graph, zone)
+                new RandomOperationIssuer(graph)
                         .withPermissionsProbability(permsProbability)
                         .withOperationIssuer(operationIssuer);
 
