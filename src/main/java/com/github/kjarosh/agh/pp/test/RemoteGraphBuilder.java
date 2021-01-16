@@ -50,8 +50,7 @@ public class RemoteGraphBuilder {
         Collection<ZoneId> allZones = graph.allZones();
 
         log.info("Checking all zones if they are healthy: {}", allZones);
-        while (notHealthy(allZones)) {
-            log.trace("Not healthy");
+        while (!healthy(allZones)) {
             sleep();
         }
 
@@ -77,8 +76,7 @@ public class RemoteGraphBuilder {
             }
 
             log.debug("Waiting for index to be built: {}", allZones);
-            while (indexNotReady(allZones)) {
-                log.trace("Index not built");
+            while (!indexReady(allZones)) {
                 sleep();
             }
         } finally {
@@ -98,20 +96,34 @@ public class RemoteGraphBuilder {
 
     private void sleep() {
         try {
-            Thread.sleep(200);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while building graph");
         }
     }
 
-    private boolean indexNotReady(Collection<ZoneId> allZones) {
-        return allZones.stream()
-                .anyMatch(zone -> !client.indexReady(zone));
+    private boolean indexReady(Collection<ZoneId> allZones) {
+        List<ZoneId> notReady = allZones.stream()
+                .filter(zone -> !client.indexReady(zone))
+                .collect(Collectors.toList());
+        if (notReady.isEmpty()) {
+            return true;
+        } else {
+            log.debug("Zones not ready: {}", notReady);
+            return false;
+        }
     }
 
-    private boolean notHealthy(Collection<ZoneId> allZones) {
-        return allZones.stream()
-                .anyMatch(zone -> !client.healthcheck(zone));
+    private boolean healthy(Collection<ZoneId> allZones) {
+        List<ZoneId> notHealthy = allZones.stream()
+                .filter(zone -> !client.healthcheck(zone))
+                .collect(Collectors.toList());
+        if (notHealthy.isEmpty()) {
+            return true;
+        } else {
+            log.debug("Zones not ready: {}", notHealthy);
+            return false;
+        }
     }
 
     private void buildVerticesBulk(ZoneClient client) {
