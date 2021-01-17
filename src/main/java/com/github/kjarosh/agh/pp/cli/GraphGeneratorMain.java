@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.generator.GraphGenerator;
 import com.github.kjarosh.agh.pp.graph.generator.GraphGeneratorConfig;
-import com.github.kjarosh.agh.pp.graph.generator.GraphGeneratorOld;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
-import com.moandjiezana.toml.Toml;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -24,14 +22,6 @@ import java.nio.file.Paths;
 public class GraphGeneratorMain {
     static {
         LogbackUtils.loadLogbackCli();
-    }
-
-    @Deprecated
-    public static void oldmain(String[] args) throws IOException {
-        Toml config = new Toml().read(new File("config.toml"));
-        GraphGeneratorOld generator = new GraphGeneratorOld(config);
-        Graph graph = generator.generateGraph();
-        graph.serialize(Files.newOutputStream(Paths.get(config.getString("output"))));
     }
 
     public static void main(String[] args) throws IOException, ParseException {

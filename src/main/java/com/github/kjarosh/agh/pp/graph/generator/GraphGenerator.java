@@ -12,6 +12,7 @@ import java.math.MathContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 /**
  * @author Kamil Jarosz
@@ -100,7 +101,7 @@ public class GraphGenerator {
             log.info("[{}/{}] Generating space {}, depth {}",
                     i + 1, spaces.size(), space.id(), depth);
             try {
-                generateUserTree(graph, space, depth);
+                generateUserTree(graph, space, depth, space.id().owner());
             } catch (StackOverflowError e) {
                 log.error("Stack overflow for depth {}", depth, e);
                 throw e;
@@ -119,7 +120,7 @@ public class GraphGenerator {
         return list.get(random.nextInt(list.size()));
     }
 
-    private void generateUserTree(Graph graph, Vertex parent, int depth) {
+    private void generateUserTree(Graph graph, Vertex parent, int depth, ZoneId spaceZone) {
         if (parent.type() != Vertex.Type.SPACE &&
                 parent.type() != Vertex.Type.GROUP) {
             throw new AssertionError(parent.toString());
@@ -131,8 +132,7 @@ public class GraphGenerator {
 
         int users = config.getUsersPerGroup().nextInt();
         for (int i = 0; i < users; ++i) {
-            Vertex user = entityGenerator.generateVertex(parent.id().owner(), Vertex.Type.USER);
-            graph.addVertex(user);
+            Vertex user = generateUser(graph, spaceZone);
             graph.addEdge(new Edge(user.id(), parent.id(), Permissions.random(random)));
         }
 
@@ -142,11 +142,56 @@ public class GraphGenerator {
 
         int groups = config.getGroupsPerGroup().nextInt();
         for (int i = 0; i < groups; ++i) {
-            Vertex group = entityGenerator.generateVertex(parent.id().owner(), Vertex.Type.GROUP);
-            graph.addVertex(group);
-            graph.addEdge(new Edge(group.id(), parent.id(), Permissions.random(random)));
+            Vertex group = generateGroup(graph, depth, spaceZone);
 
-            generateUserTree(graph, group, depth - 1);
+            graph.addEdge(new Edge(group.id(), parent.id(), Permissions.random(random)));
         }
+    }
+
+    private Vertex generateUser(Graph graph, ZoneId spaceZone) {
+        boolean existing = random.nextDouble() < config.getExistingUserProb();
+        if (existing) {
+            List<Vertex> vertices = graph.allVertices()
+                    .stream()
+                    .filter(v -> v.type() == Vertex.Type.USER)
+                    .collect(Collectors.toList());
+            return vertices.get(random.nextInt(vertices.size()));
+        } else {
+            Vertex user = entityGenerator.generateVertex(generateUserZone(spaceZone), Vertex.Type.USER);
+            graph.addVertex(user);
+            return user;
+        }
+    }
+
+    private Vertex generateGroup(Graph graph, int depth, ZoneId spaceZone) {
+        boolean existing = random.nextDouble() < config.getExistingGroupProb();
+        if (existing) {
+            List<Vertex> vertices = graph.allVertices()
+                    .stream()
+                    .filter(v -> v.type() == Vertex.Type.GROUP)
+                    .collect(Collectors.toList());
+            return vertices.get(random.nextInt(vertices.size()));
+        } else {
+            Vertex group = entityGenerator.generateVertex(generateGroupZone(spaceZone), Vertex.Type.GROUP);
+            graph.addVertex(group);
+            generateUserTree(graph, group, depth - 1, spaceZone);
+            return group;
+        }
+    }
+
+    private ZoneId generateUserZone(ZoneId spaceZone) {
+        if (random.nextDouble() < config.getDifferentUserZoneProb()) {
+            return randomZone();
+        }
+
+        return spaceZone;
+    }
+
+    private ZoneId generateGroupZone(ZoneId spaceZone) {
+        if (random.nextDouble() < config.getDifferentGroupZoneProb()) {
+            return randomZone();
+        }
+
+        return spaceZone;
     }
 }

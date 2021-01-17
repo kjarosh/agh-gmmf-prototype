@@ -4,6 +4,10 @@
   "zones": 3,
   "providersPerSpace": "normal(4,1)",
   "groupsPerGroup": "normal(2, 1)",
-  "usersPerGroup": "normal(10, 4)",
-  "treeDepth": "enormal(2, 2)"
+  "usersPerGroup": "normal(6, 4)",
+  "treeDepth": "enormal(2, 2)",
+  "differentGroupZoneProb": 0.2,
+  "differentUserZoneProb": 0.2,
+  "existingUserProb": 0.1,
+  "existingGroupProb": 0.1
 }

@@ -31,6 +31,11 @@ public class GraphGeneratorConfig {
     private DistributionConfig usersPerGroup;
     private DistributionConfig groupsPerGroup;
 
+    private double differentGroupZoneProb;
+    private double differentUserZoneProb;
+    private double existingUserProb;
+    private double existingGroupProb;
+
     public static abstract class DistributionConfig {
         private static final Pattern pattern = Pattern.compile("(?<fn>[a-z]+)\\((?<arg>[^,]+(,[^,]+)*)\\)");
 
