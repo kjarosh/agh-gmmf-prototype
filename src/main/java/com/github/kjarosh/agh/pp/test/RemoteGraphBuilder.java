@@ -190,8 +190,9 @@ public class RemoteGraphBuilder {
                         .thenComparing(Edge::dst))
                 .parallel()
                 .forEach(e -> {
-                    client.addEdge(e.src().owner(), e.id(), e.permissions());
-                    edgesBuilt.incrementAndGet();
+                    int n = edgesBuilt.getAndIncrement();
+                    String trace = "builder-edge-" + n;
+                    client.addEdge(e.src().owner(), e.id(), e.permissions(), trace);
                 });
     }
 

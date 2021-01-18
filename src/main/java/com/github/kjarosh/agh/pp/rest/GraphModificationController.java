@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -54,8 +55,9 @@ public class GraphModificationController {
             @RequestParam("from") String fromId,
             @RequestParam("to") String toId,
             @RequestParam("permissions") String permissionsString,
-            @RequestParam(value = "trace", required = false) String trace,
+            @RequestParam(value = "trace", required = false) String traceParam,
             @RequestParam("successive") boolean successive) {
+        String trace = getTrace(traceParam);
         Graph graph = graphLoader.getGraph();
         EdgeId edgeId = EdgeId.of(
                 new VertexId(fromId),
@@ -63,7 +65,7 @@ public class GraphModificationController {
         Permissions permissions = Strings.isNullOrEmpty(permissionsString) ? null :
                 new Permissions(permissionsString);
         GraphOperationPropagator propagator = (zone, s) -> new ZoneClient()
-                .addEdge(zone, edgeId, permissions, s);
+                .addEdge(zone, edgeId, permissions, trace, s);
 
         optionallyForwardRequest(successive, edgeId, propagator);
 
@@ -91,6 +93,7 @@ public class GraphModificationController {
     @RequestMapping(method = RequestMethod.POST, path = "graph/edges/bulk")
     @ResponseBody
     public void addEdges(@RequestBody BulkEdgeCreationRequestDto bulkRequest) {
+        addTrace(bulkRequest);
         Graph graph = graphLoader.getGraph();
 
         if (!bulkRequest.isSuccessive()) {
@@ -122,8 +125,9 @@ public class GraphModificationController {
             @RequestParam("from") String fromId,
             @RequestParam("to") String toId,
             @RequestParam("permissions") String permissionsString,
-            @RequestParam(value = "trace", required = false) String trace,
+            @RequestParam(value = "trace", required = false) String traceParam,
             @RequestParam("successive") boolean successive) {
+        String trace = getTrace(traceParam);
         Graph graph = graphLoader.getGraph();
         EdgeId edgeId = EdgeId.of(
                 new VertexId(fromId),
@@ -131,7 +135,7 @@ public class GraphModificationController {
         Permissions permissions = Strings.isNullOrEmpty(permissionsString) ? null :
                 new Permissions(permissionsString);
         GraphOperationPropagator propagator = (zone, s) -> new ZoneClient()
-                .setPermissions(zone, edgeId, permissions, s);
+                .setPermissions(zone, edgeId, permissions, trace, s);
 
         optionallyForwardRequest(successive, edgeId, propagator);
 
@@ -154,14 +158,15 @@ public class GraphModificationController {
     public void removeEdge(
             @RequestParam("from") String fromId,
             @RequestParam("to") String toId,
-            @RequestParam(value = "trace", required = false) String trace,
+            @RequestParam(value = "trace", required = false) String traceParam,
             @RequestParam("successive") boolean successive) {
+        String trace = getTrace(traceParam);
         Graph graph = graphLoader.getGraph();
         EdgeId edgeId = EdgeId.of(
                 new VertexId(fromId),
                 new VertexId(toId));
         GraphOperationPropagator propagator = (zone, s) ->
-                new ZoneClient().removeEdge(zone, edgeId, s);
+                new ZoneClient().removeEdge(zone, edgeId, trace, s);
 
         optionallyForwardRequest(successive, edgeId, propagator);
 
@@ -233,10 +238,7 @@ public class GraphModificationController {
             String trace,
             EdgeId edgeId,
             boolean delete) {
-        if (trace == null) {
-            trace = UUID.randomUUID().toString();
-        }
-
+        Objects.requireNonNull(trace);
         Graph graph = graphLoader.getGraph();
         if (successive) {
             Set<VertexId> subjects = graph.getVertex(edgeId.getTo())
@@ -296,5 +298,17 @@ public class GraphModificationController {
             log.trace("Adding vertex {}", id);
             graph.addVertex(new Vertex(id, request.getType()));
         }
+    }
+
+    private String getTrace(String traceParam) {
+        return traceParam != null ? traceParam : UUID.randomUUID().toString();
+    }
+
+    private void addTrace(BulkEdgeCreationRequestDto bulkRequest) {
+        bulkRequest.getEdges().forEach(e -> {
+            if (e.getTrace() == null) {
+                e.setTrace(UUID.randomUUID().toString());
+            }
+        });
     }
 }

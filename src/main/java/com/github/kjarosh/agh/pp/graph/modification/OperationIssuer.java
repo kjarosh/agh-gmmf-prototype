@@ -12,13 +12,13 @@ import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
  * @author Kamil Jarosz
  */
 public interface OperationIssuer {
-    void addEdge(ZoneId zone, EdgeId id, Permissions permissions);
+    void addEdge(ZoneId zone, EdgeId id, Permissions permissions, String trace);
 
     void addEdges(ZoneId zone, BulkEdgeCreationRequestDto bulkRequest);
 
-    void removeEdge(ZoneId zone, EdgeId id);
+    void removeEdge(ZoneId zone, EdgeId id, String trace);
 
-    void setPermissions(ZoneId zone, EdgeId id, Permissions permissions);
+    void setPermissions(ZoneId zone, EdgeId id, Permissions permissions, String trace);
 
     void addVertex(VertexId id, Vertex.Type type);
 

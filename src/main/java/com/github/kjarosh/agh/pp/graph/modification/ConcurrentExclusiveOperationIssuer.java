@@ -36,10 +36,10 @@ public class ConcurrentExclusiveOperationIssuer implements OperationIssuer {
     }
 
     @Override
-    public void addEdge(ZoneId zone, EdgeId id, Permissions permissions) {
+    public void addEdge(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
         synchronized (lock) {
             syncd.computeIfAbsent(id, e -> new ArrayDeque<>())
-                    .push(() -> delegate.addEdge(zone, id, permissions));
+                    .push(() -> delegate.addEdge(zone, id, permissions, trace));
             syncdRunning.putIfAbsent(id, false);
             lock.notifyAll();
         }
@@ -51,20 +51,20 @@ public class ConcurrentExclusiveOperationIssuer implements OperationIssuer {
     }
 
     @Override
-    public void removeEdge(ZoneId zone, EdgeId id) {
+    public void removeEdge(ZoneId zone, EdgeId id, String trace) {
         synchronized (lock) {
             syncd.computeIfAbsent(id, e -> new ArrayDeque<>())
-                    .push(() -> delegate.removeEdge(zone, id));
+                    .push(() -> delegate.removeEdge(zone, id, trace));
             syncdRunning.putIfAbsent(id, false);
             lock.notifyAll();
         }
     }
 
     @Override
-    public void setPermissions(ZoneId zone, EdgeId id, Permissions permissions) {
+    public void setPermissions(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
         synchronized (lock) {
             syncd.computeIfAbsent(id, e -> new ArrayDeque<>())
-                    .push(() -> delegate.setPermissions(zone, id, permissions));
+                    .push(() -> delegate.setPermissions(zone, id, permissions, trace));
             syncdRunning.putIfAbsent(id, false);
             lock.notifyAll();
         }

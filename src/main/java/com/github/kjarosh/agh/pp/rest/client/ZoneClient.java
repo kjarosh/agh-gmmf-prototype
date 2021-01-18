@@ -6,13 +6,13 @@ import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.rest.dto.BulkEdgeCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkMessagesDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.DependentZonesDto;
-import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
 import com.github.kjarosh.agh.pp.util.StringList;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
@@ -130,8 +130,8 @@ public class ZoneClient implements OperationIssuer {
     }
 
     @Override
-    public void addEdge(ZoneId zone, EdgeId edgeId, Permissions permissions) {
-        addEdge(zone, edgeId, permissions, false);
+    public void addEdge(ZoneId zone, EdgeId edgeId, Permissions permissions, String trace) {
+        addEdge(zone, edgeId, permissions, trace, false);
     }
 
     @Override
@@ -144,48 +144,54 @@ public class ZoneClient implements OperationIssuer {
         checkResponse(response);
     }
 
-    public void addEdge(ZoneId zone, EdgeId edgeId, Permissions permissions, boolean successive) {
-        String url = baseUri(zone)
+    public void addEdge(ZoneId zone, EdgeId edgeId, Permissions permissions, String trace, boolean successive) {
+        UriComponentsBuilder builder = baseUri(zone)
                 .path("graph/edges")
                 .queryParam("from", edgeId.getFrom())
                 .queryParam("to", edgeId.getTo())
                 .queryParam("permissions", permissions)
-                .queryParam("successive", successive)
-                .build()
-                .toUriString();
+                .queryParam("successive", successive);
+        if (trace != null) {
+            builder.queryParam("trace", trace);
+        }
+        String url = builder.build().toUriString();
         execute(url);
     }
 
     @Override
-    public void removeEdge(ZoneId zone, EdgeId edgeId) {
-        removeEdge(zone, edgeId, false);
+    public void removeEdge(ZoneId zone, EdgeId edgeId, String trace) {
+        removeEdge(zone, edgeId, trace, false);
     }
 
-    public void removeEdge(ZoneId zone, EdgeId edgeId, boolean successive) {
-        String url = baseUri(zone)
+    public void removeEdge(ZoneId zone, EdgeId edgeId, String trace, boolean successive) {
+        UriComponentsBuilder builder = baseUri(zone)
                 .path("graph/edges/delete")
                 .queryParam("from", edgeId.getFrom())
                 .queryParam("to", edgeId.getTo())
-                .queryParam("successive", successive)
-                .build()
-                .toUriString();
+                .queryParam("successive", successive);
+        if (trace != null) {
+            builder.queryParam("trace", trace);
+        }
+        String url = builder.build().toUriString();
         execute(url);
     }
 
     @Override
-    public void setPermissions(ZoneId zone, EdgeId edgeId, Permissions permissions) {
-        setPermissions(zone, edgeId, permissions, false);
+    public void setPermissions(ZoneId zone, EdgeId edgeId, Permissions permissions, String trace) {
+        setPermissions(zone, edgeId, permissions, trace, false);
     }
 
-    public void setPermissions(ZoneId zone, EdgeId edgeId, Permissions permissions, boolean successive) {
-        String url = baseUri(zone)
+    public void setPermissions(ZoneId zone, EdgeId edgeId, Permissions permissions, String trace, boolean successive) {
+        UriComponentsBuilder builder = baseUri(zone)
                 .path("graph/edges/permissions")
                 .queryParam("from", edgeId.getFrom())
                 .queryParam("to", edgeId.getTo())
                 .queryParam("permissions", permissions)
-                .queryParam("successive", successive)
-                .build()
-                .toUriString();
+                .queryParam("successive", successive);
+        if (trace != null) {
+            builder.queryParam("trace", trace);
+        }
+        String url = builder.build().toUriString();
         execute(url);
     }
 

@@ -4,7 +4,6 @@ import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
-import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,18 +13,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author Kamil Jarosz
  */
 @Slf4j
 public class RandomOperationIssuer {
-    private final Lock performLock = new ReentrantLock();
     private final Random random = new Random();
     private final Graph graph;
     private final Set<Edge> removedEdges = new HashSet<>();
+    private final AtomicLong traceCounter = new AtomicLong();
 
     // config
     private double permissionsProbability = 0.8;
@@ -45,17 +43,8 @@ public class RandomOperationIssuer {
         return this;
     }
 
-    public void perform() {
-        Lock lock = performLock;
-        if (!lock.tryLock()) {
-            log.warn("Can't keep up with generating requests");
-            lock.lock();
-        }
-        try {
-            perform0();
-        } finally {
-            lock.unlock();
-        }
+    public synchronized void perform() {
+        perform0();
     }
 
     private void perform0() {
@@ -70,7 +59,7 @@ public class RandomOperationIssuer {
         if (!mustAddEdge && random.nextDouble() < permissionsProbability) {
             EdgeId id = randomElement(graph.allEdges()).id();
             log.debug("Changing permissions of {}", id);
-            operationIssuer.setPermissions(id.getFrom().owner(), id, randomPermissions());
+            operationIssuer.setPermissions(id.getFrom().owner(), id, randomPermissions(), trace());
             return;
         }
 
@@ -89,12 +78,16 @@ public class RandomOperationIssuer {
         }
     }
 
+    private String trace() {
+        return "generated-" + traceCounter.getAndIncrement();
+    }
+
     private void addEdge() {
         Edge e = randomElement(removedEdges);
         removedEdges.remove(e);
         graph.addEdge(e);
         log.debug("Adding edge {}", e);
-        operationIssuer.addEdge(e.src().owner(), e.id(), randomPermissions());
+        operationIssuer.addEdge(e.src().owner(), e.id(), randomPermissions(), trace());
     }
 
     private void removeEdge() {
@@ -102,7 +95,7 @@ public class RandomOperationIssuer {
         graph.removeEdge(e);
         removedEdges.add(e);
         log.debug("Removing edge {}", e);
-        operationIssuer.removeEdge(e.src().owner(), e.id());
+        operationIssuer.removeEdge(e.src().owner(), e.id(), trace());
     }
 
     private <X> X randomElement(Collection<? extends X> collection) {

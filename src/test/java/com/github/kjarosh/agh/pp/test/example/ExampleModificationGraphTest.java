@@ -17,19 +17,19 @@ public class ExampleModificationGraphTest extends ExampleTestBase {
     protected void afterSetup() {
         client.setPermissions(zone,
                 eid("zone1:tom", "zone1:primage"),
-                new Permissions("11001"));
+                new Permissions("11001"), null);
         client.setPermissions(zone,
                 eid("zone0:uber_admins", "zone1:admins"),
-                new Permissions("10100"));
+                new Permissions("10100"), null);
         client.setPermissions(zone,
                 eid("zone1:admins", "zone1:eosc"),
-                new Permissions("10000"));
+                new Permissions("10000"), null);
         client.setPermissions(zone,
                 eid("zone1:cyfnet", "zone1:eosc"),
-                new Permissions("00001"));
+                new Permissions("00001"), null);
 
         client.removeEdge(zone,
-                eid("zone0:alice", "zone0:ebi"));
+                eid("zone0:alice", "zone0:ebi"), null);
     }
 
     @ParameterizedTest

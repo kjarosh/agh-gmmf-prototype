@@ -49,8 +49,8 @@ public class ConcurrentOperationIssuer implements OperationIssuer {
     }
 
     @Override
-    public void addEdge(ZoneId zone, EdgeId id, Permissions permissions) {
-        submit(() -> delegate.addEdge(zone, id, permissions));
+    public void addEdge(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
+        submit(() -> delegate.addEdge(zone, id, permissions, trace));
     }
 
     @Override
@@ -59,14 +59,14 @@ public class ConcurrentOperationIssuer implements OperationIssuer {
     }
 
     @Override
-    public void removeEdge(ZoneId zone, EdgeId id) {
-        submit(() -> delegate.removeEdge(zone, id));
+    public void removeEdge(ZoneId zone, EdgeId id, String trace) {
+        submit(() -> delegate.removeEdge(zone, id, trace));
 
     }
 
     @Override
-    public void setPermissions(ZoneId zone, EdgeId id, Permissions permissions) {
-        submit(() -> delegate.setPermissions(zone, id, permissions));
+    public void setPermissions(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
+        submit(() -> delegate.setPermissions(zone, id, permissions, trace));
     }
 
     @Override
