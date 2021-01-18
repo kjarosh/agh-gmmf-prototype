@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -191,7 +192,7 @@ public class RemoteGraphBuilder {
                 .parallel()
                 .forEach(e -> {
                     int n = edgesBuilt.getAndIncrement();
-                    String trace = "builder-edge-" + n;
+                    String trace = "builder-edge-" + String.format("%05d", n) + "-" + UUID.randomUUID().toString();
                     client.addEdge(e.src().owner(), e.id(), e.permissions(), trace);
                 });
     }

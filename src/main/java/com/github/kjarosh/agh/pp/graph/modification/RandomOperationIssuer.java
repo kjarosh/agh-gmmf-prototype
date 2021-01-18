@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -78,8 +79,8 @@ public class RandomOperationIssuer {
         }
     }
 
-    private String trace() {
-        return "generated-" + traceCounter.getAndIncrement();
+    String trace() {
+        return "generated-" + String.format("%05d", traceCounter.getAndIncrement()) + "-" + UUID.randomUUID().toString();
     }
 
     private void addEdge() {
