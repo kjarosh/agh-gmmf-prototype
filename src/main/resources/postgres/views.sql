@@ -34,6 +34,28 @@ from (
     group by trace) as b
 order by b.start_time;
 
+create or replace view events as
+select
+    b.zone,
+    b.eventid,
+    b.trace,
+    b.vertex,
+    (b.end_time - b.start_time) as duration,
+    b.start_time,
+    b.end_time
+from (
+    select
+        zone,
+        eventid,
+        trace,
+        vertex,
+        min(time) filter (where type = 'start') as start_time,
+        min(time) filter (where type = 'end') as end_time
+    from dbnotification
+    where type in ('start', 'end')
+    group by zone, eventid, trace, vertex) as b
+order by b.start_time;
+
 create or replace view queue_summary as
 select
     b.zone,
@@ -84,7 +106,7 @@ from (
     select
         'time processing / average' as name,
         cast(avg(duration) as text) as value
-    from operations_summary
+    from operations
     union
     select
         'time processing / min' as name,

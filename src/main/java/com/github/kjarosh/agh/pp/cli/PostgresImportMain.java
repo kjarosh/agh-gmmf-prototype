@@ -79,9 +79,14 @@ public class PostgresImportMain {
     }
 
     private static void createViews(EntityManager em) {
+        executeSqlFile(em, "postgres/views.sql");
+        executeSqlFile(em, "postgres/functions.sql");
+    }
+
+    private static void executeSqlFile(EntityManager em, String path) {
         try (InputStream is = PostgresImportMain.class
                 .getClassLoader()
-                .getResourceAsStream("postgres/views.sql")) {
+                .getResourceAsStream(path)) {
             Objects.requireNonNull(is);
             String sql = CharStreams.toString(new InputStreamReader(is));
             em.createNativeQuery(sql).executeUpdate();
