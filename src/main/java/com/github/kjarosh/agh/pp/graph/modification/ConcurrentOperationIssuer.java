@@ -7,6 +7,7 @@ import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.dto.BulkEdgeCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
+import com.github.kjarosh.agh.pp.rest.dto.LoadSimulationRequestDto;
 import com.github.kjarosh.agh.pp.util.BlockingRejectedExecutionHandler;
 import com.google.common.util.concurrent.AtomicDouble;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -77,6 +78,11 @@ public class ConcurrentOperationIssuer implements OperationIssuer {
     @Override
     public void addVertices(ZoneId zone, BulkVertexCreationRequestDto bulkRequest) {
         submit(() -> delegate.addVertices(zone, bulkRequest));
+    }
+
+    @Override
+    public void simulateLoad(ZoneId zone, LoadSimulationRequestDto request) {
+        submit(() -> delegate.simulateLoad(zone, request));
     }
 
     private void submit(Runnable op) {

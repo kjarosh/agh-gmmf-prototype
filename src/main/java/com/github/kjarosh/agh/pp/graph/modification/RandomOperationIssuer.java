@@ -7,9 +7,9 @@ import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Slf4j
 public class RandomOperationIssuer {
-    private final Random random = new Random();
+    private final Random random;
     private final Graph graph;
     private final Set<Edge> removedEdges = new HashSet<>();
     private final AtomicLong traceCounter = new AtomicLong();
@@ -31,6 +31,11 @@ public class RandomOperationIssuer {
     private OperationIssuer operationIssuer = new ZoneClient();
 
     public RandomOperationIssuer(Graph graph) {
+        this(new Random(), graph);
+    }
+
+    public RandomOperationIssuer(Random random, Graph graph) {
+        this.random = random;
         this.graph = graph;
     }
 
@@ -100,8 +105,24 @@ public class RandomOperationIssuer {
     }
 
     private <X> X randomElement(Collection<? extends X> collection) {
-        List<X> list = new ArrayList<>(collection);
+        if (collection instanceof List) {
+            return randomElementList((List<? extends X>) collection);
+        } else {
+            return randomElementCollection(collection);
+        }
+    }
+
+    <X> X randomElementList(List<? extends X> list) {
         return list.get(random.nextInt(list.size()));
+    }
+
+    <X> X randomElementCollection(Collection<? extends X> collection) {
+        int ix = random.nextInt(collection.size());
+        Iterator<? extends X> it = collection.iterator();
+        while (ix-- > 0) {
+            it.next();
+        }
+        return it.next();
     }
 
     private Permissions randomPermissions() {

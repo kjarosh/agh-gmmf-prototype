@@ -13,6 +13,7 @@ import com.github.kjarosh.agh.pp.rest.dto.BulkEdgeCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkMessagesDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.DependentZonesDto;
+import com.github.kjarosh.agh.pp.rest.dto.LoadSimulationRequestDto;
 import com.github.kjarosh.agh.pp.util.StringList;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
@@ -277,6 +278,16 @@ public class ZoneClient implements OperationIssuer {
                 .build()
                 .toUriString();
         restTemplate.put(url, enabled);
+    }
+
+    @Override
+    public void simulateLoad(ZoneId zone, LoadSimulationRequestDto request) {
+        String url = baseUri(zone)
+                .path("simulate_load")
+                .build()
+                .toUriString();
+        ResponseEntity<?> response = restTemplate.postForEntity(url, request, null);
+        checkResponse(response);
     }
 
     private class GraphQueryClientImpl implements GraphQueryClient {

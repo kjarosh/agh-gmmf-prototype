@@ -3,13 +3,15 @@ package com.github.kjarosh.agh.pp.cli;
 import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
-import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.graph.modification.BulkOperationIssuer;
 import com.github.kjarosh.agh.pp.graph.modification.ConcurrentOperationIssuer;
+import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
 import com.github.kjarosh.agh.pp.graph.modification.RandomOperationIssuer;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.test.EventStatsGatherer;
 import com.github.kjarosh.agh.pp.test.RemoteGraphBuilder;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -21,6 +23,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,17 +32,22 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 public class ConstantLoadClientMain {
+    private static final ThreadFactory treadFactory = new ThreadFactoryBuilder()
+            .setNameFormat("generator-%d")
+            .build();
     private static final int MAX_POOL_SIZE = 200;
 
-    private static final ScheduledExecutorService scheduledExecutor = Executors.newScheduledThreadPool(3);
+    private static final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor(treadFactory);
     private static boolean loadGraph;
     private static boolean exitOnFail;
-    private static int requestsPerSecond;
+    private static int bulkSize;
+    private static int operationsPerSecond;
     private static Graph graph;
     private static double permsProbability;
 
     private static RandomOperationIssuer randomOperationIssuer;
-    private static ConcurrentOperationIssuer operationIssuer;
+    private static ConcurrentOperationIssuer baseOperationIssuer;
+    private static OperationIssuer operationIssuer;
 
     static {
         LogbackUtils.loadLogbackCli();
@@ -47,10 +55,11 @@ public class ConstantLoadClientMain {
 
     public static void main(String[] args) throws ParseException {
         Options options = new Options();
-        options.addRequiredOption("n", "requests", true, "number of requests per second");
+        options.addRequiredOption("n", "operations", true, "number of operations per second");
         options.addRequiredOption("g", "graph", true, "path to graph");
         options.addOption("l", "load", false, "decide whether to load graph before running tests");
         options.addOption("x", "exit-on-fail", false, "exit on first fail");
+        options.addOption("b", "bulk", true, "enable bulk requests and set bulk size");
         options.addOption(null, "prob.perms", true,
                 "probability that a random operation changes permissions");
 
@@ -59,7 +68,8 @@ public class ConstantLoadClientMain {
 
         loadGraph = cmd.hasOption("l");
         exitOnFail = cmd.hasOption("x");
-        requestsPerSecond = Integer.parseInt(cmd.getOptionValue("n"));
+        bulkSize = Integer.parseInt(cmd.getOptionValue("b"));
+        operationsPerSecond = Integer.parseInt(cmd.getOptionValue("n"));
         graph = GraphLoader.loadGraph(cmd.getOptionValue("g"));
         permsProbability = Double.parseDouble(cmd.getOptionValue("prob.perms", "0.8"));
 
@@ -68,14 +78,19 @@ public class ConstantLoadClientMain {
         }
 
 
-        operationIssuer = new ConcurrentOperationIssuer(MAX_POOL_SIZE, new ZoneClient());
+        baseOperationIssuer = new ConcurrentOperationIssuer(MAX_POOL_SIZE, new ZoneClient());
+        if (bulkSize >= 1) {
+            operationIssuer = new BulkOperationIssuer(baseOperationIssuer, bulkSize, Duration.ZERO);
+        } else {
+            operationIssuer = baseOperationIssuer;
+        }
         randomOperationIssuer =
                 new RandomOperationIssuer(graph)
                         .withPermissionsProbability(permsProbability)
                         .withOperationIssuer(operationIssuer);
 
 
-        log.info("Running constant load: {} requests per second", requestsPerSecond);
+        log.info("Running constant load: {} requests per second", operationsPerSecond);
         runRandomOperations();
     }
 
@@ -105,15 +120,15 @@ public class ConstantLoadClientMain {
             EventStats stats = eventStatsGatherer.get();
             int currentCount = count.getAndSet(0);
             total += currentCount;
-            double rps = (double) currentCount / Duration.between(last, now).toMillis() * Duration.ofSeconds(1).toMillis();
+            double gps = (double) currentCount / Duration.between(last, now).toMillis() * Duration.ofSeconds(1).toMillis();
             last = now;
-            log.info("{}  (rps={}, err={}, tot={}, sat={}, rt={})",
+            log.info("{}  (gps={}, err={}, tot={}, sat={}, rt={})",
                     stats.toString(),
-                    fd(rps),
+                    fd(gps),
                     errored.get(),
                     total,
-                    fd(operationIssuer.getSaturation()),
-                    fd(operationIssuer.getRequestTime()));
+                    fd(baseOperationIssuer.getSaturation()),
+                    fd(baseOperationIssuer.getRequestTime()));
         }
 
         log.info("Interrupted. Shutting down gracefully...");
@@ -126,9 +141,9 @@ public class ConstantLoadClientMain {
     }
 
     private static void scheduleRequestExecutor(AtomicInteger count, AtomicInteger errored) {
-        if (requestsPerSecond == 0) return;
+        if (operationsPerSecond == 0) return;
 
-        long period = (long) (1e9 / requestsPerSecond);
+        long period = (long) (1e9 / operationsPerSecond);
         scheduledExecutor.scheduleAtFixedRate(() -> {
             try {
                 randomOperationIssuer.perform();
