@@ -97,22 +97,24 @@ public class ConcurrentOperationIssuer implements OperationIssuer {
 
     private void submit(Runnable op) {
         if (executor == null) {
-            op.run();
+            execute(op);
             return;
         }
-        executor.submit(() -> {
-            long time = System.nanoTime();
-            try {
-                op.run();
-            } catch (Exception e) {
-                log.debug("Error while issuing an operation", e);
-                failed.incrementAndGet();
-                return;
-            }
-            time = System.nanoTime() - time;
-            requestTime.set(time / 1000000000d);
-        });
+        executor.submit(() -> execute(op));
         refreshSaturation();
+    }
+
+    private void execute(Runnable op) {
+        long time = System.nanoTime();
+        try {
+            op.run();
+        } catch (Exception e) {
+            log.debug("Error while issuing an operation", e);
+            failed.incrementAndGet();
+            return;
+        }
+        time = System.nanoTime() - time;
+        requestTime.set(time / 1000000000d);
     }
 
     private void refreshSaturation() {
