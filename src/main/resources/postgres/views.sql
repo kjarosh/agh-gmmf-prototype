@@ -1,4 +1,4 @@
-create or replace view event_processing_summary as
+create or replace view operations as
 select
     b.trace,
     b.start_time,
@@ -18,7 +18,7 @@ select
 from (
     select
         trace,
-        sum(forkchildren) + 1 as all_events,
+        sum(forkchildren) + 2 as all_events,
         count(id) filter (where type = 'start') as started_events,
         count(id) filter (where type = 'end') as ended_events,
         count(id) filter (where type = 'fail') as failed_events,
@@ -84,27 +84,27 @@ from (
     select
         'time processing / average' as name,
         cast(avg(duration) as text) as value
-    from event_processing_summary
+    from operations_summary
     union
     select
         'time processing / min' as name,
         cast(min(duration) as text) as value
-    from event_processing_summary
+    from operations
     union
     select
         'time processing / max' as name,
         cast(max(duration) as text) as value
-    from event_processing_summary
+    from operations
     union
     select
         'events failed / count' as name,
         cast(sum(failed_events) as text) as value
-    from event_processing_summary
+    from operations
     union
     select
         'events started / count' as name,
         cast(sum(started_events) as text) as value
-    from event_processing_summary
+    from operations
     union
     select
         'events queued / count' as name,
