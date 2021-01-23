@@ -36,10 +36,14 @@ public class ConcurrentOperationIssuer implements OperationIssuer {
     private final AtomicInteger failed = new AtomicInteger();
 
     public ConcurrentOperationIssuer(int maxPoolSize, OperationIssuer delegate) {
-        this.executor = new ThreadPoolExecutor(1, maxPoolSize,
-                0, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(QUEUE_CAPACITY), treadFactory,
-                new BlockingRejectedExecutionHandler());
+        if (maxPoolSize >= 1) {
+            this.executor = new ThreadPoolExecutor(1, maxPoolSize,
+                    0, TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<>(QUEUE_CAPACITY), treadFactory,
+                    new BlockingRejectedExecutionHandler());
+        } else {
+            this.executor = null;
+        }
         this.delegate = delegate;
     }
 
@@ -92,6 +96,10 @@ public class ConcurrentOperationIssuer implements OperationIssuer {
     }
 
     private void submit(Runnable op) {
+        if (executor == null) {
+            op.run();
+            return;
+        }
         executor.submit(() -> {
             long time = System.nanoTime();
             try {

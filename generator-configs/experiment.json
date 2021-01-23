@@ -5,7 +5,7 @@
   "providersPerSpace": "normal(2.5, 1)",
   "groupsPerGroup": "normal(3, 1)",
   "usersPerGroup": "normal(20, 10)",
-  "treeDepth": "normal(2, 1)",
+  "treeDepth": "normal(2.5, 1)",
   "differentGroupZoneProb": 0.05,
   "differentUserZoneProb": 0.05,
   "existingUserProb": 0.25,

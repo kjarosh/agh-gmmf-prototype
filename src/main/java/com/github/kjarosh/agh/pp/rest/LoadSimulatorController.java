@@ -40,13 +40,23 @@ public class LoadSimulatorController {
         Instant finish = now.plus(request.getTimeSpan());
 
         Duration delay = Duration.between(now, finish).dividedBy(operations.size());
+        Exception rethrow = null;
         for (int i = 0; i < operations.size(); ++i) {
             OperationDto op = operations.get(i);
-            executeOperation(op);
+            try {
+                executeOperation(op);
+            } catch (Exception e) {
+                log.error("Error while simulating load", e);
+                rethrow = e;
+            }
 
             if (i < operations.size() - 1) {
                 Thread.sleep(delay.toMillis());
             }
+        }
+
+        if (rethrow != null) {
+            throw rethrow;
         }
     }
 

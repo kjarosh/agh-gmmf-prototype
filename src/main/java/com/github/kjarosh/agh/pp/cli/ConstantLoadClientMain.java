@@ -35,7 +35,6 @@ public class ConstantLoadClientMain {
     private static final ThreadFactory treadFactory = new ThreadFactoryBuilder()
             .setNameFormat("generator-%d")
             .build();
-    private static final int MAX_POOL_SIZE = 200;
 
     private static final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor(treadFactory);
     private static boolean loadGraph;
@@ -44,6 +43,7 @@ public class ConstantLoadClientMain {
     private static int operationsPerSecond;
     private static Graph graph;
     private static double permsProbability;
+    private static int maxPoolSize;
 
     private static RandomOperationIssuer randomOperationIssuer;
     private static ConcurrentOperationIssuer baseOperationIssuer;
@@ -60,6 +60,7 @@ public class ConstantLoadClientMain {
         options.addOption("l", "load", false, "decide whether to load graph before running tests");
         options.addOption("x", "exit-on-fail", false, "exit on first fail");
         options.addOption("b", "bulk", true, "enable bulk requests and set bulk size");
+        options.addOption("t", "concurrent-pool", true, "enable concurrency and set pool size");
         options.addOption(null, "prob.perms", true,
                 "probability that a random operation changes permissions");
 
@@ -69,6 +70,7 @@ public class ConstantLoadClientMain {
         loadGraph = cmd.hasOption("l");
         exitOnFail = cmd.hasOption("x");
         bulkSize = Integer.parseInt(cmd.getOptionValue("b"));
+        maxPoolSize = Integer.parseInt(cmd.getOptionValue("t", "0"));
         operationsPerSecond = Integer.parseInt(cmd.getOptionValue("n"));
         graph = GraphLoader.loadGraph(cmd.getOptionValue("g"));
         permsProbability = Double.parseDouble(cmd.getOptionValue("prob.perms", "0.8"));
@@ -78,7 +80,7 @@ public class ConstantLoadClientMain {
         }
 
 
-        baseOperationIssuer = new ConcurrentOperationIssuer(MAX_POOL_SIZE, new ZoneClient());
+        baseOperationIssuer = new ConcurrentOperationIssuer(maxPoolSize, new ZoneClient());
         if (bulkSize >= 1) {
             operationIssuer = new BulkOperationIssuer(baseOperationIssuer, bulkSize, Duration.ZERO);
         } else {
