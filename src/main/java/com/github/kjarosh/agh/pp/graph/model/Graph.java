@@ -88,13 +88,6 @@ public class Graph {
         }
     }
 
-    public void removeEdge(EdgeId e) {
-        Edge edge = edges.get(e);
-        if (edge != null) {
-            removeEdge(edge);
-        }
-    }
-
     public Edge getEdge(EdgeId edgeId) {
         return edges.get(edgeId);
     }
