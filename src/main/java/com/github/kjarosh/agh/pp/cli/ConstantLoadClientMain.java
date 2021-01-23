@@ -125,7 +125,7 @@ public class ConstantLoadClientMain {
             log.info("{}  (gps={}, err={}, tot={}, sat={}, rt={})",
                     stats.toString(),
                     fd(gps),
-                    errored.get(),
+                    errored.get() + baseOperationIssuer.getFailed(),
                     total,
                     fd(baseOperationIssuer.getSaturation()),
                     fd(baseOperationIssuer.getRequestTime()));

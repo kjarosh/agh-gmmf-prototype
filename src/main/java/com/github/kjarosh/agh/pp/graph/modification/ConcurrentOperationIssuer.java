@@ -17,6 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Kamil Jarosz
@@ -32,6 +33,7 @@ public class ConcurrentOperationIssuer implements OperationIssuer {
     private final ThreadPoolExecutor executor;
     private final AtomicDouble saturation = new AtomicDouble();
     private final AtomicDouble requestTime = new AtomicDouble();
+    private final AtomicInteger failed = new AtomicInteger();
 
     public ConcurrentOperationIssuer(int maxPoolSize, OperationIssuer delegate) {
         this.executor = new ThreadPoolExecutor(1, maxPoolSize,
@@ -47,6 +49,10 @@ public class ConcurrentOperationIssuer implements OperationIssuer {
 
     public double getRequestTime() {
         return requestTime.get();
+    }
+
+    public int getFailed() {
+        return failed.get();
     }
 
     @Override
@@ -88,7 +94,13 @@ public class ConcurrentOperationIssuer implements OperationIssuer {
     private void submit(Runnable op) {
         executor.submit(() -> {
             long time = System.nanoTime();
-            op.run();
+            try {
+                op.run();
+            } catch (Exception e) {
+                log.debug("Error while issuing an operation", e);
+                failed.incrementAndGet();
+                return;
+            }
             time = System.nanoTime() - time;
             requestTime.set(time / 1000000000d);
         });
