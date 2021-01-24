@@ -61,8 +61,8 @@ public class PostgresImportMain {
         EntityManager em = factory.createEntityManager();
         try {
             em.getTransaction().begin();
-            log.info("Creating views");
-            createViews(em);
+            log.info("Creating objects");
+            createObjects(em);
             em.getTransaction().commit();
 
             em.getTransaction().begin();
@@ -73,12 +73,22 @@ public class PostgresImportMain {
             }
             log.info("Committing transaction");
             em.getTransaction().commit();
+
+            em.getTransaction().begin();
+            log.info("Refreshing views");
+            refreshViews(em);
+            em.getTransaction().commit();
+
         } finally {
             em.close();
         }
     }
 
-    private static void createViews(EntityManager em) {
+    private static void refreshViews(EntityManager em) {
+        executeSqlFile(em, "postgres/refresh_views.sql");
+    }
+
+    private static void createObjects(EntityManager em) {
         executeSqlFile(em, "postgres/views.sql");
         executeSqlFile(em, "postgres/functions.sql");
     }

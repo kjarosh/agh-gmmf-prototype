@@ -1,4 +1,5 @@
-create or replace view operations as
+drop materialized view if exists operations;
+create materialized view operations as
 select
     b.trace,
     b.start_time,
@@ -33,8 +34,15 @@ from (
     where type in ('start', 'end', 'fail', 'fork')
     group by trace) as b
 order by b.start_time;
+create index operations_ix_1
+    on operations (start_time);
+create index operations_ix_2
+    on operations (finished);
+create index operations_ix_3
+    on operations (success);
 
-create or replace view events as
+drop materialized view if exists events;
+create materialized view events as
 select
     b.zone,
     b.eventid,
@@ -55,8 +63,11 @@ from (
     where type in ('start', 'end')
     group by zone, eventid, trace, vertex) as b
 order by b.start_time;
+create index events_ix_1
+    on events (start_time);
 
-create or replace view queue_summary as
+drop materialized view if exists queue_summary;
+create materialized view queue_summary as
 select
     b.zone,
     b.eventid,
@@ -81,6 +92,8 @@ from (
     where type in ('start', 'queue')
     group by zone, eventid, trace, vertex) as b
 order by b.start_time;
+create index queue_summary_ix_1
+    on queue_summary (start_time);
 
 
 create or replace view stats as

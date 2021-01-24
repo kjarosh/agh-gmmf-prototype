@@ -7,6 +7,8 @@ import lombok.Setter;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -18,6 +20,10 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(indexes = {
+        @Index(columnList = "zone,eventId,trace,vertex"),
+        @Index(columnList = "trace"),
+})
 public class DbNotification {
     @Id
     private String id = UUID.randomUUID().toString();
