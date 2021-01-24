@@ -46,7 +46,7 @@ public class LoadSimulatorController {
             try {
                 executeOperation(op);
             } catch (Exception e) {
-                log.error("Error while simulating load", e);
+                log.error("Error while simulating load: {}", e.getMessage());
                 rethrow = e;
             }
 
