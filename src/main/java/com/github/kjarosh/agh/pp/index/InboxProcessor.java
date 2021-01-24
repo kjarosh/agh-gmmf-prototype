@@ -24,10 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Combines {@link Inbox} and {@link EventProcessor} together,
@@ -44,14 +42,10 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class InboxProcessor {
-    private final ThreadFactory treadFactory = new ThreadFactoryBuilder()
+    private final ThreadFactory threadFactory = new ThreadFactoryBuilder()
             .setNameFormat(Config.ZONE_ID + "-worker-%d")
             .build();
-    private final ExecutorService executor = new ThreadPoolExecutor(
-            2, 20,
-            10L, TimeUnit.SECONDS,
-            new LinkedBlockingQueue<>(),
-            treadFactory);
+    private final ExecutorService executor = Executors.newFixedThreadPool(20, threadFactory);
 
     private final Set<VertexId> processing = new HashSet<>();
 

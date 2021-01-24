@@ -23,7 +23,10 @@ declare
 	sample_evt_p_duration_avg interval;
 	sample_evt_p_duration_max interval;
 begin
-	select count(*) into total_ops from operations;
+    if st >= et then
+        raise exception 'start time if after end time';
+    end if;
+    select count(*) into total_ops from operations;
 	select count(*) into total_events from events;
 	select max(start_time) - min(start_time) into total_duration from operations;
 	total_duration_sec \:= extract(epoch from total_duration);
