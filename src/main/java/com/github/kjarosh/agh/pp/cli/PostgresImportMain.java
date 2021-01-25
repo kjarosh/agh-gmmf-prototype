@@ -118,10 +118,12 @@ public class PostgresImportMain {
             reader.lines()
                     .map(PostgresImportMain::parseNotification)
                     .forEach(o -> {
-                        count.incrementAndGet();
-                        if (count.get() % BATCH_SIZE == 0) {
-                            log.info("Imported {}/{} ({} %)", count.get(), total, 100D * count.get() / total);
+                        int c = count.incrementAndGet();
+                        if (c % BATCH_SIZE == 0) {
+                            log.info("Imported {}/{} ({} %)", c, total, 100D * c / total);
                             em.getTransaction().commit();
+                            em.clear();
+                            System.gc();
                             em.getTransaction().begin();
                         }
                         em.persist(o);
