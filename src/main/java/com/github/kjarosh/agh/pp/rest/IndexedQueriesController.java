@@ -3,6 +3,7 @@ package com.github.kjarosh.agh.pp.rest;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
+import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
@@ -51,8 +53,7 @@ public class IndexedQueriesController {
         }
 
         Vertex ofVertex = graph.getVertex(of);
-        return ofVertex.index().getEffectiveChildren()
-                .keySet()
+        return ofVertex.index().getEffectiveChildrenSet()
                 .stream()
                 .map(VertexId::toString)
                 .distinct()
@@ -75,13 +76,10 @@ public class IndexedQueriesController {
         }
 
         Vertex toVertex = graph.getVertex(edgeId.getTo());
-        EffectiveVertex effectiveVertex = toVertex.index()
-                .getEffectiveChildren().get(edgeId.getFrom());
-
-        if (effectiveVertex == null) {
-            return null;
-        }
-
-        return effectiveVertex.getEffectivePermissions().toString();
+        return toVertex.index()
+                .getEffectiveChild(edgeId.getFrom())
+                .map(EffectiveVertex::getEffectivePermissions)
+                .map(Permissions::toString)
+                .orElse(null);
     }
 }

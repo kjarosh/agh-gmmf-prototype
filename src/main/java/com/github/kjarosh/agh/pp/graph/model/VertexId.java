@@ -4,11 +4,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serializable;
+
 /**
  * @author Kamil Jarosz
  */
 @EqualsAndHashCode
-public class VertexId implements Comparable<VertexId> {
+public class VertexId implements Comparable<VertexId>, Serializable {
     private final ZoneId owner;
     private final String name;
 

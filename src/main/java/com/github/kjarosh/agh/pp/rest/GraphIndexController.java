@@ -55,8 +55,7 @@ public class GraphIndexController {
     private IndexDto mapIndex(VertexIndex vertexIndex) {
         return IndexDto.builder()
                 .children(mapEffectiveVertices(vertexIndex.getEffectiveChildren()))
-                .parents(vertexIndex.getEffectiveParents()
-                        .keySet()
+                .parents(vertexIndex.getEffectiveParentsSet()
                         .stream()
                         .map(VertexId::toString)
                         .collect(Collectors.toSet()))

@@ -243,8 +243,7 @@ public class GraphModificationController {
         if (successive) {
             Set<VertexId> subjects = graph.getVertex(edgeId.getTo())
                     .index()
-                    .getEffectiveParents()
-                    .keySet();
+                    .getEffectiveParentsSet();
             inbox.post(edgeId.getFrom(), Event.builder()
                     .trace(trace)
                     .type(delete ? EventType.PARENT_REMOVE : EventType.PARENT_CHANGE)
@@ -255,8 +254,7 @@ public class GraphModificationController {
         } else {
             Set<VertexId> subjects = graph.getVertex(edgeId.getFrom())
                     .index()
-                    .getEffectiveChildren()
-                    .keySet();
+                    .getEffectiveChildrenSet();
             inbox.post(edgeId.getTo(), Event.builder()
                     .trace(trace)
                     .type(delete ? EventType.CHILD_REMOVE : EventType.CHILD_CHANGE)

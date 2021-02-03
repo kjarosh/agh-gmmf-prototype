@@ -96,7 +96,7 @@ public class EventProcessor {
         }
 
         if (propagate.get()) {
-            Set<VertexId> effectiveParents = index.getEffectiveParents().keySet();
+            Set<VertexId> effectiveParents = index.getEffectiveParentsSet();
             Set<VertexId> recipients = graph.getEdgesByDestination(id)
                     .stream()
                     .map(Edge::src)
@@ -137,7 +137,7 @@ public class EventProcessor {
         }
 
         if (propagate.get()) {
-            Set<VertexId> effectiveChildren = index.getEffectiveChildren().keySet();
+            Set<VertexId> effectiveChildren = index.getEffectiveChildrenSet();
             Set<VertexId> recipients = graph.getEdgesBySource(id)
                     .stream()
                     .map(Edge::dst)

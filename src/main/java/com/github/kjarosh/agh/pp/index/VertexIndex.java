@@ -1,11 +1,10 @@
 package com.github.kjarosh.agh.pp.index;
 
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
-import lombok.Getter;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
 /**
  * The index for a vertex which contains pre-computed graph
@@ -13,12 +12,21 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Kamil Jarosz
  */
-@Getter
-public class VertexIndex {
-    private final Map<VertexId, EffectiveVertex> effectiveChildren = new ConcurrentHashMap<>();
-    private final Map<VertexId, EffectiveVertex> effectiveParents = new ConcurrentHashMap<>();
+public interface VertexIndex {
+    Map<VertexId, EffectiveVertex> getEffectiveChildren();
 
-    public EffectiveVertex getOrAddEffectiveParent(VertexId id, Runnable createListener) {
+    Map<VertexId, EffectiveVertex> getEffectiveParents();
+
+    default Set<VertexId> getEffectiveChildrenSet() {
+        return getEffectiveChildren().keySet();
+    }
+
+    default Set<VertexId> getEffectiveParentsSet() {
+        return getEffectiveParents().keySet();
+    }
+
+    default EffectiveVertex getOrAddEffectiveParent(VertexId id, Runnable createListener) {
+        Map<VertexId, EffectiveVertex> effectiveParents = getEffectiveParents();
         EffectiveVertex effectiveVertex;
         if (!effectiveParents.containsKey(id)) {
             effectiveVertex = new EffectiveVertex();
@@ -30,15 +38,16 @@ public class VertexIndex {
         return effectiveVertex;
     }
 
-    public Optional<EffectiveVertex> getEffectiveParent(VertexId id) {
-        return Optional.ofNullable(effectiveParents.get(id));
+    default Optional<EffectiveVertex> getEffectiveParent(VertexId id) {
+        return Optional.ofNullable(getEffectiveParents().get(id));
     }
 
-    public void removeEffectiveParent(VertexId subjectId) {
-        effectiveParents.remove(subjectId);
+    default void removeEffectiveParent(VertexId subjectId) {
+        getEffectiveParents().remove(subjectId);
     }
 
-    public EffectiveVertex getOrAddEffectiveChild(VertexId id, Runnable createListener) {
+    default EffectiveVertex getOrAddEffectiveChild(VertexId id, Runnable createListener) {
+        Map<VertexId, EffectiveVertex> effectiveChildren = getEffectiveChildren();
         EffectiveVertex effectiveVertex;
         if (!effectiveChildren.containsKey(id)) {
             effectiveVertex = new EffectiveVertex();
@@ -50,11 +59,11 @@ public class VertexIndex {
         return effectiveVertex;
     }
 
-    public Optional<EffectiveVertex> getEffectiveChild(VertexId id) {
-        return Optional.ofNullable(effectiveChildren.get(id));
+    default Optional<EffectiveVertex> getEffectiveChild(VertexId id) {
+        return Optional.ofNullable(getEffectiveChildren().get(id));
     }
 
-    public void removeEffectiveChild(VertexId subjectId) {
-        effectiveChildren.remove(subjectId);
+    default void removeEffectiveChild(VertexId subjectId) {
+        getEffectiveChildren().remove(subjectId);
     }
 }

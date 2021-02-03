@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EffectiveVertex {
+public class EffectiveVertex implements Serializable { // TODO shouldnt be serializable
     @JsonProperty("dirty")
     private boolean dirty = false;
     @JsonProperty("effectivePermissions")

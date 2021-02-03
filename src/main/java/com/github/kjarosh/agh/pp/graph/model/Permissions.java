@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -13,7 +14,7 @@ import java.util.stream.IntStream;
  * @author Kamil Jarosz
  */
 @EqualsAndHashCode
-public class Permissions implements Comparable<Permissions> {
+public class Permissions implements Comparable<Permissions>, Serializable {
     public static final Permissions NONE = new Permissions("00000");
 
     private final String value;
@@ -23,7 +24,7 @@ public class Permissions implements Comparable<Permissions> {
         this.value = Objects.requireNonNull(value);
 
         if (!value.matches("[01]{5}")) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException(value);
         }
     }
 
