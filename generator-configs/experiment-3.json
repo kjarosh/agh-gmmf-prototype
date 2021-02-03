@@ -1,0 +1,13 @@
+{
+  "providers": 30,
+  "spaces": 120,
+  "zones": 3,
+  "providersPerSpace": "normal(2.5, 1)",
+  "groupsPerGroup": "normal(3, 1)",
+  "usersPerGroup": "normal(20, 10)",
+  "treeDepth": "normal(2.5, 1)",
+  "differentGroupZoneProb": 0.1,
+  "differentUserZoneProb": 0.1,
+  "existingUserProb": 0.25,
+  "existingGroupProb": 0.1
+}

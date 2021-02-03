@@ -8,6 +8,7 @@ declare
 	sample_duration interval;
 	sample_duration_sec double precision;
 	sample_ops int;
+    sample_q_ops int;
 	sample_ops_finished int;
 	sample_ops_succeeded int;
 	sample_events int;
@@ -42,6 +43,8 @@ begin
 	sample_duration \:= et - st;
 	sample_duration_sec \:= extract(epoch from sample_duration);
 	select count(*) into sample_ops from operations
+	    where start_time > st and start_time <= et;
+    select count(*) into sample_q_ops from operations
 	    where start_time > st and start_time <= et;
 	select count(*) into sample_ops_finished from operations
 		where start_time > st and start_time <= et and finished;
@@ -85,6 +88,7 @@ begin
     raise notice 'Events started: %', sample_events_started;
     raise notice 'Events ended: %', sample_events_ended;
     raise notice 'Operations per second: %', sample_ops / sample_duration_sec;
+    raise notice 'Queued operations per second: %', sample_q_ops / sample_duration_sec;
     raise notice 'Events per second: %', sample_events / sample_duration_sec;
     raise notice 'Operation duration:';
     raise notice '  min: %', sample_op_duration_min;
