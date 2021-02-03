@@ -26,13 +26,13 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class EffectiveVertex implements Serializable { // TODO shouldnt be serializable
+public class EffectiveVertex {
     @JsonProperty("dirty")
-    private boolean dirty = false;
+    boolean dirty = false;
     @JsonProperty("effectivePermissions")
-    private Permissions effectivePermissions = Permissions.NONE;
+    Permissions effectivePermissions = Permissions.NONE;
     @JsonProperty("intermediateVertices")
-    private Set<VertexId> intermediateVertices = new HashSet<>();
+    Set<VertexId> intermediateVertices = new HashSet<>();
 
     @JsonIgnore
     public void addIntermediateVertex(VertexId id, Runnable modifyListener) {
@@ -41,8 +41,7 @@ public class EffectiveVertex implements Serializable { // TODO shouldnt be seria
 
     @JsonIgnore
     public void addIntermediateVertices(Set<VertexId> ids, Runnable modifyListener) {
-        if (!intermediateVertices.containsAll(ids)) {
-            intermediateVertices.addAll(ids);
+        if (getIntermediateVertices().addAll(ids)) {
             modifyListener.run();
         }
     }
@@ -54,7 +53,7 @@ public class EffectiveVertex implements Serializable { // TODO shouldnt be seria
 
     @JsonIgnore
     public void removeIntermediateVertices(Set<VertexId> ids, Runnable modifyListener) {
-        if (intermediateVertices.removeAll(ids)) {
+        if (getIntermediateVertices().removeAll(ids)) {
             modifyListener.run();
         }
     }
@@ -71,10 +70,10 @@ public class EffectiveVertex implements Serializable { // TODO shouldnt be seria
                 .reduce(Permissions.NONE, Permissions::combine));
 
         if (perms.size() != intermediateVertices.size()) {
-            dirty = true;
+            setDirty(true);
             return RecalculationResult.DIRTY;
-        } else if (dirty) {
-            dirty = false;
+        } else if (isDirty()) {
+            setDirty(false);
             return RecalculationResult.CLEANED;
         } else {
             return RecalculationResult.CLEAN;
