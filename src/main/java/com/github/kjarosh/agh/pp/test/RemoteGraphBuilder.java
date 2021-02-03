@@ -22,6 +22,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -77,9 +78,9 @@ public class RemoteGraphBuilder {
             }
 
             log.debug("Waiting for index to be built: {}", allZones);
-            while (!indexReady(allZones)) {
-                sleep();
-            }
+            client.waitForIndex(allZones, Duration.ofMinutes(30));
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
         } finally {
             supervisor.interrupt();
             log.info("Enabling instrumentation");
@@ -100,18 +101,6 @@ public class RemoteGraphBuilder {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
             throw new RuntimeException("Interrupted while building graph");
-        }
-    }
-
-    private boolean indexReady(Collection<ZoneId> allZones) {
-        List<ZoneId> notReady = allZones.stream()
-                .filter(zone -> !client.indexReady(zone))
-                .collect(Collectors.toList());
-        if (notReady.isEmpty()) {
-            return true;
-        } else {
-            log.debug("Zones not ready: {}", notReady);
-            return false;
         }
     }
 

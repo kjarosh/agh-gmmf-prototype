@@ -20,9 +20,13 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Kamil Jarosz
@@ -288,6 +292,35 @@ public class ZoneClient implements OperationIssuer {
                 .toUriString();
         ResponseEntity<?> response = restTemplate.postForEntity(url, request, null);
         checkResponse(response);
+    }
+
+    public void waitForIndex(ZoneId zone, Duration timeout) throws TimeoutException {
+        Set<ZoneId> zones = getDependentZones(zone).getZones();
+        waitForIndex(zones, timeout);
+    }
+
+    public void waitForIndex(Collection<ZoneId> zones, Duration timeout) throws TimeoutException {
+        long timeMillis = 10;
+        Instant deadline = Instant.now().plus(timeout);
+        while (!indexReady(zones)) {
+            try {
+                Thread.sleep(timeMillis);
+                timeMillis *= 1.2d;
+                if (timeMillis > 1000) {
+                    timeMillis = 1000;
+                }
+
+                if (Instant.now().isAfter(deadline)) {
+                    throw new TimeoutException();
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException("Interrupted while building graph");
+            }
+        }
+    }
+
+    private boolean indexReady(Collection<ZoneId> allZones) {
+        return allZones.stream().allMatch(this::indexReady);
     }
 
     private class GraphQueryClientImpl implements GraphQueryClient {

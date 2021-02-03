@@ -6,11 +6,16 @@ import lombok.SneakyThrows;
 import org.testcontainers.containers.Network;
 
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * @author Kamil Jarosz
  */
 public abstract class ExampleTestBase extends IntegrationTestBase {
+    private static final ExecutorService executor = Executors.newFixedThreadPool(2);
+
     private SimulatorContainer zone0;
     private SimulatorContainer zone1;
 
@@ -25,15 +30,15 @@ public abstract class ExampleTestBase extends IntegrationTestBase {
         Network network = Network.newNetwork();
 
         zone0 = new SimulatorContainer("zone0")
-                .withNetwork(network)
-                .withExposedPorts(80);
+                .withNetwork(network);
 
         zone1 = new SimulatorContainer("zone1")
-                .withNetwork(network)
-                .withExposedPorts(80);
+                .withNetwork(network);
 
-        zone0.start();
-        zone1.start();
+        Future<?> zone0Future = executor.submit(() -> zone0.start());
+        Future<?> zone1Future = executor.submit(() -> zone1.start());
+        zone0Future.get();
+        zone1Future.get();
     }
 
     @SneakyThrows

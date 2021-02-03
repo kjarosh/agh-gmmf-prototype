@@ -20,6 +20,7 @@ public class SimulatorContainer extends GenericContainer<SimulatorContainer> {
                 .withCommand("server")
                 .withNetworkAliases(zoneId)
                 .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger(zoneId)))
-                .waitingFor(new HttpWaitStrategy().forPath("/healthcheck"));
+                .waitingFor(new HttpWaitStrategy().forPath("/healthcheck"))
+                .withExposedPorts(80);
     }
 }

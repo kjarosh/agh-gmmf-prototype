@@ -9,6 +9,7 @@ import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.test.RemoteGraphBuilder;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 
 /**
  * @author Kamil Jarosz
@@ -34,6 +36,7 @@ public abstract class IntegrationTestBase {
     public ZoneId zone = new ZoneId(System.getProperty("test.zoneId", ""));
     public ZoneClient client = new ZoneClient();
 
+    @SneakyThrows
     @BeforeAll
     void setUp() {
         if (!zone.getId().isEmpty()) {
@@ -64,6 +67,8 @@ public abstract class IntegrationTestBase {
         logger.info("Setup complete");
 
         afterSetup();
+
+        client.waitForIndex(zone, Duration.ofMinutes(1));
     }
 
     @AfterAll
