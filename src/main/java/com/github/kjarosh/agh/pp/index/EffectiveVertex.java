@@ -11,7 +11,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +32,18 @@ public class EffectiveVertex {
     Permissions effectivePermissions = Permissions.NONE;
     @JsonProperty("intermediateVertices")
     Set<VertexId> intermediateVertices = new HashSet<>();
+
+    @JsonIgnore
+    public Set<VertexId> getIntermediateVerticesEager() {
+        return getIntermediateVertices();
+    }
+
+    @JsonIgnore
+    public boolean getAndSetDirty(boolean dirty) {
+        boolean old = this.dirty;
+        this.dirty = dirty;
+        return old;
+    }
 
     @JsonIgnore
     public void addIntermediateVertex(VertexId id, Runnable modifyListener) {
@@ -60,7 +71,7 @@ public class EffectiveVertex {
 
     @JsonIgnore
     public RecalculationResult recalculatePermissions(Set<Edge> edgesToCalculate) {
-        Set<VertexId> intermediateVertices = getIntermediateVertices();
+        Set<VertexId> intermediateVertices = getIntermediateVerticesEager();
         List<Permissions> perms = edgesToCalculate.stream()
                 .filter(x -> intermediateVertices.contains(x.src()))
                 .map(Edge::permissions)
@@ -72,8 +83,7 @@ public class EffectiveVertex {
         if (perms.size() != intermediateVertices.size()) {
             setDirty(true);
             return RecalculationResult.DIRTY;
-        } else if (isDirty()) {
-            setDirty(false);
+        } else if (getAndSetDirty(false)) {
             return RecalculationResult.CLEANED;
         } else {
             return RecalculationResult.CLEAN;

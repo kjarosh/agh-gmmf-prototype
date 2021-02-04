@@ -39,6 +39,11 @@ public class RedisEffectiveVertex extends EffectiveVertex {
     }
 
     @Override
+    public Set<VertexId> getIntermediateVerticesEager() {
+        return getIntermediateVertices().readAll();
+    }
+
+    @Override
     public void setIntermediateVertices(Set<VertexId> intermediateVertices) {
         RLock lock = redisson.getLock(keyIntermediateVertices());
         lock.lock();
@@ -58,7 +63,12 @@ public class RedisEffectiveVertex extends EffectiveVertex {
 
     @Override
     public void setDirty(boolean dirty) {
-        redisson.getAtomicLong(keyDirty()).set(1);
+        getAndSetDirty(dirty);
+    }
+
+    @Override
+    public boolean getAndSetDirty(boolean dirty) {
+        return redisson.getAtomicLong(keyDirty()).getAndSet(dirty ? 1 : 0) != 0;
     }
 
     @Override
