@@ -1,9 +1,10 @@
-package com.github.kjarosh.agh.pp.index.impl;
+package com.github.kjarosh.agh.pp.redis;
 
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.EffectiveVertex;
-import org.redisson.api.RLock;
+import org.redisson.api.RBatch;
+import org.redisson.api.RFuture;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 
@@ -35,25 +36,17 @@ public class RedisEffectiveVertex extends EffectiveVertex {
 
     @Override
     public RSet<VertexId> getIntermediateVertices() {
-        return redisson.getSet(keyIntermediateVertices());
+        return redisson.getSet(keyIntermediateVertices(), Codecs.VERTEX_ID);
+    }
+
+    @Override
+    public void setIntermediateVertices(Set<VertexId> intermediateVertices) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Set<VertexId> getIntermediateVerticesEager() {
         return getIntermediateVertices().readAll();
-    }
-
-    @Override
-    public void setIntermediateVertices(Set<VertexId> intermediateVertices) {
-        RLock lock = redisson.getLock(keyIntermediateVertices());
-        lock.lock();
-        try {
-            RSet<VertexId> set = getIntermediateVertices();
-            set.clear();
-            set.addAll(intermediateVertices);
-        } finally {
-            lock.unlock();
-        }
     }
 
     @Override
@@ -73,11 +66,22 @@ public class RedisEffectiveVertex extends EffectiveVertex {
 
     @Override
     public Permissions getEffectivePermissions() {
-        return redisson.<Permissions>getBucket(keyEffectivePermissions()).get();
+        return redisson.<Permissions>getBucket(keyEffectivePermissions(), Codecs.PERMISSIONS).get();
     }
 
     @Override
     public void setEffectivePermissions(Permissions effectivePermissions) {
-        redisson.getBucket(keyEffectivePermissions()).set(effectivePermissions);
+        redisson.getBucket(keyEffectivePermissions(), Codecs.PERMISSIONS).set(effectivePermissions);
+    }
+
+    @Override
+    protected boolean getDirtyAndSetResult(CalculationResult result) {
+        RBatch batch = redisson.createBatch();
+        RFuture<Long> wasDirty = batch.getAtomicLong(keyDirty())
+                .getAndSetAsync(result.isDirty() ? 1 : 0);
+        batch.getBucket(keyEffectivePermissions(), Codecs.PERMISSIONS)
+                .setAsync(result.getCalculated());
+        batch.executeAsync();
+        return wasDirty.syncUninterruptibly().getNow() != 0;
     }
 }

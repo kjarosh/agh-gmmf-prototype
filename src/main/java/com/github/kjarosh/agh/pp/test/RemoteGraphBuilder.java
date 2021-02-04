@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class RemoteGraphBuilder {
-    private static final int BULK_SIZE = 1_000;
+    private static final int BULK_SIZE = 5_000;
     private final Graph graph;
     private final ZoneClient client;
     private final AtomicInteger verticesBuilt = new AtomicInteger(0);

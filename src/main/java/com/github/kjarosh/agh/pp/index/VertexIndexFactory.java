@@ -1,19 +1,22 @@
 package com.github.kjarosh.agh.pp.index;
 
+import com.github.kjarosh.agh.pp.config.AppConfig;
 import com.github.kjarosh.agh.pp.index.impl.InMemoryVertexIndex;
-import com.github.kjarosh.agh.pp.index.impl.RedisVertexIndex;
+import com.github.kjarosh.agh.pp.redis.RedisVertexIndex;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
+import org.redisson.codec.TypedJsonJacksonCodec;
+import org.redisson.config.Config;
+import org.redisson.config.TransportMode;
 
 /**
  * @author Kamil Jarosz
  */
 public class VertexIndexFactory {
-    private final boolean redis = Boolean.parseBoolean(System.getProperty("app.redis", "false"));
     private volatile RedissonClient redisson = null;
 
     public VertexIndex createIndex(String id) {
-        if (redis) {
+        if (AppConfig.redis) {
             setupRedisson();
             return new RedisVertexIndex(redisson, id);
         } else {
@@ -25,7 +28,15 @@ public class VertexIndexFactory {
         if (redisson == null) {
             synchronized (this) {
                 if (redisson == null) {
-                    redisson = Redisson.create();
+                    Config config = new Config();
+                    config.setNettyThreads(AppConfig.threads);
+                    config.setTransportMode(TransportMode.EPOLL);
+                    config.useSingleServer()
+                            .setAddress("redis://127.0.0.1:6379")
+                            .setConnectionMinimumIdleSize(AppConfig.threads / 3)
+                            .setConnectionPoolSize(AppConfig.threads)
+                            .setTcpNoDelay(true);
+                    redisson = Redisson.create(config);
                 }
             }
         }

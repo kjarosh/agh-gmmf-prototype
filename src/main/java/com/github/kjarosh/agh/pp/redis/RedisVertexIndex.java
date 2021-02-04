@@ -1,11 +1,14 @@
-package com.github.kjarosh.agh.pp.index.impl;
+package com.github.kjarosh.agh.pp.redis;
 
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
+import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.EffectiveVertex;
 import com.github.kjarosh.agh.pp.index.VertexIndex;
 import org.redisson.api.RMap;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
+import org.redisson.client.codec.Codec;
+import org.redisson.codec.TypedJsonJacksonCodec;
 
 import java.util.Map;
 import java.util.Optional;
@@ -41,17 +44,17 @@ public class RedisVertexIndex implements VertexIndex {
 
     @Override
     public RSet<VertexId> getEffectiveChildrenSet() {
-        return redisson.getSet(keyEffectiveChildren());
+        return redisson.getSet(keyEffectiveChildren(), Codecs.VERTEX_ID);
     }
 
     @Override
     public RSet<VertexId> getEffectiveParentsSet() {
-        return redisson.getSet(keyEffectiveParents());
+        return redisson.getSet(keyEffectiveParents(), Codecs.VERTEX_ID);
     }
 
     @Override
     public EffectiveVertex getOrAddEffectiveChild(VertexId id, Runnable createListener) {
-        boolean created = getEffectiveChildrenSet().tryAdd(id);
+        boolean created = getEffectiveChildrenSet().add(id);
         if (created) {
             createListener.run();
         }
@@ -60,7 +63,7 @@ public class RedisVertexIndex implements VertexIndex {
 
     @Override
     public EffectiveVertex getOrAddEffectiveParent(VertexId id, Runnable createListener) {
-        boolean created = getEffectiveParentsSet().tryAdd(id);
+        boolean created = getEffectiveParentsSet().add(id);
         if (created) {
             createListener.run();
         }
@@ -97,15 +100,11 @@ public class RedisVertexIndex implements VertexIndex {
 
     @Override
     public Map<VertexId, EffectiveVertex> getEffectiveChildren() {
-        RMap<VertexId, EffectiveVertex> map = redisson.getMap(keyEffectiveChildren());
-        map.loadAll(true, 2);
-        return map;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public Map<VertexId, EffectiveVertex> getEffectiveParents() {
-        RMap<VertexId, EffectiveVertex> map = redisson.getMap(keyEffectiveParents());
-        map.loadAll(true, 2);
-        return map;
+        throw new UnsupportedOperationException();
     }
 }

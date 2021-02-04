@@ -2,6 +2,7 @@ package com.github.kjarosh.agh.pp.test;
 
 import com.github.kjarosh.agh.pp.index.events.EventStats;
 
+import java.time.Duration;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
@@ -13,6 +14,7 @@ public class Supervisor extends Thread {
     private final DoubleSupplier edgesBuilt;
     private final Supplier<EventStats> statsSupplier;
     private EventStats lastStats = null;
+    private Duration delay = Duration.ofMillis(1000);
 
     public Supervisor(Supplier<EventStats> statsSupplier) {
         this(null, null, statsSupplier);
@@ -27,11 +29,15 @@ public class Supervisor extends Thread {
         this.statsSupplier = statsSupplier;
     }
 
+    public void setDelay(Duration delay) {
+        this.delay = delay;
+    }
+
     @Override
     public void run() {
         while (!Thread.interrupted()) {
             try {
-                Thread.sleep(500);
+                Thread.sleep(delay.toMillis());
             } catch (InterruptedException e) {
                 return;
             }

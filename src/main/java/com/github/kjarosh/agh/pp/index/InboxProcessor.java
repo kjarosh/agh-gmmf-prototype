@@ -2,6 +2,7 @@ package com.github.kjarosh.agh.pp.index;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.SlidingTimeWindowMovingAverages;
+import com.github.kjarosh.agh.pp.config.AppConfig;
 import com.github.kjarosh.agh.pp.config.Config;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
@@ -45,7 +46,7 @@ public class InboxProcessor {
     private final ThreadFactory threadFactory = new ThreadFactoryBuilder()
             .setNameFormat(Config.ZONE_ID + "-worker-%d")
             .build();
-    private final ExecutorService executor = Executors.newFixedThreadPool(20, threadFactory);
+    private final ExecutorService executor = Executors.newFixedThreadPool(AppConfig.threads, threadFactory);
 
     private final Set<VertexId> processing = new HashSet<>();
 

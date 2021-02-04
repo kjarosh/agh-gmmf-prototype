@@ -10,7 +10,7 @@ import java.io.Serializable;
  * @author Kamil Jarosz
  */
 @EqualsAndHashCode
-public class VertexId implements Comparable<VertexId>, Serializable {
+public class VertexId implements Comparable<VertexId> {
     private final ZoneId owner;
     private final String name;
 

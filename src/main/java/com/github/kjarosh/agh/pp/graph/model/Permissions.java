@@ -14,7 +14,7 @@ import java.util.stream.IntStream;
  * @author Kamil Jarosz
  */
 @EqualsAndHashCode
-public class Permissions implements Comparable<Permissions>, Serializable {
+public class Permissions implements Comparable<Permissions> {
     public static final Permissions NONE = new Permissions("00000");
 
     private final String value;

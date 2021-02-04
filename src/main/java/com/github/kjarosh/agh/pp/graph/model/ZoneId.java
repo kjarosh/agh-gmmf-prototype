@@ -11,7 +11,7 @@ import java.util.Objects;
  * @author Kamil Jarosz
  */
 @EqualsAndHashCode
-public class ZoneId implements Comparable<ZoneId>, Serializable {
+public class ZoneId implements Comparable<ZoneId> {
     private final String id;
 
     @JsonCreator

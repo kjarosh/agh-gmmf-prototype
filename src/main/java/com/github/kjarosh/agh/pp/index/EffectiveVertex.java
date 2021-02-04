@@ -11,10 +11,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.security.Permission;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 /**
@@ -70,24 +74,38 @@ public class EffectiveVertex {
     }
 
     @JsonIgnore
-    public RecalculationResult recalculatePermissions(Set<Edge> edgesToCalculate) {
+    public CompletionStage<RecalculationResult> recalculatePermissions(Set<Edge> edgesToCalculate) {
+        CalculationResult result = calculatePermissions(edgesToCalculate);
+        boolean wasDirty = getDirtyAndSetResult(result);
+        if (result.isDirty()) {
+            return CompletableFuture.completedFuture(RecalculationResult.DIRTY);
+        } else if (wasDirty) {
+            return CompletableFuture.completedFuture(RecalculationResult.CLEANED);
+        } else {
+            return CompletableFuture.completedFuture(RecalculationResult.CLEAN);
+        }
+    }
+
+    protected boolean getDirtyAndSetResult(CalculationResult result) {
+        boolean wasDirty = isDirty();
+        setDirty(result.isDirty());
+        setEffectivePermissions(result.getCalculated());
+        return wasDirty;
+    }
+
+    protected CalculationResult calculatePermissions(Set<Edge> edgesToCalculate) {
         Set<VertexId> intermediateVertices = getIntermediateVerticesEager();
         List<Permissions> perms = edgesToCalculate.stream()
                 .filter(x -> intermediateVertices.contains(x.src()))
                 .map(Edge::permissions)
                 .collect(Collectors.toList());
-
-        setEffectivePermissions(perms.stream()
-                .reduce(Permissions.NONE, Permissions::combine));
-
-        if (perms.size() != intermediateVertices.size()) {
-            setDirty(true);
-            return RecalculationResult.DIRTY;
-        } else if (getAndSetDirty(false)) {
-            return RecalculationResult.CLEANED;
-        } else {
-            return RecalculationResult.CLEAN;
-        }
+        Permissions effectivePermissions = perms.stream()
+                .reduce(Permissions.NONE, Permissions::combine);
+        boolean dirty = perms.size() != intermediateVertices.size();
+        return CalculationResult.builder()
+                .calculated(effectivePermissions)
+                .dirty(dirty)
+                .build();
     }
 
     @Override
@@ -100,5 +118,12 @@ public class EffectiveVertex {
         CLEAN,
         CLEANED,
         DIRTY,
+    }
+
+    @Getter
+    @Builder
+    protected static class CalculationResult {
+        Permissions calculated;
+        boolean dirty;
     }
 }

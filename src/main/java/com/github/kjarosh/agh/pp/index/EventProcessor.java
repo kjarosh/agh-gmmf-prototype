@@ -124,15 +124,15 @@ public class EventProcessor {
             for (VertexId subjectId : event.getAllSubjects()) {
                 EffectiveVertex effectiveVertex = index.getOrAddEffectiveChild(subjectId, () -> propagate.set(true));
                 effectiveVertex.addIntermediateVertex(event.getSender(), () -> propagate.set(true));
-                RecalculationResult result = effectiveVertex.recalculatePermissions(edgesToCalculate);
-
-                if (result == RecalculationResult.DIRTY) {
-                    instrumentation.notify(Notification.markedDirty(id, event));
-                    log.warn("Marking vertex {} as dirty", subjectId);
-                } else if (result == RecalculationResult.CLEANED) {
-                    instrumentation.notify(Notification.markedClean(id, event));
-                    log.info("Marking vertex {} as not dirty", subjectId);
-                }
+                effectiveVertex.recalculatePermissions(edgesToCalculate).thenAccept(result -> {
+                    if (result == RecalculationResult.DIRTY) {
+                        instrumentation.notify(Notification.markedDirty(id, event));
+                        log.warn("Marking vertex {} as dirty", subjectId);
+                    } else if (result == RecalculationResult.CLEANED) {
+                        instrumentation.notify(Notification.markedClean(id, event));
+                        log.info("Marking vertex {} as not dirty", subjectId);
+                    }
+                });
             }
         }
 
