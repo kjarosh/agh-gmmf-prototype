@@ -3,7 +3,6 @@ package com.github.kjarosh.agh.pp.redis.lettuce;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.EffectiveVertex;
 import com.github.kjarosh.agh.pp.redis.RedisVertexIndex;
-import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.sync.RedisCommands;
 
 import java.util.Collections;
@@ -15,9 +14,9 @@ import java.util.Set;
  * @author Kamil Jarosz
  */
 public class LettuceVertexIndex extends RedisVertexIndex {
-    private final LettuceConnection lettuce;
+    private final LettuceConnections lettuce;
 
-    public LettuceVertexIndex(LettuceConnection lettuce, String prefix) {
+    public LettuceVertexIndex(LettuceConnections lettuce, String prefix) {
         super(prefix);
         this.lettuce = lettuce;
     }

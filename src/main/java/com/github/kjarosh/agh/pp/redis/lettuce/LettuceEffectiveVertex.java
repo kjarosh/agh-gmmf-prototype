@@ -3,7 +3,6 @@ package com.github.kjarosh.agh.pp.redis.lettuce;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.redis.RedisEffectiveVertex;
-import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisFuture;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -17,9 +16,9 @@ import java.util.Set;
  * @author Kamil Jarosz
  */
 public class LettuceEffectiveVertex extends RedisEffectiveVertex {
-    private final LettuceConnection lettuce;
+    private final LettuceConnections lettuce;
 
-    public LettuceEffectiveVertex(LettuceConnection lettuce, String prefix) {
+    public LettuceEffectiveVertex(LettuceConnections lettuce, String prefix) {
         super(prefix);
         this.lettuce = lettuce;
     }

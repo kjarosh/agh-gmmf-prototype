@@ -2,11 +2,12 @@ package com.github.kjarosh.agh.pp.index;
 
 import com.github.kjarosh.agh.pp.config.AppConfig;
 import com.github.kjarosh.agh.pp.index.impl.InMemoryVertexIndex;
-import com.github.kjarosh.agh.pp.redis.lettuce.LettuceConnection;
+import com.github.kjarosh.agh.pp.redis.lettuce.LettuceConnections;
 import com.github.kjarosh.agh.pp.redis.lettuce.LettuceVertexIndex;
 import com.github.kjarosh.agh.pp.redis.redisson.RedissonVertexIndex;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
+import io.lettuce.core.resource.ClientResources;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
@@ -18,7 +19,7 @@ import org.redisson.config.TransportMode;
 public class VertexIndexFactory {
     private volatile RedissonClient redisson = null;
     private volatile RedisClient redis = null;
-    private volatile LettuceConnection lettuce = null;
+    private volatile LettuceConnections lettuce = null;
 
     public VertexIndex createIndex(String id) {
         if (AppConfig.redis) {
@@ -59,8 +60,12 @@ public class VertexIndexFactory {
             synchronized (this) {
                 if (redis == null) {
                     RedisURI redisUri = RedisURI.create("redis-socket:///redis-server.sock");
-                    redis = RedisClient.create(redisUri);
-                    lettuce = new LettuceConnection(redis);
+                    ClientResources clientResources = ClientResources.builder()
+                            .ioThreadPoolSize(AppConfig.threads)
+                            .computationThreadPoolSize(AppConfig.threads)
+                            .build();
+                    redis = RedisClient.create(clientResources, redisUri);
+                    lettuce = new LettuceConnections(redis);
                 }
             }
         }
