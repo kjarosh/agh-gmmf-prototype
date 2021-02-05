@@ -2,7 +2,7 @@
 set -e
 
 if [[ $REDIS == "true" ]]; then
-  redis-server 2>&1 | sed 's/^/[redis] /' >&2 &
+  redis-server /redis.conf 2>&1 | sed 's/^/[redis] /' >&2 &
 fi
 java \
     -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8080 \

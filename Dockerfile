@@ -4,7 +4,7 @@ RUN apt-get update && \
     apt-get install -y redis && \
     apt-get clean
 
-COPY docker/entrypoint.sh .
+COPY docker/ /
 
 # HTTP services
 EXPOSE 80
