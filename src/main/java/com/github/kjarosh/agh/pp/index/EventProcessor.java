@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -34,7 +36,11 @@ public class EventProcessor {
     @Autowired
     private Inbox inbox;
 
+    private AtomicLong totalTime = new AtomicLong();
+    private AtomicLong count = new AtomicLong();
+
     public void process(VertexId id, Event event) {
+        long start = System.nanoTime();
         instrumentation.notify(Notification.startProcessing(id, event));
         boolean successful = false;
 
@@ -66,11 +72,16 @@ public class EventProcessor {
             }
             successful = true;
         } finally {
+            Notification notification;
             if (successful) {
-                instrumentation.notify(Notification.endProcessing(id, event));
+                notification = Notification.endProcessing(id, event);
             } else {
-                instrumentation.notify(Notification.failProcessing(id, event));
+                notification = Notification.failProcessing(id, event);
             }
+            long time = System.nanoTime() - start;
+            totalTime.addAndGet(time);
+            count.incrementAndGet();
+            instrumentation.notify(notification);
         }
     }
 
@@ -166,5 +177,9 @@ public class EventProcessor {
 
             inbox.post(r, newEvent);
         });
+    }
+
+    public double getAverageProcessingNanos() {
+        return (double) totalTime.get() / count.get();
     }
 }

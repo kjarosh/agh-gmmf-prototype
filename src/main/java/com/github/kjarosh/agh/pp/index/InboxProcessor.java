@@ -43,10 +43,7 @@ import java.util.concurrent.ThreadFactory;
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class InboxProcessor {
-    private final ThreadFactory threadFactory = new ThreadFactoryBuilder()
-            .setNameFormat(Config.ZONE_ID + "-worker-%d")
-            .build();
-    private final ExecutorService executor = Executors.newFixedThreadPool(AppConfig.threads, threadFactory);
+    private final ExecutorService executor = GlobalExecutor.getExecutor();
 
     private final Set<VertexId> processing = new HashSet<>();
 
@@ -119,6 +116,7 @@ public class InboxProcessor {
 
         return EventStats.builder()
                 .processing(currentProcessing.size())
+                .processingNanos(eventProcessor.getAverageProcessingNanos())
                 .processingByType(processingByType)
                 .queued(inbox.queuedCount())
                 .outbox(Outbox.allCount())

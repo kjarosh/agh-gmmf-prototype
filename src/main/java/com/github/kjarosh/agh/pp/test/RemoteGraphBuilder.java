@@ -78,7 +78,7 @@ public class RemoteGraphBuilder {
             }
 
             log.debug("Waiting for index to be built: {}", allZones);
-            client.waitForIndex(allZones, Duration.ofMinutes(30));
+            client.waitForIndex(allZones, Duration.ofHours(2));
         } catch (TimeoutException e) {
             throw new RuntimeException(e);
         } finally {

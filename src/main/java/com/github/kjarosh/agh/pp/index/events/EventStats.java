@@ -10,6 +10,7 @@ import lombok.Setter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Statistics about event processing.
@@ -27,6 +28,7 @@ public class EventStats {
      * i.e. are sent to the executor.
      */
     private int processing;
+    private double processingNanos;
 
     private Map<Vertex.Type, Integer> processingByType;
 
@@ -63,6 +65,7 @@ public class EventStats {
     public static EventStats empty() {
         return EventStats.builder()
                 .processing(0)
+                .processingNanos(0)
                 .processingByType(new HashMap<>())
                 .total(0)
                 .queued(0)
@@ -78,8 +81,18 @@ public class EventStats {
         Map<Vertex.Type, Integer> processingByType2 = new HashMap<>(processingByType);
         other.processingByType.forEach((key, value) ->
                 processingByType2.merge(key, value, Integer::sum));
+
+        double newProcessingNanos;
+        if (Double.isNaN(this.processingNanos)) {
+            newProcessingNanos = other.processingNanos;
+        } else if (Double.isNaN(other.processingNanos)) {
+            newProcessingNanos = this.processingNanos;
+        } else {
+            newProcessingNanos = (this.processingNanos + other.processingNanos) / 2;
+        }
         return EventStats.builder()
                 .processing(processing + other.processing)
+                .processingNanos(newProcessingNanos)
                 .processingByType(processingByType2)
                 .total(total + other.total)
                 .queued(queued + other.queued)
@@ -96,6 +109,7 @@ public class EventStats {
                 String.format("  out: %d", outbox) +
                 String.format("  ld: %.0f/%.0f/%.0f", load1, load5, load15) +
                 String.format("  tot: %d", total) +
+                String.format("  pt: %.2f ms", processingNanos / TimeUnit.MILLISECONDS.toNanos(1)) +
                 String.format("  %dp %ds %dg %du",
                         processingByType.getOrDefault(Vertex.Type.PROVIDER, 0),
                         processingByType.getOrDefault(Vertex.Type.SPACE, 0),
