@@ -3,7 +3,7 @@ package com.github.kjarosh.agh.pp.graph.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.kjarosh.agh.pp.index.VertexIndex;
-import com.github.kjarosh.agh.pp.index.VertexIndexFactory;
+import com.github.kjarosh.agh.pp.index.PersistenceFactory;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -13,8 +13,6 @@ import lombok.ToString;
 @EqualsAndHashCode
 @ToString
 public class Vertex implements Comparable<Vertex> {
-    private static final VertexIndexFactory vertexIndexFactory = new VertexIndexFactory();
-
     @JsonProperty("id")
     private final VertexId id;
     @JsonProperty("type")
@@ -28,7 +26,8 @@ public class Vertex implements Comparable<Vertex> {
             @JsonProperty("type") Type type) {
         this.id = id;
         this.type = type;
-        this.index = vertexIndexFactory.createIndex(id.toString());
+        this.index = PersistenceFactory.getInstance()
+                .createIndex(id.toString());
     }
 
     public VertexId id() {

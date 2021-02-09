@@ -84,12 +84,10 @@ public class LettuceEffectiveVertex extends RedisEffectiveVertex {
     @SneakyThrows
     @Override
     public boolean getDirtyAndSetResult(CalculationResult result) {
-        RedisAsyncCommands<String, ByteBuffer> commands = lettuce.byteBuffer().async();
-        RedisFuture<ByteBuffer> wasDirty = commands.getset(keyDirty(),
+        RedisCommands<String, ByteBuffer> commands = lettuce.byteBuffer().sync();
+        ByteBuffer bytes = commands.getset(keyDirty(),
                 Codecs.STRING.encodeValue(String.valueOf(result.isDirty())));
         commands.set(keyEffectivePermissions(), Codecs.PERMISSIONS.encodeValue(result.getCalculated()));
-        commands.exec();
-        ByteBuffer bytes = wasDirty.get();
         return bytes != null && Boolean.parseBoolean(Codecs.STRING.decodeValue(bytes));
     }
 }

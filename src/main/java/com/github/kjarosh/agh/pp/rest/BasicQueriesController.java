@@ -43,10 +43,7 @@ public class BasicQueriesController {
             return new ZoneClient().isAdjacent(fromOwner, edgeId);
         }
 
-        return graph.getEdgesBySource(edgeId.getFrom())
-                .stream()
-                .map(Edge::dst)
-                .anyMatch(edgeId.getTo()::equals);
+        return graph.hasEdge(edgeId);
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "list_adjacent")
@@ -61,11 +58,9 @@ public class BasicQueriesController {
             return new ZoneClient().listAdjacent(ofOwner, of);
         }
 
-        return graph.getEdgesBySource(of)
+        return graph.getDestinationsBySource(of)
                 .stream()
-                .map(Edge::dst)
                 .map(VertexId::toString)
-                .distinct()
                 .collect(Collectors.toList());
     }
 
@@ -81,11 +76,9 @@ public class BasicQueriesController {
             return new ZoneClient().listAdjacentReversed(ofOwner, of);
         }
 
-        return graph.getEdgesByDestination(of)
+        return graph.getSourcesByDestination(of)
                 .stream()
-                .map(Edge::src)
                 .map(VertexId::toString)
-                .distinct()
                 .collect(Collectors.toList());
     }
 
@@ -104,12 +97,7 @@ public class BasicQueriesController {
             return new ZoneClient().permissions(fromOwner, edgeId);
         }
 
-        return graph.getEdgesBySource(edgeId.getFrom())
-                .stream()
-                .filter(e -> e.dst().equals(edgeId.getTo()))
-                .findAny()
-                .map(Edge::permissions)
-                .map(Permissions::toString)
-                .orElse("");
+        Edge edge = graph.getEdge(edgeId);
+        return edge != null ? edge.permissions().toString() : "";
     }
 }

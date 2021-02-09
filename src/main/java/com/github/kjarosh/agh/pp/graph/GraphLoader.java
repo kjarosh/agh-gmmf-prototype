@@ -1,6 +1,7 @@
 package com.github.kjarosh.agh.pp.graph;
 
 import com.github.kjarosh.agh.pp.graph.model.Graph;
+import com.github.kjarosh.agh.pp.index.PersistenceFactory;
 import com.github.kjarosh.agh.pp.memory.InMemoryGraph;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
@@ -22,7 +23,7 @@ import java.nio.file.Paths;
 @Service
 @Scope("singleton")
 public class GraphLoader {
-    public Graph graph;
+    private Graph graph;
 
     public static Graph loadGraph(String path) {
         log.debug("Loading graph");
@@ -43,7 +44,7 @@ public class GraphLoader {
 
     @PostConstruct
     public void init() {
-        graph = new InMemoryGraph();
+        graph = PersistenceFactory.getInstance().createGraph();
     }
 
     public Graph getGraph() {

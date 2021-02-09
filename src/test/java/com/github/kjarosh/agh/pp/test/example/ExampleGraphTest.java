@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.test.example;
 
+import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.client.GraphQueryClient;
 import com.github.kjarosh.agh.pp.test.util.ExampleTestBase;
 import com.github.kjarosh.agh.pp.test.util.GraphQueryClientArgumentsProvider;
@@ -24,16 +25,16 @@ public class ExampleGraphTest extends ExampleTestBase {
     @Test
     void listAdjacent() {
         assertThat(client.listAdjacent(zone, vid("zone0:uber_admins")))
-                .containsExactly("zone1:admins");
+                .containsExactlyInAnyOrder("zone1:admins");
         assertThat(client.listAdjacent(zone, vid("zone1:anne")))
-                .containsExactly("zone0:ceric", "zone1:audit", "zone1:members");
+                .containsExactlyInAnyOrder("zone0:ceric", "zone1:audit", "zone1:members");
         assertThat(client.listAdjacent(zone, vid("zone1:krakow")))
                 .isEmpty();
 
         assertThat(client.listAdjacentReversed(zone, vid("zone1:anne")))
                 .isEmpty();
         assertThat(client.listAdjacentReversed(zone, vid("zone0:paris")))
-                .containsExactly("zone0:datahub", "zone0:eo_data", "zone1:eosc");
+                .containsExactlyInAnyOrder("zone0:datahub", "zone0:eo_data", "zone1:eosc");
     }
 
     @Test
@@ -150,5 +151,11 @@ public class ExampleGraphTest extends ExampleTestBase {
                 .isEqualTo("11001");
         assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:ceric")))
                 .isEqualTo("10000");
+    }
+
+    @Test
+    void dependentZones() {
+        assertThat(client.getDependentZones(zone).getZones())
+                .containsExactlyInAnyOrder(new ZoneId("zone1"), new ZoneId("zone0"));
     }
 }

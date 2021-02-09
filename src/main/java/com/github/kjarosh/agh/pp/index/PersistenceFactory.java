@@ -1,8 +1,11 @@
 package com.github.kjarosh.agh.pp.index;
 
 import com.github.kjarosh.agh.pp.config.AppConfig;
+import com.github.kjarosh.agh.pp.graph.model.Graph;
+import com.github.kjarosh.agh.pp.memory.InMemoryGraph;
 import com.github.kjarosh.agh.pp.memory.InMemoryVertexIndex;
 import com.github.kjarosh.agh.pp.redis.lettuce.LettuceConnections;
+import com.github.kjarosh.agh.pp.redis.lettuce.LettuceGraph;
 import com.github.kjarosh.agh.pp.redis.lettuce.LettuceVertexIndex;
 import com.github.kjarosh.agh.pp.redis.redisson.RedissonVertexIndex;
 import io.lettuce.core.RedisClient;
@@ -16,24 +19,53 @@ import org.redisson.config.TransportMode;
 /**
  * @author Kamil Jarosz
  */
-public class VertexIndexFactory {
+public class PersistenceFactory {
     private volatile RedissonClient redisson = null;
     private volatile RedisClient redis = null;
     private volatile LettuceConnections lettuce = null;
 
+    private static final PersistenceFactory instance = new PersistenceFactory();
+
+    public static PersistenceFactory getInstance() {
+        return instance;
+    }
+
+    private PersistenceFactory() {
+
+    }
+
     public VertexIndex createIndex(String id) {
         if (AppConfig.redis) {
+            String prefix = "index/" + id;
             switch (AppConfig.redisClient) {
                 case "lettuce":
                 default:
                     setupLettuce();
-                    return new LettuceVertexIndex(lettuce, id);
+                    return new LettuceVertexIndex(lettuce, prefix);
                 case "redisson":
                     setupRedisson();
-                    return new RedissonVertexIndex(redisson, id);
+                    return new RedissonVertexIndex(redisson, prefix);
             }
         } else {
             return new InMemoryVertexIndex();
+        }
+    }
+
+    public Graph createGraph() {
+        if (AppConfig.redis) {
+            String prefix = "graph";
+            switch (AppConfig.redisClient) {
+                case "lettuce":
+                default:
+                    setupLettuce();
+                    return new LettuceGraph(lettuce, prefix);
+                case "redisson":
+                    setupRedisson();
+                    //return new RedissonGraph(redisson, prefix);
+                    return null;
+            }
+        } else {
+            return new InMemoryGraph();
         }
     }
 

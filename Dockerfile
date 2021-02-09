@@ -13,7 +13,7 @@ EXPOSE 8080
 
 ENV JMX_PORT=9010
 ENV JMX_HOST=localhost
-ENV REDIS=true
+ENV REDIS=false
 
 COPY config/config.json config/config.json
 COPY target/agh-pp-simulator-*.jar app.jar

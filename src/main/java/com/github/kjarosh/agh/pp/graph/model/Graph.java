@@ -3,6 +3,7 @@ package com.github.kjarosh.agh.pp.graph.model;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * The local graph representation. It contains only the local portion of the
@@ -38,4 +39,18 @@ public interface Graph {
     Collection<ZoneId> allZones();
 
     void serialize(OutputStream os);
+
+    default Set<VertexId> getDestinationsBySource(VertexId source) {
+        return getEdgesBySource(source)
+                .stream()
+                .map(Edge::dst)
+                .collect(Collectors.toSet());
+    }
+
+    default Set<VertexId> getSourcesByDestination(VertexId destination) {
+        return getEdgesByDestination(destination)
+                .stream()
+                .map(Edge::src)
+                .collect(Collectors.toSet());
+    }
 }
