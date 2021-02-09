@@ -43,12 +43,7 @@ public class RedissonEffectiveVertex extends RedisEffectiveVertex {
 
     @Override
     public void setDirty(boolean dirty) {
-        getAndSetDirty(dirty);
-    }
-
-    @Override
-    public boolean getAndSetDirty(boolean dirty) {
-        return redisson.getAtomicLong(keyDirty()).getAndSet(dirty ? 1 : 0) != 0;
+        redisson.getAtomicLong(keyDirty()).set(dirty ? 1 : 0);
     }
 
     @Override
@@ -62,7 +57,7 @@ public class RedissonEffectiveVertex extends RedisEffectiveVertex {
     }
 
     @Override
-    protected boolean getDirtyAndSetResult(CalculationResult result) {
+    public boolean getDirtyAndSetResult(CalculationResult result) {
         RBatch batch = redisson.createBatch();
         RFuture<Long> wasDirty = batch.getAtomicLong(keyDirty())
                 .getAndSetAsync(result.isDirty() ? 1 : 0);

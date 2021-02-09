@@ -65,13 +65,8 @@ public class LettuceEffectiveVertex extends RedisEffectiveVertex {
 
     @Override
     public void setDirty(boolean dirty) {
-        getAndSetDirty(dirty);
-    }
-
-    @Override
-    public boolean getAndSetDirty(boolean dirty) {
         RedisCommands<String, String> commands = lettuce.string().sync();
-        return Boolean.parseBoolean(commands.getset(keyDirty(), String.valueOf(dirty)));
+        commands.set(keyDirty(), String.valueOf(dirty));
     }
 
     @Override
@@ -88,7 +83,7 @@ public class LettuceEffectiveVertex extends RedisEffectiveVertex {
 
     @SneakyThrows
     @Override
-    protected boolean getDirtyAndSetResult(CalculationResult result) {
+    public boolean getDirtyAndSetResult(CalculationResult result) {
         RedisAsyncCommands<String, ByteBuffer> commands = lettuce.byteBuffer().async();
         RedisFuture<ByteBuffer> wasDirty = commands.getset(keyDirty(),
                 Codecs.STRING.encodeValue(String.valueOf(result.isDirty())));

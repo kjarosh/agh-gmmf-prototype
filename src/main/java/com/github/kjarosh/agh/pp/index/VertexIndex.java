@@ -25,18 +25,7 @@ public interface VertexIndex {
         return getEffectiveParents().keySet();
     }
 
-    default EffectiveVertex getOrAddEffectiveParent(VertexId id, Runnable createListener) {
-        Map<VertexId, EffectiveVertex> effectiveParents = getEffectiveParents();
-        EffectiveVertex effectiveVertex;
-        if (!effectiveParents.containsKey(id)) {
-            effectiveVertex = new EffectiveVertex();
-            effectiveParents.put(id, effectiveVertex);
-            createListener.run();
-        } else {
-            effectiveVertex = effectiveParents.get(id);
-        }
-        return effectiveVertex;
-    }
+    EffectiveVertex getOrAddEffectiveParent(VertexId id, Runnable createListener);
 
     default Optional<EffectiveVertex> getEffectiveParent(VertexId id) {
         return Optional.ofNullable(getEffectiveParents().get(id));
@@ -46,18 +35,7 @@ public interface VertexIndex {
         getEffectiveParents().remove(subjectId);
     }
 
-    default EffectiveVertex getOrAddEffectiveChild(VertexId id, Runnable createListener) {
-        Map<VertexId, EffectiveVertex> effectiveChildren = getEffectiveChildren();
-        EffectiveVertex effectiveVertex;
-        if (!effectiveChildren.containsKey(id)) {
-            effectiveVertex = new EffectiveVertex();
-            effectiveChildren.put(id, effectiveVertex);
-            createListener.run();
-        } else {
-            effectiveVertex = effectiveChildren.get(id);
-        }
-        return effectiveVertex;
-    }
+    EffectiveVertex getOrAddEffectiveChild(VertexId id, Runnable createListener);
 
     default Optional<EffectiveVertex> getEffectiveChild(VertexId id) {
         return Optional.ofNullable(getEffectiveChildren().get(id));
