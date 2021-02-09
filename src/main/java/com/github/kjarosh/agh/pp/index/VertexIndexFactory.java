@@ -1,7 +1,7 @@
 package com.github.kjarosh.agh.pp.index;
 
 import com.github.kjarosh.agh.pp.config.AppConfig;
-import com.github.kjarosh.agh.pp.index.impl.InMemoryVertexIndex;
+import com.github.kjarosh.agh.pp.memory.InMemoryVertexIndex;
 import com.github.kjarosh.agh.pp.redis.lettuce.LettuceConnections;
 import com.github.kjarosh.agh.pp.redis.lettuce.LettuceVertexIndex;
 import com.github.kjarosh.agh.pp.redis.redisson.RedissonVertexIndex;

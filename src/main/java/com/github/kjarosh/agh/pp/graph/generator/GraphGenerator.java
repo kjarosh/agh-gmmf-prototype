@@ -5,6 +5,7 @@ import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.memory.InMemoryGraph;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
@@ -70,7 +71,7 @@ public class GraphGenerator {
     }
 
     public Graph generateGraph() {
-        Graph graph = new Graph();
+        Graph graph = new InMemoryGraph();
 
         // generate providers and spaces
         List<Vertex> providers = entityGenerator.generateVertices(

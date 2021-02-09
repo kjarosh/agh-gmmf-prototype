@@ -1,4 +1,4 @@
-package com.github.kjarosh.agh.pp.index.impl;
+package com.github.kjarosh.agh.pp.memory;
 
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;

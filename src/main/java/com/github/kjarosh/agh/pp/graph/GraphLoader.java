@@ -1,6 +1,7 @@
 package com.github.kjarosh.agh.pp.graph;
 
 import com.github.kjarosh.agh.pp.graph.model.Graph;
+import com.github.kjarosh.agh.pp.memory.InMemoryGraph;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public class GraphLoader {
     public static Graph loadGraph(String path) {
         log.debug("Loading graph");
         try (InputStream is = open(path)) {
-            return Graph.deserialize(is);
+            return InMemoryGraph.deserialize(is);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -42,7 +43,7 @@ public class GraphLoader {
 
     @PostConstruct
     public void init() {
-        graph = new Graph();
+        graph = new InMemoryGraph();
     }
 
     public Graph getGraph() {
