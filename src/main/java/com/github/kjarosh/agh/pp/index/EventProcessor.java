@@ -12,12 +12,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 /**
  * Class responsible for processing {@link Event}s and
@@ -38,6 +39,7 @@ public class EventProcessor {
 
     private AtomicLong totalTime = new AtomicLong();
     private AtomicLong count = new AtomicLong();
+    private Instant lastReset = Instant.now();
 
     public void process(VertexId id, Event event) {
         long start = System.nanoTime();
@@ -79,8 +81,16 @@ public class EventProcessor {
                 notification = Notification.failProcessing(id, event);
             }
             long time = System.nanoTime() - start;
-            totalTime.addAndGet(time);
-            count.incrementAndGet();
+            long tt = totalTime.addAndGet(time);
+            long c = count.incrementAndGet();
+            if (c > 0 && Duration.between(lastReset, Instant.now()).toSeconds() > 10) {
+                lastReset = Instant.now();
+                count.set(0);
+                totalTime.set(0);
+                log.info("Average processing time from last {} events: {} ms",
+                        c,
+                        ((double) tt / c / TimeUnit.MILLISECONDS.toNanos(1)));
+            }
             instrumentation.notify(notification);
         }
     }
