@@ -29,7 +29,6 @@ import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
  * @author Kamil Jarosz
  */
 public class LettuceGraph extends RedisGraph {
-    private final Graph backup = new InMemoryGraph();
     private final LettuceConnections lettuce;
 
     public LettuceGraph(LettuceConnections lettuce, String prefix) {
@@ -44,8 +43,6 @@ public class LettuceGraph extends RedisGraph {
     @SneakyThrows
     @Override
     public void addVertex(Vertex v) {
-        backup.addVertex(v);
-
         if (ZONE_ID != null && !v.id().owner().equals(ZONE_ID)) {
             throw new IllegalStateException();
         }
@@ -73,8 +70,6 @@ public class LettuceGraph extends RedisGraph {
 
     @Override
     public void addEdge(Edge e) {
-        backup.addEdge(e);
-
         lettuce.permissions().sync().set(keyEdge(e.id()), e.permissions());
         addZone(e.src().owner());
         addZone(e.dst().owner());
@@ -82,8 +77,6 @@ public class LettuceGraph extends RedisGraph {
 
     @Override
     public void removeEdge(Edge e) {
-        backup.removeEdge(e);
-
         lettuce.permissions().sync().del(keyEdge(e.id()));
     }
 
@@ -98,13 +91,34 @@ public class LettuceGraph extends RedisGraph {
 
     @Override
     public void setPermissions(EdgeId edgeId, Permissions permissions) {
-        backup.setPermissions(edgeId, permissions);
-
         lettuce.permissions().sync().set(keyEdge(edgeId), permissions);
     }
 
     @Override
-    protected Stream<EdgeId> getEdgeIdsByKeyPattern(String keyPattern) {
+    public Set<VertexId> getDestinationsBySource(VertexId source) {
+        return getEdgeIdsByKeyPattern(keyEdge(source.toString(), "*"))
+                .map(EdgeId::getTo)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<VertexId> getSourcesByDestination(VertexId destination) {
+        return getEdgeIdsByKeyPattern(keyEdge("*", destination.toString()))
+                .map(EdgeId::getFrom)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<Edge> getEdgesBySource(VertexId source) {
+        return getEdgesByKeyPattern(keyEdge(source.toString(), "*"));
+    }
+
+    @Override
+    public Set<Edge> getEdgesByDestination(VertexId destination) {
+        return getEdgesByKeyPattern(keyEdge("*", destination.toString()));
+    }
+
+    private Stream<EdgeId> getEdgeIdsByKeyPattern(String keyPattern) {
         ScanArgs args = ScanArgs.Builder.matches(keyPattern).limit(5000);
         RedisCommands<String, Permissions> commands = lettuce.permissions().sync();
         Set<EdgeId> edges = new HashSet<>();
@@ -122,8 +136,7 @@ public class LettuceGraph extends RedisGraph {
         return edges.stream();
     }
 
-    @Override
-    protected Set<Edge> getEdgesByKeyPattern(String keyPattern) {
+    private Set<Edge> getEdgesByKeyPattern(String keyPattern) {
         ScanArgs args = ScanArgs.Builder.matches(keyPattern).limit(5000);
         RedisCommands<String, Permissions> commands = lettuce.permissions().sync();
         Set<Edge> edges = new HashSet<>();

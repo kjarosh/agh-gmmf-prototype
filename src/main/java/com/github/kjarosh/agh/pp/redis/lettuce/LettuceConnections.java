@@ -32,7 +32,11 @@ public class LettuceConnections {
         this.vertexId = client.connect(Codecs.VERTEX_ID);
         this.string = client.connect(Codecs.STRING);
         this.permissions = client.connect(Codecs.PERMISSIONS);
-        this.byteBuffer = client.connect(Codecs.BB);
+        this.byteBuffer = client.connect(Codecs.BYTE_BUFFER);
+    }
+
+    public RedisClient client() {
+        return client;
     }
 
     public StatefulRedisConnection<String, VertexId> vertexId() {

@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
  * @author Kamil Jarosz
  */
 class Codecs {
-    public static final RedisCodec<String, ByteBuffer> BB = new ByteBufferCodec();
+    public static final RedisCodec<String, ByteBuffer> BYTE_BUFFER = new ByteBufferCodec();
     public static final RedisCodec<String, String> STRING = new StringCodec();
     public static final RedisCodec<String, Permissions> PERMISSIONS = new TypedJsonJacksonCodec<>(Permissions.class);
     public static final RedisCodec<String, VertexId> VERTEX_ID = new TypedJsonJacksonCodec<>(VertexId.class);
