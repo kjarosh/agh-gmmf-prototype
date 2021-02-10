@@ -105,7 +105,7 @@ public class LettuceGraph extends RedisGraph {
 
     @Override
     protected Stream<EdgeId> getEdgeIdsByKeyPattern(String keyPattern) {
-        ScanArgs args = ScanArgs.Builder.matches(keyPattern).limit(50);
+        ScanArgs args = ScanArgs.Builder.matches(keyPattern).limit(5000);
         RedisCommands<String, Permissions> commands = lettuce.permissions().sync();
         Set<EdgeId> edges = new HashSet<>();
 
@@ -124,7 +124,7 @@ public class LettuceGraph extends RedisGraph {
 
     @Override
     protected Set<Edge> getEdgesByKeyPattern(String keyPattern) {
-        ScanArgs args = ScanArgs.Builder.matches(keyPattern).limit(50);
+        ScanArgs args = ScanArgs.Builder.matches(keyPattern).limit(5000);
         RedisCommands<String, Permissions> commands = lettuce.permissions().sync();
         Set<Edge> edges = new HashSet<>();
 

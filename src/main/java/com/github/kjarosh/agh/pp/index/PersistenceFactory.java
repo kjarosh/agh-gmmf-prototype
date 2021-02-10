@@ -8,9 +8,6 @@ import com.github.kjarosh.agh.pp.redis.lettuce.LettuceConnections;
 import com.github.kjarosh.agh.pp.redis.lettuce.LettuceGraph;
 import com.github.kjarosh.agh.pp.redis.lettuce.LettuceVertexIndex;
 import com.github.kjarosh.agh.pp.redis.redisson.RedissonVertexIndex;
-import io.lettuce.core.RedisClient;
-import io.lettuce.core.RedisURI;
-import io.lettuce.core.resource.ClientResources;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
 import org.redisson.config.Config;
@@ -20,10 +17,6 @@ import org.redisson.config.TransportMode;
  * @author Kamil Jarosz
  */
 public class PersistenceFactory {
-    private volatile RedissonClient redisson = null;
-    private volatile RedisClient redis = null;
-    private volatile LettuceConnections lettuce = null;
-
     private static final PersistenceFactory instance = new PersistenceFactory();
 
     public static PersistenceFactory getInstance() {
@@ -40,11 +33,9 @@ public class PersistenceFactory {
             switch (AppConfig.redisClient) {
                 case "lettuce":
                 default:
-                    setupLettuce();
-                    return new LettuceVertexIndex(lettuce, prefix);
+                    return new LettuceVertexIndex(LazyLettuce.lettuce0, prefix);
                 case "redisson":
-                    setupRedisson();
-                    return new RedissonVertexIndex(redisson, prefix);
+                    return new RedissonVertexIndex(LazyRedisson.redisson0, prefix);
             }
         } else {
             return new InMemoryVertexIndex();
@@ -57,10 +48,8 @@ public class PersistenceFactory {
             switch (AppConfig.redisClient) {
                 case "lettuce":
                 default:
-                    setupLettuce();
-                    return new LettuceGraph(lettuce, prefix);
+                    return new LettuceGraph(LazyLettuce.lettuce1, prefix);
                 case "redisson":
-                    setupRedisson();
                     //return new RedissonGraph(redisson, prefix);
                     return null;
             }
@@ -69,37 +58,24 @@ public class PersistenceFactory {
         }
     }
 
-    private void setupRedisson() {
-        if (redisson == null) {
-            synchronized (this) {
-                if (redisson == null) {
-                    Config config = new Config();
-                    config.setNettyThreads(AppConfig.threads);
-                    config.setTransportMode(TransportMode.EPOLL);
-                    config.useSingleServer()
-                            .setAddress("redis://127.0.0.1:6379")
-                            .setConnectionMinimumIdleSize(AppConfig.threads / 3)
-                            .setConnectionPoolSize(AppConfig.threads)
-                            .setTcpNoDelay(true);
-                    redisson = Redisson.create(config);
-                }
-            }
-        }
+    private static final class LazyLettuce {
+        private static final LettuceConnections lettuce0 = new LettuceConnections(0);
+        private static final LettuceConnections lettuce1 = new LettuceConnections(1);
     }
 
-    private void setupLettuce() {
-        if (redis == null) {
-            synchronized (this) {
-                if (redis == null) {
-                    RedisURI redisUri = RedisURI.create("redis-socket:///redis-server.sock");
-                    ClientResources clientResources = ClientResources.builder()
-                            .ioThreadPoolSize(AppConfig.threads)
-                            .computationThreadPoolSize(AppConfig.threads)
-                            .build();
-                    redis = RedisClient.create(clientResources, redisUri);
-                    lettuce = new LettuceConnections(redis);
-                }
-            }
+    private static final class LazyRedisson {
+        private static final RedissonClient redisson0;
+
+        static {
+            Config config = new Config();
+            config.setNettyThreads(AppConfig.threads);
+            config.setTransportMode(TransportMode.EPOLL);
+            config.useSingleServer()
+                    .setAddress("redis://127.0.0.1:6379")
+                    .setConnectionMinimumIdleSize(AppConfig.threads / 3)
+                    .setConnectionPoolSize(AppConfig.threads)
+                    .setTcpNoDelay(true);
+            redisson0 = Redisson.create(config);
         }
     }
 }
