@@ -7,6 +7,7 @@ import com.github.kjarosh.agh.pp.memory.InMemoryVertexIndex;
 import com.github.kjarosh.agh.pp.redis.lettuce.LettuceConnections;
 import com.github.kjarosh.agh.pp.redis.lettuce.LettuceGraph;
 import com.github.kjarosh.agh.pp.redis.lettuce.LettuceVertexIndex;
+import com.github.kjarosh.agh.pp.redis.redisson.RedissonGraph;
 import com.github.kjarosh.agh.pp.redis.redisson.RedissonVertexIndex;
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;
@@ -50,8 +51,7 @@ public class PersistenceFactory {
                 default:
                     return new LettuceGraph(LazyLettuce.lettuce1, prefix);
                 case "redisson":
-                    //return new RedissonGraph(redisson, prefix);
-                    return null;
+                    return new RedissonGraph(LazyRedisson.redisson0, prefix);
             }
         } else {
             return new InMemoryGraph();

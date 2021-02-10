@@ -167,16 +167,6 @@ public class LettuceGraph extends RedisGraph {
     }
 
     @Override
-    public Collection<Vertex> allVertices() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Collection<Edge> allEdges() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Collection<ZoneId> allZones() {
         return lettuce.string().sync()
                 .smembers(keyZones())

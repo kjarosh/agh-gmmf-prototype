@@ -1,10 +1,13 @@
 package com.github.kjarosh.agh.pp.redis;
 
+import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
+import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 
 import java.io.OutputStream;
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,4 +71,15 @@ public abstract class RedisGraph implements Graph {
     public void serialize(OutputStream os) {
         throw new UnsupportedOperationException("Redis graph cannot be serialized");
     }
+
+    @Override
+    public Collection<Vertex> allVertices() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Collection<Edge> allEdges() {
+        throw new UnsupportedOperationException();
+    }
+
 }
