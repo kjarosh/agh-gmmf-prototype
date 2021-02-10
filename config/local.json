@@ -5,6 +5,9 @@
     },
     "zone1": {
       "address": "localhost:8081"
+    },
+    "zone2": {
+      "address": "localhost:8082"
     }
   }
 }
