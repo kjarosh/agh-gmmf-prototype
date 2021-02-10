@@ -1,9 +1,8 @@
-package com.github.kjarosh.agh.pp.redis.redisson;
+package com.github.kjarosh.agh.pp.persistence.redis.redisson;
 
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.EffectiveVertex;
-import com.github.kjarosh.agh.pp.index.VertexIndex;
-import com.github.kjarosh.agh.pp.redis.RedisVertexIndex;
+import com.github.kjarosh.agh.pp.persistence.redis.RedisVertexIndex;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 

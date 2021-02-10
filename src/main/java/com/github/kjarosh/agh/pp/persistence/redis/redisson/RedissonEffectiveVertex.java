@@ -1,8 +1,8 @@
-package com.github.kjarosh.agh.pp.redis.redisson;
+package com.github.kjarosh.agh.pp.persistence.redis.redisson;
 
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
-import com.github.kjarosh.agh.pp.redis.RedisEffectiveVertex;
+import com.github.kjarosh.agh.pp.persistence.redis.RedisEffectiveVertex;
 import org.redisson.api.RBatch;
 import org.redisson.api.RFuture;
 import org.redisson.api.RSet;

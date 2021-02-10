@@ -173,12 +173,41 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>integration-test</id>
+                        <id>integration-test-memory</id>
                         <goals>
                             <goal>test</goal>
                         </goals>
                         <phase>integration-test</phase>
                         <configuration>
+                            <systemProperties>
+                                <test.redis>false</test.redis>
+                            </systemProperties>
+                            <excludedGroups>!integration</excludedGroups>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>integration-test-redisson</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <phase>integration-test</phase>
+                        <configuration>
+                            <systemProperties>
+                                <test.redis>redisson</test.redis>
+                            </systemProperties>
+                            <excludedGroups>!integration</excludedGroups>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>integration-test-lettuce</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <phase>integration-test</phase>
+                        <configuration>
+                            <systemProperties>
+                                <test.redis>lettuce</test.redis>
+                            </systemProperties>
                             <excludedGroups>!integration</excludedGroups>
                         </configuration>
                     </execution>

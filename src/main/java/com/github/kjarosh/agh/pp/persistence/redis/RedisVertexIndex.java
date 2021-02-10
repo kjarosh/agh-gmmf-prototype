@@ -1,4 +1,4 @@
-package com.github.kjarosh.agh.pp.redis;
+package com.github.kjarosh.agh.pp.persistence.redis;
 
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.VertexIndex;

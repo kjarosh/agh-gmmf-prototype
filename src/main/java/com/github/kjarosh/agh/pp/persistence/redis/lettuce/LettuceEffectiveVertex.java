@@ -1,10 +1,8 @@
-package com.github.kjarosh.agh.pp.redis.lettuce;
+package com.github.kjarosh.agh.pp.persistence.redis.lettuce;
 
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
-import com.github.kjarosh.agh.pp.redis.RedisEffectiveVertex;
-import io.lettuce.core.RedisFuture;
-import io.lettuce.core.api.async.RedisAsyncCommands;
+import com.github.kjarosh.agh.pp.persistence.redis.RedisEffectiveVertex;
 import io.lettuce.core.api.sync.RedisCommands;
 import lombok.SneakyThrows;
 

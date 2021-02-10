@@ -1,8 +1,8 @@
 package com.github.kjarosh.agh.pp.graph;
 
 import com.github.kjarosh.agh.pp.graph.model.Graph;
-import com.github.kjarosh.agh.pp.index.PersistenceFactory;
-import com.github.kjarosh.agh.pp.memory.InMemoryGraph;
+import com.github.kjarosh.agh.pp.persistence.PersistenceFactory;
+import com.github.kjarosh.agh.pp.persistence.memory.InMemoryGraph;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;

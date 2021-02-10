@@ -1,4 +1,4 @@
-package com.github.kjarosh.agh.pp.redis;
+package com.github.kjarosh.agh.pp.persistence.redis;
 
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;

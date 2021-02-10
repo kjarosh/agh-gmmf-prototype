@@ -1,4 +1,4 @@
-package com.github.kjarosh.agh.pp.redis.lettuce;
+package com.github.kjarosh.agh.pp.persistence.redis.lettuce;
 
 import com.github.kjarosh.agh.pp.config.AppConfig;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;

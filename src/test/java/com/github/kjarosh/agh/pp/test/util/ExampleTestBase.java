@@ -27,12 +27,16 @@ public abstract class ExampleTestBase extends IntegrationTestBase {
     @SneakyThrows
     @Override
     protected void startEnvironment() {
+        String redis = System.getProperty("test.redis", "false");
+
         Network network = Network.newNetwork();
 
         zone0 = new SimulatorContainer("zone0")
+                .withEnv("REDIS", redis)
                 .withNetwork(network);
 
         zone1 = new SimulatorContainer("zone1")
+                .withEnv("REDIS", redis)
                 .withNetwork(network);
 
         Future<?> zone0Future = executor.submit(() -> zone0.start());

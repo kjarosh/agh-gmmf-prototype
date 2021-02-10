@@ -1,14 +1,12 @@
-package com.github.kjarosh.agh.pp.redis.redisson;
+package com.github.kjarosh.agh.pp.persistence.redis.redisson;
 
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
-import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.memory.InMemoryGraph;
-import com.github.kjarosh.agh.pp.redis.RedisGraph;
+import com.github.kjarosh.agh.pp.persistence.redis.RedisGraph;
 import org.redisson.api.RBatch;
 import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
@@ -24,7 +22,6 @@ import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
  * @author Kamil Jarosz
  */
 public class RedissonGraph extends RedisGraph {
-    private final Graph backup = new InMemoryGraph();
     private final RedissonClient redisson;
 
     public RedissonGraph(RedissonClient redisson, String prefix) {
@@ -34,7 +31,6 @@ public class RedissonGraph extends RedisGraph {
 
     @Override
     public void addVertex(Vertex v) {
-        backup.addVertex(v);
         if (ZONE_ID != null && !v.id().owner().equals(ZONE_ID)) {
             throw new IllegalStateException();
         }
@@ -66,7 +62,6 @@ public class RedissonGraph extends RedisGraph {
 
     @Override
     public void addEdge(Edge e) {
-        backup.addEdge(e);
         RBatch batch = redisson.createBatch();
         batch.getSet(keyZones(), Codecs.ZONE_ID).addAsync(e.src().owner());
         batch.getSet(keyZones(), Codecs.ZONE_ID).addAsync(e.dst().owner());
@@ -78,7 +73,6 @@ public class RedissonGraph extends RedisGraph {
 
     @Override
     public void removeEdge(Edge e) {
-        backup.removeEdge(e);
         RBatch batch = redisson.createBatch();
         batch.getBucket(keyEdge(e.id()), Codecs.PERMISSIONS).deleteAsync();
         batch.getSet(keyEdgeByDst(e.dst()), Codecs.VERTEX_ID).removeAsync(e.src());
@@ -97,19 +91,8 @@ public class RedissonGraph extends RedisGraph {
 
     @Override
     public void setPermissions(EdgeId edgeId, Permissions permissions) {
-        backup.setPermissions(edgeId, permissions);
         redisson.getBucket(keyEdge(edgeId), Codecs.PERMISSIONS).set(permissions);
     }
-
-//    @Override
-//    public Set<VertexId> getDestinationsBySource(VertexId source) {
-//        return null;
-//    }
-//
-//    @Override
-//    public Set<VertexId> getSourcesByDestination(VertexId destination) {
-//        return null;
-//    }
 
     private Set<Edge> getEdgesFromKeys(String[] keys) {
         Map<String, Permissions> edges = redisson.getBuckets(Codecs.PERMISSIONS).get(keys);
@@ -123,8 +106,18 @@ public class RedissonGraph extends RedisGraph {
     }
 
     @Override
+    public RSet<VertexId> getDestinationsBySource(VertexId source) {
+        return redisson.getSet(keyEdgeBySrc(source), Codecs.VERTEX_ID);
+    }
+
+    @Override
+    public RSet<VertexId> getSourcesByDestination(VertexId destination) {
+        return redisson.getSet(keyEdgeByDst(destination), Codecs.VERTEX_ID);
+    }
+
+    @Override
     public Set<Edge> getEdgesBySource(VertexId source) {
-        RSet<VertexId> destinations = redisson.getSet(keyEdgeBySrc(source), Codecs.VERTEX_ID);
+        RSet<VertexId> destinations = getDestinationsBySource(source);
         String[] keys = destinations.stream()
                 .map(dst -> keyEdge(source.toString(), dst.toString()))
                 .toArray(String[]::new);
@@ -133,7 +126,7 @@ public class RedissonGraph extends RedisGraph {
 
     @Override
     public Set<Edge> getEdgesByDestination(VertexId destination) {
-        RSet<VertexId> sources = redisson.getSet(keyEdgeByDst(destination), Codecs.VERTEX_ID);
+        RSet<VertexId> sources = getSourcesByDestination(destination);
         String[] keys = sources.stream()
                 .map(src -> keyEdge(src.toString(), destination.toString()))
                 .toArray(String[]::new);

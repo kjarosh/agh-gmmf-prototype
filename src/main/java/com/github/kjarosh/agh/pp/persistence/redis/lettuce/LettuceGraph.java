@@ -1,14 +1,12 @@
-package com.github.kjarosh.agh.pp.redis.lettuce;
+package com.github.kjarosh.agh.pp.persistence.redis.lettuce;
 
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
-import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.memory.InMemoryGraph;
-import com.github.kjarosh.agh.pp.redis.RedisGraph;
+import com.github.kjarosh.agh.pp.persistence.redis.RedisGraph;
 import io.lettuce.core.KeyScanCursor;
 import io.lettuce.core.KeyValue;
 import io.lettuce.core.ScanArgs;

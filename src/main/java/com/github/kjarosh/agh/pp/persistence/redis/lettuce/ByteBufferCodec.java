@@ -1,4 +1,4 @@
-package com.github.kjarosh.agh.pp.redis.lettuce;
+package com.github.kjarosh.agh.pp.persistence.redis.lettuce;
 
 import io.lettuce.core.codec.RedisCodec;
 

@@ -1,4 +1,4 @@
-package com.github.kjarosh.agh.pp.memory;
+package com.github.kjarosh.agh.pp.persistence.memory;
 
 import com.github.kjarosh.agh.pp.config.Config;
 import com.github.kjarosh.agh.pp.graph.model.Edge;

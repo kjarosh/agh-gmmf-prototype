@@ -5,7 +5,7 @@ import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.memory.InMemoryGraph;
+import com.github.kjarosh.agh.pp.persistence.memory.InMemoryGraph;
 import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;

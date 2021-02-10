@@ -1,8 +1,8 @@
-package com.github.kjarosh.agh.pp.redis.lettuce;
+package com.github.kjarosh.agh.pp.persistence.redis.lettuce;
 
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.EffectiveVertex;
-import com.github.kjarosh.agh.pp.redis.RedisVertexIndex;
+import com.github.kjarosh.agh.pp.persistence.redis.RedisVertexIndex;
 import io.lettuce.core.api.sync.RedisCommands;
 
 import java.util.Collections;

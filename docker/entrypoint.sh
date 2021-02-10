@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-if [[ $REDIS == "true" ]]; then
+if [[ $REDIS != "false" ]]; then
   redis-server /redis.conf 2>&1 | sed 's/^/[redis] /' >&2 &
 fi
 java \

@@ -3,7 +3,7 @@ package com.github.kjarosh.agh.pp.graph.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.kjarosh.agh.pp.index.VertexIndex;
-import com.github.kjarosh.agh.pp.index.PersistenceFactory;
+import com.github.kjarosh.agh.pp.persistence.PersistenceFactory;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
