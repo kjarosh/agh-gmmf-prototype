@@ -14,8 +14,13 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -139,19 +144,33 @@ public class EventProcessor {
                 }
             });
         } else {
+            ExecutorService executor = GlobalExecutor.getCalculationExecutor();
+            List<Future<?>> futures = new ArrayList<>();
             for (VertexId subjectId : event.getAllSubjects()) {
                 EffectiveVertex effectiveVertex = index.getOrAddEffectiveChild(subjectId, () -> propagate.set(true));
-                effectiveVertex.addIntermediateVertex(event.getSender(), () -> propagate.set(true));
-                effectiveVertex.recalculatePermissions(edgesToCalculate).thenAccept(result -> {
-                    if (result == RecalculationResult.DIRTY) {
-                        instrumentation.notify(Notification.markedDirty(id, event));
-                        log.warn("Marking vertex {} as dirty", subjectId);
-                    } else if (result == RecalculationResult.CLEANED) {
-                        instrumentation.notify(Notification.markedClean(id, event));
-                        log.info("Marking vertex {} as not dirty", subjectId);
-                    }
-                });
+                futures.add(executor.submit(() -> {
+                    effectiveVertex.addIntermediateVertex(event.getSender(), () -> propagate.set(true));
+                    effectiveVertex.recalculatePermissions(edgesToCalculate).thenAccept(result -> {
+                        if (result == RecalculationResult.DIRTY) {
+                            instrumentation.notify(Notification.markedDirty(subjectId, event));
+                            log.warn("Marking vertex {} as dirty", subjectId);
+                        } else if (result == RecalculationResult.CLEANED) {
+                            instrumentation.notify(Notification.markedClean(subjectId, event));
+                            log.info("Marking vertex {} as not dirty", subjectId);
+                        }
+                    });
+                }));
             }
+            futures.forEach(f -> {
+                try {
+                    f.get();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException(e);
+                } catch (ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            });
         }
 
         if (propagate.get()) {

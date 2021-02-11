@@ -16,8 +16,13 @@ public class GlobalExecutor {
             .setNameFormat(Config.ZONE_ID + "-worker-%d")
             .build();
     private static final ExecutorService executor = Executors.newFixedThreadPool(AppConfig.threads, threadFactory);
+    private static final ExecutorService calculationExecutor = Executors.newFixedThreadPool(AppConfig.threads, threadFactory);
 
     public static ExecutorService getExecutor() {
         return executor;
+    }
+
+    public static ExecutorService getCalculationExecutor() {
+        return calculationExecutor;
     }
 }

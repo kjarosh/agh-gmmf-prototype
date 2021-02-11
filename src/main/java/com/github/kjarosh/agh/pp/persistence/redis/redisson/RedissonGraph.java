@@ -12,6 +12,7 @@ import org.redisson.api.RSet;
 import org.redisson.api.RedissonClient;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -117,7 +118,7 @@ public class RedissonGraph extends RedisGraph {
 
     @Override
     public Set<Edge> getEdgesBySource(VertexId source) {
-        RSet<VertexId> destinations = getDestinationsBySource(source);
+        Set<VertexId> destinations = new HashSet<>(getDestinationsBySource(source));
         String[] keys = destinations.stream()
                 .map(dst -> keyEdge(source.toString(), dst.toString()))
                 .toArray(String[]::new);
@@ -126,7 +127,7 @@ public class RedissonGraph extends RedisGraph {
 
     @Override
     public Set<Edge> getEdgesByDestination(VertexId destination) {
-        RSet<VertexId> sources = getSourcesByDestination(destination);
+        Set<VertexId> sources = new HashSet<>(getSourcesByDestination(destination));
         String[] keys = sources.stream()
                 .map(src -> keyEdge(src.toString(), destination.toString()))
                 .toArray(String[]::new);
