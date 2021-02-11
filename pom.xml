@@ -198,19 +198,6 @@
                             <excludedGroups>!integration</excludedGroups>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>integration-test-lettuce</id>
-                        <goals>
-                            <goal>test</goal>
-                        </goals>
-                        <phase>integration-test</phase>
-                        <configuration>
-                            <systemProperties>
-                                <test.redis>lettuce</test.redis>
-                            </systemProperties>
-                            <excludedGroups>!integration</excludedGroups>
-                        </configuration>
-                    </execution>
                 </executions>
             </plugin>
         </plugins>
