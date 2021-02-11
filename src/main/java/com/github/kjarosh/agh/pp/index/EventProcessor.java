@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.index;
 
+import com.github.kjarosh.agh.pp.config.AppConfig;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
@@ -144,11 +145,11 @@ public class EventProcessor {
                 }
             });
         } else {
-            ExecutorService executor = GlobalExecutor.getCalculationExecutor();
+            ExecutorService executor = GlobalExecutors.getCalculationExecutor();
             List<Future<?>> futures = new ArrayList<>();
             for (VertexId subjectId : event.getAllSubjects()) {
-                EffectiveVertex effectiveVertex = index.getOrAddEffectiveChild(subjectId, () -> propagate.set(true));
-                futures.add(executor.submit(() -> {
+                Runnable job = () -> {
+                    EffectiveVertex effectiveVertex = index.getOrAddEffectiveChild(subjectId, () -> propagate.set(true));
                     effectiveVertex.addIntermediateVertex(event.getSender(), () -> propagate.set(true));
                     effectiveVertex.recalculatePermissions(edgesToCalculate).thenAccept(result -> {
                         if (result == RecalculationResult.DIRTY) {
@@ -159,7 +160,12 @@ public class EventProcessor {
                             log.info("Marking vertex {} as not dirty", subjectId);
                         }
                     });
-                }));
+                };
+                if (AppConfig.redis) {
+                    futures.add(executor.submit(job));
+                } else {
+                    job.run();
+                }
             }
             futures.forEach(f -> {
                 try {

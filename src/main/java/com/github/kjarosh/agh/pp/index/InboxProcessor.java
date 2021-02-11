@@ -2,15 +2,12 @@ package com.github.kjarosh.agh.pp.index;
 
 import com.codahale.metrics.Meter;
 import com.codahale.metrics.SlidingTimeWindowMovingAverages;
-import com.github.kjarosh.agh.pp.config.AppConfig;
-import com.github.kjarosh.agh.pp.config.Config;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.util.ClockX60;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -25,8 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 /**
  * Combines {@link Inbox} and {@link EventProcessor} together,
@@ -43,7 +38,7 @@ import java.util.concurrent.ThreadFactory;
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class InboxProcessor {
-    private final ExecutorService executor = GlobalExecutor.getExecutor();
+    private final ExecutorService executor = GlobalExecutors.getEventProcessingExecutor();
 
     private final Set<VertexId> processing = new HashSet<>();
 

@@ -24,11 +24,7 @@ public class LettuceConnections {
         RedisURI redisUri = RedisURI.Builder.socket("/redis-server.sock")
                 .withDatabase(database)
                 .build();
-        ClientResources clientResources = ClientResources.builder()
-                .ioThreadPoolSize(AppConfig.threads)
-                .computationThreadPoolSize(AppConfig.threads)
-                .build();
-        this.client = RedisClient.create(clientResources, redisUri);
+        this.client = RedisClient.create(redisUri);
         this.vertexId = client.connect(Codecs.VERTEX_ID);
         this.string = client.connect(Codecs.STRING);
         this.permissions = client.connect(Codecs.PERMISSIONS);

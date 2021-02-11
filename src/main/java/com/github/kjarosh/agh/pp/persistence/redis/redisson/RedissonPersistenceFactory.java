@@ -1,6 +1,5 @@
 package com.github.kjarosh.agh.pp.persistence.redis.redisson;
 
-import com.github.kjarosh.agh.pp.config.AppConfig;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.index.VertexIndex;
 import com.github.kjarosh.agh.pp.persistence.PersistenceFactory;
@@ -32,22 +31,26 @@ public class RedissonPersistenceFactory implements PersistenceFactory {
     @Override
     public Graph createGraph() {
         String prefix = "graph";
-        return new RedissonGraph(LazyRedisson.redisson0, prefix);
+        return new RedissonGraph(LazyRedisson.redisson1, prefix);
     }
 
     private static final class LazyRedisson {
         private static final RedissonClient redisson0;
+        private static final RedissonClient redisson1;
 
         static {
+            redisson0 = createClient(0);
+            redisson1 = createClient(1);
+        }
+
+        private static RedissonClient createClient(int database) {
             Config config = new Config();
-            config.setNettyThreads(AppConfig.threads);
             config.setTransportMode(TransportMode.EPOLL);
             config.useSingleServer()
                     .setAddress("redis://127.0.0.1:6379")
-                    .setConnectionMinimumIdleSize(AppConfig.threads / 3)
-                    .setConnectionPoolSize(AppConfig.threads)
+                    .setDatabase(database)
                     .setTcpNoDelay(true);
-            redisson0 = Redisson.create(config);
+            return Redisson.create(config);
         }
     }
 }
