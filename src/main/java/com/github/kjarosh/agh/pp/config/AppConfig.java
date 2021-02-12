@@ -14,7 +14,7 @@ public class AppConfig {
 
     static {
         if (redis) {
-            workerThreads = Integer.parseInt(System.getProperty("app.threads.worker", "2"));
+            workerThreads = Integer.parseInt(System.getProperty("app.threads.worker", "4"));
             calculationThreads = Integer.parseInt(System.getProperty("app.threads.calc", "16"));
         } else {
             workerThreads = Integer.parseInt(System.getProperty("app.threads.worker", "8"));

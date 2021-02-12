@@ -160,7 +160,7 @@ public class GraphGeneratorConfig {
 
         @Override
         public String toString() {
-            return "lnormal(" + avg + "," + std + ")";
+            return "enormal(" + avg + "," + std + ")";
         }
     }
 

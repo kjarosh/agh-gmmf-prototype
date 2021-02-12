@@ -88,6 +88,9 @@ public class GraphGenerator {
         // generate provider--space relations
         for (Vertex space : spaces) {
             int relations = config.getProvidersPerSpace().nextInt();
+            if (relations < 1) {
+                relations = 1;
+            }
             for (int i = 0; i < relations; ++i) {
                 Vertex provider = randomElement(providers);
                 Edge e = new Edge(space.id(), provider.id(), Permissions.random(random));
@@ -156,12 +159,14 @@ public class GraphGenerator {
                     .stream()
                     .filter(v -> v.type() == Vertex.Type.USER)
                     .collect(Collectors.toList());
-            return vertices.get(random.nextInt(vertices.size()));
-        } else {
-            Vertex user = entityGenerator.generateVertex(generateUserZone(spaceZone), Vertex.Type.USER);
-            graph.addVertex(user);
-            return user;
+            if (vertices.size() > 0) {
+                return vertices.get(random.nextInt(vertices.size()));
+            }
         }
+
+        Vertex user = entityGenerator.generateVertex(generateUserZone(spaceZone), Vertex.Type.USER);
+        graph.addVertex(user);
+        return user;
     }
 
     private Vertex generateGroup(Graph graph, int depth, ZoneId spaceZone) {
