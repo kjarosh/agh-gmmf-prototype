@@ -2,6 +2,7 @@ drop materialized view if exists operations;
 create materialized view operations as
 select
     b.trace,
+    b.queued_time,
     b.start_time,
     b.finish_time,
     b.duration,
@@ -9,6 +10,7 @@ select
     failed_events = 0 and started_events = ended_events as success,
     failed_events > 0 as failed,
     b.all_events,
+    b.queued_events,
     b.started_events,
     b.ended_events,
     b.failed_events,
@@ -20,18 +22,20 @@ from (
     select
         trace,
         sum(forkchildren) + 2 as all_events,
+        count(id) filter (where type = 'queue') as queued_events,
         count(id) filter (where type = 'start') as started_events,
         count(id) filter (where type = 'end') as ended_events,
         count(id) filter (where type = 'fail') as failed_events,
-        min(time) as start_time,
-        max(time) as finish_time,
+        min(time) filter (where type = 'queue') as queued_time,
+        min(time) filter (where type = 'start') as start_time,
+        max(time) filter (where type = 'end') as finish_time,
         (max(time) - min(time)) as duration,
         array_agg(distinct originalsender) as original_sender,
 --         array_agg(distinct sender) as all_senders,
 --         array_agg(distinct vertex) as all_participants,
         array_agg(distinct zone) as zone_participants
     from dbnotification
-    where type in ('start', 'end', 'fail', 'fork')
+    where type in ('start', 'end', 'fail', 'fork', 'queue')
     group by trace) as b
 order by b.start_time;
 create index operations_ix_1
@@ -48,7 +52,9 @@ select
     b.eventid,
     b.trace,
     b.vertex,
+    (b.start_time - b.queued_time) as wait_duration,
     (b.end_time - b.start_time) as duration,
+    b.queued_time,
     b.start_time,
     b.end_time
 from (
@@ -57,43 +63,15 @@ from (
         eventid,
         trace,
         vertex,
+        min(time) filter (where type = 'queue') as queued_time,
         min(time) filter (where type = 'start') as start_time,
-        min(time) filter (where type = 'end') as end_time
+        max(time) filter (where type = 'end') as end_time
     from dbnotification
-    where type in ('start', 'end')
+    where type in ('start', 'end', 'queue')
     group by zone, eventid, trace, vertex) as b
 order by b.start_time;
 create index events_ix_1
     on events (start_time);
-
-drop materialized view if exists queue_summary;
-create materialized view queue_summary as
-select
-    b.zone,
-    b.eventid,
-    b.trace,
-    b.vertex,
-    (b.start_time - b.queued_time) as wait_duration,
-    b.queued_time,
-    b.start_time,
-    b.queued_events,
-    b.started_events
-from (
-    select
-        zone,
-        eventid,
-        trace,
-        vertex,
-        min(time) filter (where type = 'queue') as queued_time,
-        max(time) filter (where type = 'start') as start_time,
-        count(id) filter (where type = 'queue') as queued_events,
-        count(id) filter (where type = 'start') as started_events
-    from dbnotification
-    where type in ('start', 'queue')
-    group by zone, eventid, trace, vertex) as b
-order by b.start_time;
-create index queue_summary_ix_1
-    on queue_summary (start_time);
 
 
 create or replace view stats as
@@ -104,17 +82,17 @@ from (
     select
         'time in queue / average' as name,
         cast(avg(wait_duration) as text) as value
-    from queue_summary
+    from events
     union
     select
         'time in queue / min' as name,
         cast(min(wait_duration) as text) as value
-    from queue_summary
+    from events
     union
     select
         'time in queue / max' as name,
         cast(max(wait_duration) as text) as value
-    from queue_summary
+    from events
     union
     select
         'time processing / average' as name,
@@ -144,5 +122,5 @@ from (
     select
         'events queued / count' as name,
         cast(sum(queued_events) as text) as value
-    from queue_summary) as b
+    from operations) as b
 order by b.name;
