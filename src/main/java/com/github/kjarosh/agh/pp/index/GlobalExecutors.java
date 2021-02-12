@@ -15,7 +15,7 @@ public class GlobalExecutors {
             Executors.newFixedThreadPool(AppConfig.workerThreads, new ThreadFactoryBuilder()
                     .setNameFormat(Config.ZONE_ID + "-event-processor-%d")
                     .build());
-    private static final ExecutorService calculationExecutor = !AppConfig.redis ? null :
+    private static final ExecutorService calculationExecutor = AppConfig.calculationThreads < 0 ? null :
             Executors.newFixedThreadPool(AppConfig.calculationThreads * 2, new ThreadFactoryBuilder()
                     .setNameFormat(Config.ZONE_ID + "-permissions-calculator-%d")
                     .build());

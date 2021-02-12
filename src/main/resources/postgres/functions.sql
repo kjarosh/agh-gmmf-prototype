@@ -87,9 +87,9 @@ begin
     raise notice 'Events: %', sample_events;
     raise notice 'Events started: %', sample_events_started;
     raise notice 'Events ended: %', sample_events_ended;
-    raise notice 'Operations per second: %', sample_ops / sample_duration_sec;
+    raise notice 'Operations per second: %', sample_ops_finished / sample_duration_sec;
     raise notice 'Queued operations per second: %', sample_q_ops / sample_duration_sec;
-    raise notice 'Events per second: %', sample_events / sample_duration_sec;
+    raise notice 'Events per second: %', sample_events_ended / sample_duration_sec;
     raise notice 'Operation duration:';
     raise notice '  min: %', sample_op_duration_min;
     raise notice '  avg: %', sample_op_duration_avg;

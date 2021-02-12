@@ -1,6 +1,5 @@
 package com.github.kjarosh.agh.pp.index;
 
-import com.github.kjarosh.agh.pp.config.AppConfig;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
@@ -147,7 +146,8 @@ public class EventProcessor {
         } else {
             ExecutorService executor = GlobalExecutors.getCalculationExecutor();
             List<Future<?>> futures = new ArrayList<>();
-            for (VertexId subjectId : event.getAllSubjects()) {
+            Set<VertexId> allSubjects = event.getAllSubjects();
+            for (VertexId subjectId : allSubjects) {
                 Runnable job = () -> {
                     EffectiveVertex effectiveVertex = index.getOrAddEffectiveChild(subjectId, () -> propagate.set(true));
                     effectiveVertex.addIntermediateVertex(event.getSender(), () -> propagate.set(true));
@@ -161,22 +161,13 @@ public class EventProcessor {
                         }
                     });
                 };
-                if (AppConfig.redis) {
+                if (executor != null) {
                     futures.add(executor.submit(job));
                 } else {
                     job.run();
                 }
             }
-            futures.forEach(f -> {
-                try {
-                    f.get();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    throw new RuntimeException(e);
-                } catch (ExecutionException e) {
-                    throw new RuntimeException(e);
-                }
-            });
+            waitForAll(futures);
         }
 
         if (propagate.get()) {
@@ -184,6 +175,19 @@ public class EventProcessor {
             Set<VertexId> recipients = graph.getDestinationsBySource(id);
             propagateEvent(id, recipients, event, effectiveChildren);
         }
+    }
+
+    private void waitForAll(Collection<Future<?>> futures) {
+        futures.forEach(f -> {
+            try {
+                f.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     private void propagateEvent(
