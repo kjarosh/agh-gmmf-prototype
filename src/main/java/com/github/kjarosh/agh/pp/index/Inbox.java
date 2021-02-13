@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.index;
 
+import com.github.kjarosh.agh.pp.config.AppConfig;
 import com.github.kjarosh.agh.pp.config.Config;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.events.Event;
@@ -50,8 +51,14 @@ public class Inbox {
             return;
         }
 
-        instrumentation.notify(Notification.queued(id, event));
         log.trace("Event posted at " + id + ": " + event);
+        instrumentation.notify(Notification.queued(id, event));
+        if (!AppConfig.indexationEnabled) {
+            instrumentation.notify(Notification.startProcessing(id, event));
+            instrumentation.notify(Notification.endProcessing(id, event));
+            return;
+        }
+
         inboxes.computeIfAbsent(id, i -> new ConcurrentLinkedDeque<>()).addLast(event);
         inboxSize.incrementAndGet();
         listeners.forEach(l -> l.accept(id));
