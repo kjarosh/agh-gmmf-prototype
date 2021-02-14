@@ -21,10 +21,12 @@ import org.apache.commons.cli.ParseException;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -34,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ConstantLoadClientMain {
     private static final ThreadFactory treadFactory = new ThreadFactoryBuilder()
             .setNameFormat("generator-%d")
+            .setDaemon(true)
             .build();
 
     private static final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor(treadFactory);
@@ -44,6 +47,7 @@ public class ConstantLoadClientMain {
     private static Graph graph;
     private static double permsProbability;
     private static int maxPoolSize;
+    private static int durationSeconds;
 
     private static RandomOperationIssuer randomOperationIssuer;
     private static ConcurrentOperationIssuer baseOperationIssuer;
@@ -53,7 +57,7 @@ public class ConstantLoadClientMain {
         LogbackUtils.loadLogbackCli();
     }
 
-    public static void main(String[] args) throws ParseException {
+    public static void main(String[] args) throws ParseException, TimeoutException {
         Options options = new Options();
         options.addRequiredOption("n", "operations", true, "number of operations per second");
         options.addRequiredOption("g", "graph", true, "path to graph");
@@ -61,6 +65,7 @@ public class ConstantLoadClientMain {
         options.addOption("x", "exit-on-fail", false, "exit on first fail");
         options.addOption("b", "bulk", true, "enable bulk requests and set bulk size");
         options.addOption("t", "concurrent-pool", true, "enable concurrency and set pool size");
+        options.addOption("d", "duration-seconds", true, "stop load after the given number of seconds");
         options.addOption(null, "prob.perms", true,
                 "probability that a random operation changes permissions");
 
@@ -74,11 +79,11 @@ public class ConstantLoadClientMain {
         operationsPerSecond = Integer.parseInt(cmd.getOptionValue("n"));
         graph = GraphLoader.loadGraph(cmd.getOptionValue("g"));
         permsProbability = Double.parseDouble(cmd.getOptionValue("prob.perms", "0.8"));
+        durationSeconds = Integer.parseInt(cmd.getOptionValue("d", "-1"));
 
         if (loadGraph) {
             loadGraph();
         }
-
 
         baseOperationIssuer = new ConcurrentOperationIssuer(maxPoolSize, new ZoneClient());
         if (bulkSize >= 1) {
@@ -86,13 +91,15 @@ public class ConstantLoadClientMain {
         } else {
             operationIssuer = baseOperationIssuer;
         }
-        randomOperationIssuer =
-                new RandomOperationIssuer(graph)
-                        .withPermissionsProbability(permsProbability)
-                        .withOperationIssuer(operationIssuer);
+        randomOperationIssuer = new RandomOperationIssuer(graph)
+                .withPermissionsProbability(permsProbability)
+                .withOperationIssuer(operationIssuer);
 
-
-        log.info("Running constant load: {} requests per second", operationsPerSecond);
+        String durationSuffix = "";
+        if (durationSeconds > 0) {
+            durationSuffix = " for " + durationSeconds + " seconds";
+        }
+        log.info("Running constant load: {} requests per second{}", operationsPerSecond, durationSuffix);
         runRandomOperations();
     }
 
@@ -110,7 +117,10 @@ public class ConstantLoadClientMain {
 
         Instant last = Instant.now();
         long total = 0;
-        while (!Thread.interrupted()) {
+        Instant deadline = durationSeconds > 0 ?
+                Instant.now().plus(durationSeconds, ChronoUnit.SECONDS) :
+                Instant.MAX;
+        while (!Thread.interrupted() && Instant.now().isBefore(deadline)) {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -133,13 +143,14 @@ public class ConstantLoadClientMain {
                     fd(baseOperationIssuer.getRequestTime()));
         }
 
-        log.info("Interrupted. Shutting down gracefully...");
+        log.info("Shutting down gracefully...");
         scheduledExecutor.shutdown();
         try {
             scheduledExecutor.awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             log.info("Interrupted. Exiting...");
         }
+        log.info("Finished");
     }
 
     private static void scheduleRequestExecutor(AtomicInteger count, AtomicInteger errored) {

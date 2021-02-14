@@ -28,6 +28,7 @@ public class ConcurrentOperationIssuer implements OperationIssuer {
 
     private final ThreadFactory treadFactory = new ThreadFactoryBuilder()
             .setNameFormat("operation-issuer-%d")
+            .setDaemon(true)
             .build();
     private final OperationIssuer delegate;
     private final ThreadPoolExecutor executor;
