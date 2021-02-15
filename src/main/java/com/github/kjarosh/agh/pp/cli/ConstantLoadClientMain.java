@@ -3,6 +3,7 @@ package com.github.kjarosh.agh.pp.cli;
 import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
+import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.graph.modification.BulkOperationIssuer;
 import com.github.kjarosh.agh.pp.graph.modification.ConcurrentOperationIssuer;
 import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
@@ -48,6 +49,7 @@ public class ConstantLoadClientMain {
     private static double permsProbability;
     private static int maxPoolSize;
     private static int durationSeconds;
+    private static boolean disableIndexation;
 
     private static RandomOperationIssuer randomOperationIssuer;
     private static ConcurrentOperationIssuer baseOperationIssuer;
@@ -68,6 +70,7 @@ public class ConstantLoadClientMain {
         options.addOption("d", "duration-seconds", true, "stop load after the given number of seconds");
         options.addOption(null, "prob.perms", true,
                 "probability that a random operation changes permissions");
+        options.addOption(null, "disable-indexation", false, "");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
@@ -80,12 +83,21 @@ public class ConstantLoadClientMain {
         graph = GraphLoader.loadGraph(cmd.getOptionValue("g"));
         permsProbability = Double.parseDouble(cmd.getOptionValue("prob.perms", "0.8"));
         durationSeconds = Integer.parseInt(cmd.getOptionValue("d", "-1"));
+        disableIndexation = cmd.hasOption("disable-indexation");
+        ZoneClient zoneClient = new ZoneClient();
+
+        if (disableIndexation) {
+            log.info("Disabling indexation");
+            for (ZoneId z : graph.allZones()) {
+                zoneClient.setIndexationEnabled(z, false);
+            }
+        }
 
         if (loadGraph) {
             loadGraph();
         }
 
-        baseOperationIssuer = new ConcurrentOperationIssuer(maxPoolSize, new ZoneClient());
+        baseOperationIssuer = new ConcurrentOperationIssuer(maxPoolSize, zoneClient);
         if (bulkSize >= 1) {
             operationIssuer = new BulkOperationIssuer(baseOperationIssuer, bulkSize, Duration.ZERO);
         } else {

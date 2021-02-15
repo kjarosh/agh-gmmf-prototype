@@ -117,6 +117,7 @@ public class PostgresImportMain {
             AtomicInteger count = new AtomicInteger(0);
             reader.lines()
                     .map(PostgresImportMain::parseNotification)
+                    .filter(Objects::nonNull)
                     .forEach(o -> {
                         int c = count.incrementAndGet();
                         if (c % BATCH_SIZE == 0) {
@@ -139,6 +140,9 @@ public class PostgresImportMain {
         Notification.serializers.forEach((field, v) -> fields.add(field));
 
         DbNotification notification = new DbNotification();
+        if (values.size() < fields.size()) {
+            return null;
+        }
 
         int i = 0;
         for (String field : fields) {

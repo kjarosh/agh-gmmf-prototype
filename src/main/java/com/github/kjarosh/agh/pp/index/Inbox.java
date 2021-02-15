@@ -39,6 +39,7 @@ public class Inbox {
     private final List<Consumer<VertexId>> listeners = new CopyOnWriteArrayList<>();
 
     private final Instrumentation instrumentation = Instrumentation.getInstance();
+    private boolean indexationEnabled = AppConfig.indexationEnabled;
 
     public int size() {
         return inboxSize.get();
@@ -53,7 +54,7 @@ public class Inbox {
 
         log.trace("Event posted at " + id + ": " + event);
         instrumentation.notify(Notification.queued(id, event));
-        if (!AppConfig.indexationEnabled) {
+        if (!indexationEnabled) {
             instrumentation.notify(Notification.startProcessing(id, event));
             instrumentation.notify(Notification.endProcessing(id, event));
             return;
@@ -76,6 +77,10 @@ public class Inbox {
             inboxSize.decrementAndGet();
         }
         return Optional.ofNullable(event);
+    }
+
+    public void setIndexationEnabled(boolean enable) {
+        indexationEnabled = enable;
     }
 
     public void addInboxChangeListener(Consumer<VertexId> listener) {

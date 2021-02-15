@@ -284,6 +284,14 @@ public class ZoneClient implements OperationIssuer {
         restTemplate.put(url, enabled);
     }
 
+    public void setIndexationEnabled(ZoneId zone, boolean enabled) {
+        String url = baseUri(zone)
+                .path("indexation")
+                .build()
+                .toUriString();
+        restTemplate.put(url, enabled);
+    }
+
     @Override
     public void simulateLoad(ZoneId zone, LoadSimulationRequestDto request) {
         String url = baseUri(zone)

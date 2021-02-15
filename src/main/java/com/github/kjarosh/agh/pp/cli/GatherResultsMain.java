@@ -62,20 +62,74 @@ public class GatherResultsMain {
     private static final Map<String, SSHClient> clients = new HashMap<>();
 
     private static final GatherConfig[] configs = new GatherConfig[]{
-            buildGatherConfig()
+            configNaive()
                     .operationsPerSecond(100)
                     .build(),
-            buildGatherConfig()
+            configNaive()
                     .operationsPerSecond(200)
                     .build(),
-            buildGatherConfig()
+            configNaive()
                     .operationsPerSecond(300)
                     .build(),
-            buildGatherConfig()
+            configNaive()
                     .operationsPerSecond(400)
                     .build(),
-            buildGatherConfig()
+            configNaive()
                     .operationsPerSecond(500)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(600)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(700)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(800)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(900)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(1000)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(1100)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(1200)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(1300)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(1400)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(1500)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(1600)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(1700)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(1800)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(1900)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(2000)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(2100)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(2200)
+                    .build(),
+            configNaive()
+                    .operationsPerSecond(2300)
                     .build()
     };
 
@@ -83,12 +137,22 @@ public class GatherResultsMain {
         LogbackUtils.loadLogbackCli();
     }
 
-    private static GatherConfig.GatherConfigBuilder buildGatherConfig() {
+    private static GatherConfig.GatherConfigBuilder configIndexed() {
         return GatherConfig.builder()
                 .loadDuration(Duration.ofMinutes(10))
                 .analysisStartPercent(30)
                 .analysisEndPercent(90)
                 .requestsPerSecond(10)
+                .clientThreads(9);
+    }
+
+    private static GatherConfig.GatherConfigBuilder configNaive() {
+        return GatherConfig.builder()
+                .loadDuration(Duration.ofMinutes(2))
+                .analysisStartPercent(10)
+                .analysisEndPercent(90)
+                .requestsPerSecond(10)
+                .indexationDisabled(true)
                 .clientThreads(9);
     }
 
@@ -117,7 +181,7 @@ public class GatherResultsMain {
     }
 
     private static void gather(Path resultsPath, GatherConfig gc) throws IOException {
-        Path resultPath = resultsPath.resolve("rps=" + gc.getOperationsPerSecond());
+        Path resultPath = resultsPath.resolve("rps=" + gc.getOperationsPerSecond() + ";ix=" + !gc.isIndexationDisabled());
         Files.createDirectories(resultPath);
         runSaved();
         saveObject(graphPath, resultPath.resolve("graph_path"));
@@ -274,6 +338,7 @@ public class GatherResultsMain {
                     " -n " + gc.getOperationsPerSecond() +
                     " -g " + graphPath +
                     " -t " + gc.getClientThreads() +
+                    (gc.isIndexationDisabled() ? " --disable-indexation" : "") +
                     " -d " + gc.getLoadDuration().toSeconds(), props, oh);
         }
     }
@@ -386,6 +451,7 @@ public class GatherResultsMain {
         private final Duration loadDuration;
         private final int analysisStartPercent;
         private final int analysisEndPercent;
+        private final boolean indexationDisabled;
     }
 
     @Getter

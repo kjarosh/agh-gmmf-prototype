@@ -2,6 +2,7 @@ package com.github.kjarosh.agh.pp.rest;
 
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import com.github.kjarosh.agh.pp.index.Inbox;
 import com.github.kjarosh.agh.pp.index.InboxProcessor;
 import com.github.kjarosh.agh.pp.instrumentation.Instrumentation;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
@@ -29,6 +30,9 @@ public class MetainfoController {
 
     @Autowired
     private GraphLoader graphLoader;
+
+    @Autowired
+    private Inbox inbox;
 
     @RequestMapping(method = RequestMethod.GET, path = "healthcheck")
     @ResponseBody
@@ -73,5 +77,11 @@ public class MetainfoController {
     @ResponseBody
     public void setInstrumentationEnabled(@RequestBody boolean enabled) {
         Instrumentation.getInstance().setEnabled(enabled);
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, path = "indexation")
+    @ResponseBody
+    public void setIndexationEnabled(@RequestBody boolean enabled) {
+        inbox.setIndexationEnabled(enabled);
     }
 }
