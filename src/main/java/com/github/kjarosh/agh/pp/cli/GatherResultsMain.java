@@ -30,9 +30,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLWarning;
 import java.text.DateFormat;
-import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
@@ -82,7 +85,7 @@ public class GatherResultsMain {
 
     private static GatherConfig.GatherConfigBuilder buildGatherConfig() {
         return GatherConfig.builder()
-                .loadDuration(Duration.ofMinutes(1))
+                .loadDuration(Duration.ofMinutes(10))
                 .analysisStartPercent(30)
                 .analysisEndPercent(90)
                 .requestsPerSecond(10)
@@ -136,17 +139,45 @@ public class GatherResultsMain {
                 .build();
         saveObject(ac, resultPath.resolve("analysis_config.json"));
         String reportSql = generateReportSql(ac);
-        saveObject(reportSql, resultPath.resolve("report.sql"));
+        saveString(reportSql, resultPath.resolve("report.sql"));
+
+        loadDatabase(resultPath.resolve("artifacts"), resultPath.resolve("load_database.log"));
+        runReport(reportSql, resultPath.resolve("postgres_report.log"));
+    }
+
+    @SneakyThrows
+    private static void runReport(String reportSql, Path output) {
+        log.info("Running report to {}", output);
+        try (Connection conn = DriverManager.getConnection("jdbc:postgresql://localhost/postgres", "postgres", "admin")) {
+            PreparedStatement ps = conn.prepareStatement(reportSql);
+            ps.execute();
+            SQLWarning w = ps.getWarnings();
+            StringBuilder log = new StringBuilder();
+            while (w != null) {
+                log.append(w.getMessage()).append("\n");
+                w = w.getNextWarning();
+            }
+            saveString(log.toString(), output);
+        }
+    }
+
+    @SneakyThrows
+    private static void loadDatabase(Path artifacts, Path logPath) {
+        log.info("Loading database from {}", artifacts);
+        try (OutputStream os = Files.newOutputStream(logPath)) {
+            InvocationOutputHandler oh = line -> os.write((line + "\n").getBytes(StandardCharsets.UTF_8));
+            mavenExec(PostgresImportMain.class, artifacts.toString(), new Properties(), oh);
+        }
     }
 
     private static String generateReportSql(AnalysisConfig ac) {
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
         String start = format.format(Date.from(ac.getAnalysisStart()));
         String end = format.format(Date.from(ac.getAnalysisEnd()));
-        return MessageFormat.format("" +
+        return "" +
                 "do $$ begin\n" +
-                "  perform report(timestamp '{}', timestamp '{}');\n" +
-                "end $$", start, end);
+                "  perform report(timestamp '" + start + "', timestamp '" + end + "');\n" +
+                "end $$";
     }
 
     @SneakyThrows
@@ -158,7 +189,6 @@ public class GatherResultsMain {
             futures.add(executor.submit(() -> {
                 try (SFTPClient sftp = clients.get(zone).newSFTPClient()) {
                     Path dest = artifacts.resolve(zone);
-                    Files.createDirectories(dest);
                     sftp.get("/home/ubuntu/kjarosz/artifacts/", dest.toString());
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -203,6 +233,14 @@ public class GatherResultsMain {
                 .start();
         if (process.waitFor() != 0) {
             throw new RuntimeException();
+        }
+    }
+
+    @SneakyThrows
+    private static void saveString(String str, Path output) {
+        log.info("Saving {}", output);
+        try (OutputStream os = Files.newOutputStream(output)) {
+            os.write(str.getBytes(StandardCharsets.UTF_8));
         }
     }
 
