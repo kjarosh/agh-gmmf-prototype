@@ -4,6 +4,7 @@ set -e
 zone_id=$(./zone_id.sh)
 container_name=kjarosz_sim_${zone_id}
 
+docker exec "${container_name}" redis-cli save
 if docker stop "${container_name}" >/dev/null 2>&1; then
   echo "Container stopped";
 else
