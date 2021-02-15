@@ -54,12 +54,25 @@ public class GatherResultsMain {
     private static final ExecutorService executor = Executors.newFixedThreadPool(6);
     private static final String[] zones = new String[]{"krakow-lo", "lisbon-lo", "zone-lo"};
     private static final String keysPath = System.getProperty("app.keys_path");
+    private static final String graphPath = System.getProperty("app.graph");
     private static final Config config = ConfigLoader.getConfig();
     private static final Map<String, SSHClient> clients = new HashMap<>();
 
     private static final GatherConfig[] configs = new GatherConfig[]{
             buildGatherConfig()
+                    .operationsPerSecond(100)
+                    .build(),
+            buildGatherConfig()
+                    .operationsPerSecond(200)
+                    .build(),
+            buildGatherConfig()
+                    .operationsPerSecond(300)
+                    .build(),
+            buildGatherConfig()
                     .operationsPerSecond(400)
+                    .build(),
+            buildGatherConfig()
+                    .operationsPerSecond(500)
                     .build()
     };
 
@@ -69,16 +82,17 @@ public class GatherResultsMain {
 
     private static GatherConfig.GatherConfigBuilder buildGatherConfig() {
         return GatherConfig.builder()
-                .loadDuration(Duration.ofMinutes(10))
+                .loadDuration(Duration.ofMinutes(1))
                 .analysisStartPercent(30)
                 .analysisEndPercent(90)
-                .requestsPerSecond(20)
+                .requestsPerSecond(10)
                 .clientThreads(9);
     }
 
     public static void main(String[] args) throws IOException, MavenInvocationException {
         try {
             Path resultsPath = Paths.get("results").resolve("results-" + Instant.now());
+            Files.createDirectory(resultsPath);
             initializeSshClients();
             int count = 0;
             for (GatherConfig gc : configs) {
@@ -100,12 +114,13 @@ public class GatherResultsMain {
     }
 
     private static void gather(Path resultsPath, GatherConfig gc) throws IOException {
-        Path resultPath = resultsPath.resolve("rps=" + gc.getRequestsPerSecond());
+        Path resultPath = resultsPath.resolve("rps=" + gc.getOperationsPerSecond());
         Files.createDirectories(resultPath);
         runSaved();
+        saveObject(graphPath, resultPath.resolve("graph_path"));
         saveObject(gc, resultPath.resolve("settings.json"));
         saveRevision(resultPath.resolve("git_revision"));
-        Files.copy(Paths.get("generated.json"), resultPath.resolve("graph.json"));
+        Files.copy(Paths.get(graphPath), resultPath.resolve("graph.json"));
         Instant start = Instant.now();
         runConstantLoad(gc, resultPath.resolve("output.log"));
         Instant end = Instant.now();
@@ -128,7 +143,8 @@ public class GatherResultsMain {
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
         String start = format.format(Date.from(ac.getAnalysisStart()));
         String end = format.format(Date.from(ac.getAnalysisEnd()));
-        return MessageFormat.format("do $$ begin\n" +
+        return MessageFormat.format("" +
+                "do $$ begin\n" +
                 "  perform report(timestamp '{}', timestamp '{}');\n" +
                 "end $$", start, end);
     }
@@ -218,7 +234,7 @@ public class GatherResultsMain {
             mavenExec(ConstantLoadClientMain.class, "" +
                     " -b " + (gc.getOperationsPerSecond() / gc.getRequestsPerSecond()) +
                     " -n " + gc.getOperationsPerSecond() +
-                    " -g generated.json" +
+                    " -g " + graphPath +
                     " -t " + gc.getClientThreads() +
                     " -d " + gc.getLoadDuration().toSeconds(), props, oh);
         }
