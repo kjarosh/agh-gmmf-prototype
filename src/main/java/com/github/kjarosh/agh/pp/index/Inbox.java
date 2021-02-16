@@ -12,6 +12,7 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
@@ -47,13 +48,25 @@ public class Inbox {
 
     @SneakyThrows
     public void post(VertexId id, Event event) {
+        post(id, event, Notification.queued(id, event));
+    }
+
+    @SneakyThrows
+    public void post(VertexId id, Event event, Instant start) {
+        Notification n = Notification.queued(id, event);
+        n.setTime(start);
+        post(id, event, n);
+    }
+
+    @SneakyThrows
+    public void post(VertexId id, Event event, Notification queueNotification) {
         if (!id.owner().equals(Config.ZONE_ID)) {
             Outbox.forZone(id.owner()).postEvent(id, event);
             return;
         }
 
         log.trace("Event posted at " + id + ": " + event);
-        instrumentation.notify(Notification.queued(id, event));
+        instrumentation.notify(queueNotification);
         if (!indexationEnabled) {
             instrumentation.notify(Notification.startProcessing(id, event));
             instrumentation.notify(Notification.endProcessing(id, event));

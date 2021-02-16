@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
@@ -57,6 +58,7 @@ public class GraphModificationController {
             @RequestParam("permissions") String permissionsString,
             @RequestParam(value = "trace", required = false) String traceParam,
             @RequestParam("successive") boolean successive) {
+        Instant start = Instant.now();
         String trace = getTrace(traceParam);
         Graph graph = graphLoader.getGraph();
         EdgeId edgeId = EdgeId.of(
@@ -87,12 +89,13 @@ public class GraphModificationController {
         }
 
         graph.addEdge(edge);
-        postChangeEvent(successive, trace, edgeId, false);
+        postChangeEvent(start, successive, trace, edgeId, false);
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "graph/edges/bulk")
     @ResponseBody
     public void addEdges(@RequestBody BulkEdgeCreationRequestDto bulkRequest) {
+        Instant start = Instant.now();
         addTrace(bulkRequest);
         Graph graph = graphLoader.getGraph();
 
@@ -115,7 +118,7 @@ public class GraphModificationController {
             VertexId dst = new VertexId(bulkRequest.getDestinationZone(), request.getToName());
             Edge edge = new Edge(src, dst, new Permissions(request.getPermissions()));
             graph.addEdge(edge);
-            postChangeEvent(bulkRequest.isSuccessive(), request.getTrace(), edge.id(), false);
+            postChangeEvent(start, bulkRequest.isSuccessive(), request.getTrace(), edge.id(), false);
         }
     }
 
@@ -127,6 +130,7 @@ public class GraphModificationController {
             @RequestParam("permissions") String permissionsString,
             @RequestParam(value = "trace", required = false) String traceParam,
             @RequestParam("successive") boolean successive) {
+        Instant start = Instant.now();
         String trace = getTrace(traceParam);
         Graph graph = graphLoader.getGraph();
         EdgeId edgeId = EdgeId.of(
@@ -150,7 +154,7 @@ public class GraphModificationController {
         }
 
         graph.setPermissions(edgeId, permissions);
-        postChangeEvent(successive, trace, edgeId, false);
+        postChangeEvent(start, successive, trace, edgeId, false);
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "graph/edges/delete")
@@ -160,6 +164,7 @@ public class GraphModificationController {
             @RequestParam("to") String toId,
             @RequestParam(value = "trace", required = false) String traceParam,
             @RequestParam("successive") boolean successive) {
+        Instant start = Instant.now();
         String trace = getTrace(traceParam);
         Graph graph = graphLoader.getGraph();
         EdgeId edgeId = EdgeId.of(
@@ -182,7 +187,7 @@ public class GraphModificationController {
         }
 
         graph.removeEdge(edge);
-        postChangeEvent(successive, trace, edgeId, true);
+        postChangeEvent(start, successive, trace, edgeId, true);
     }
 
     private void optionallyForwardRequest(
@@ -234,6 +239,7 @@ public class GraphModificationController {
     }
 
     private void postChangeEvent(
+            Instant start,
             boolean successive,
             String trace,
             EdgeId edgeId,
@@ -250,7 +256,7 @@ public class GraphModificationController {
                     .effectiveVertices(delete ? Collections.emptySet() : subjects)
                     .sender(edgeId.getTo())
                     .originalSender(edgeId.getTo())
-                    .build());
+                    .build(), start);
         } else {
             Set<VertexId> subjects = graph.getVertex(edgeId.getFrom())
                     .index()
@@ -261,7 +267,7 @@ public class GraphModificationController {
                     .effectiveVertices(delete ? Collections.emptySet() : subjects)
                     .sender(edgeId.getFrom())
                     .originalSender(edgeId.getFrom())
-                    .build());
+                    .build(), start);
         }
     }
 

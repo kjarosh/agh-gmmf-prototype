@@ -37,6 +37,9 @@ public class QueryClientMain {
     private static Graph graph;
     private static String operationType;
     private static boolean naive;
+    private static int existing = 0;
+
+    private static List<Integer> results = new ArrayList<>();
 
     static {
         LogbackUtils.loadLogbackCli();
@@ -81,7 +84,11 @@ public class QueryClientMain {
             Duration time = Duration.ofNanos(end - start);
             times.add(time);
         }
-        log.info("Performed {} requests", times.size());
+        log.info("Performed {} requests ({} existing)", times.size(), existing);
+        logStats(times);
+    }
+
+    private static void logStats(List<Duration> times) {
         log.info("  min {}", times.stream().min(Comparator.comparing(Function.identity())).orElseThrow());
         log.info("  avg {}", times.stream().reduce(Duration::plus).orElseThrow().dividedBy(times.size()));
         log.info("  max {}", times.stream().max(Comparator.comparing(Function.identity())).orElseThrow());
@@ -94,13 +101,14 @@ public class QueryClientMain {
             from = RandomUtils.randomElement(random, graph.allVertices()).id();
             to = RandomUtils.randomElement(random, graph.allVertices()).id();
         } else {
-            from = RandomUtils.randomElement(random, graph.allVertices()).id();
-            Set<Edge> edgesBySource = graph.getEdgesBySource(from);
-            if (edgesBySource.isEmpty()) {
-                to = RandomUtils.randomElement(random, graph.allVertices()).id();
-            } else {
-                to = RandomUtils.randomElement(random, edgesBySource).dst();
-            }
+            Set<Edge> edgesBySource;
+            do {
+                from = RandomUtils.randomElement(random, graph.allVertices()).id();
+                edgesBySource = graph.getEdgesBySource(from);
+            } while (edgesBySource.isEmpty());
+
+            to = RandomUtils.randomElement(random, edgesBySource).dst();
+            ++existing;
         }
         performRequest0(client, from, to);
     }
@@ -108,13 +116,16 @@ public class QueryClientMain {
     private static void performRequest0(GraphQueryClient client, VertexId from, VertexId to) {
         switch (operationType) {
             case "reaches":
-                client.reaches(from.owner(), new EdgeId(from, to));
+                boolean reaches = client.reaches(from.owner(), new EdgeId(from, to));
+                results.add(reaches ? 1 : 0);
                 break;
             case "members":
-                client.members(from.owner(), from);
+                List<String> members = client.members(from.owner(), from);
+                results.add(members.size());
                 break;
             case "ep":
-                client.effectivePermissions(from.owner(), new EdgeId(from, to));
+                String ep = client.effectivePermissions(from.owner(), new EdgeId(from, to));
+                results.add(ep != null ? 1 : 0);
                 break;
             default:
                 throw new RuntimeException("Unknown op: " + operationType);
