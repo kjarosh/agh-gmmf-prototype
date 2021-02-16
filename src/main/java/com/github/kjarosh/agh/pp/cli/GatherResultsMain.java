@@ -139,11 +139,11 @@ public class GatherResultsMain {
 
     private static GatherConfig.GatherConfigBuilder configIndexed() {
         return GatherConfig.builder()
-                .loadDuration(Duration.ofMinutes(10))
+                .loadDuration(Duration.ofMinutes(5))
                 .analysisStartPercent(30)
                 .analysisEndPercent(90)
-                .requestsPerSecond(10)
-                .clientThreads(9);
+                .requestsPerSecond(1)
+                .clientThreads(1);
     }
 
     private static GatherConfig.GatherConfigBuilder configNaive() {
@@ -151,9 +151,9 @@ public class GatherResultsMain {
                 .loadDuration(Duration.ofMinutes(2))
                 .analysisStartPercent(10)
                 .analysisEndPercent(90)
-                .requestsPerSecond(10)
+                .requestsPerSecond(1)
                 .indexationDisabled(true)
-                .clientThreads(9);
+                .clientThreads(1);
     }
 
     public static void main(String[] args) throws IOException, MavenInvocationException {
