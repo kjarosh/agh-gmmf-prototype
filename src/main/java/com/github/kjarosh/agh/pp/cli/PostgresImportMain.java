@@ -144,11 +144,15 @@ public class PostgresImportMain {
             return null;
         }
 
-        int i = 0;
-        for (String field : fields) {
-            String value = StringEscapeUtils.unescapeCsv(values.get(i));
-            setNotificationField(notification, field, value);
-            ++i;
+        try {
+            int i = 0;
+            for (String field : fields) {
+                String value = StringEscapeUtils.unescapeCsv(values.get(i));
+                setNotificationField(notification, field, value);
+                ++i;
+            }
+        } catch (Exception e) {
+            return null;
         }
 
         return notification;
