@@ -5,6 +5,7 @@ import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
+import com.github.kjarosh.agh.pp.util.RandomUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
@@ -63,7 +64,7 @@ public class RandomOperationIssuer {
         }
 
         if (!mustAddEdge && random.nextDouble() < permissionsProbability) {
-            EdgeId id = randomElement(graph.allEdges()).id();
+            EdgeId id = RandomUtils.randomElement(random, graph.allEdges()).id();
             log.debug("Changing permissions of {}", id);
             operationIssuer.setPermissions(id.getFrom().owner(), id, randomPermissions(), trace());
             return;
@@ -89,7 +90,7 @@ public class RandomOperationIssuer {
     }
 
     private void addEdge() {
-        Edge e = randomElement(removedEdges);
+        Edge e = RandomUtils.randomElement(random, removedEdges);
         removedEdges.remove(e);
         graph.addEdge(e);
         log.debug("Adding edge {}", e);
@@ -97,32 +98,11 @@ public class RandomOperationIssuer {
     }
 
     private void removeEdge() {
-        Edge e = randomElement(graph.allEdges());
+        Edge e = RandomUtils.randomElement(random, graph.allEdges());
         graph.removeEdge(e);
         removedEdges.add(e);
         log.debug("Removing edge {}", e);
         operationIssuer.removeEdge(e.src().owner(), e.id(), trace());
-    }
-
-    private <X> X randomElement(Collection<? extends X> collection) {
-        if (collection instanceof List) {
-            return randomElementList((List<? extends X>) collection);
-        } else {
-            return randomElementCollection(collection);
-        }
-    }
-
-    <X> X randomElementList(List<? extends X> list) {
-        return list.get(random.nextInt(list.size()));
-    }
-
-    <X> X randomElementCollection(Collection<? extends X> collection) {
-        int ix = random.nextInt(collection.size());
-        Iterator<? extends X> it = collection.iterator();
-        while (ix-- > 0) {
-            it.next();
-        }
-        return it.next();
     }
 
     private Permissions randomPermissions() {
