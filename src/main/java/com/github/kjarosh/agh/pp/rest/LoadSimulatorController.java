@@ -2,6 +2,7 @@ package com.github.kjarosh.agh.pp.rest;
 
 import com.github.kjarosh.agh.pp.rest.dto.LoadSimulationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.OperationDto;
+import com.github.kjarosh.agh.pp.rest.error.OkException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 
 /**
@@ -31,27 +30,17 @@ public class LoadSimulatorController {
         List<OperationDto> operations = request.getOperations();
         if (operations.isEmpty()) {
             return;
-        } else if (operations.size() == 1) {
-            executeOperation(operations.get(0));
-            return;
         }
 
-        Instant now = Instant.now();
-        Instant finish = now.plus(request.getTimeSpan());
-
-        Duration delay = Duration.between(now, finish).dividedBy(operations.size());
         Exception rethrow = null;
-        for (int i = 0; i < operations.size(); ++i) {
-            OperationDto op = operations.get(i);
+        for (OperationDto op : operations) {
             try {
                 executeOperation(op);
+            } catch (OkException e) {
+                // ignore
             } catch (Exception e) {
                 log.error("Error while simulating load: {}", e.getMessage());
                 rethrow = e;
-            }
-
-            if (i < operations.size() - 1) {
-                Thread.sleep(delay.toMillis());
             }
         }
 

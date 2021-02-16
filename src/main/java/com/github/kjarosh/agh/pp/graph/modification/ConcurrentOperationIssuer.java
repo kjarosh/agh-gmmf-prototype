@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 public class ConcurrentOperationIssuer implements OperationIssuer {
-    private static final int QUEUE_CAPACITY = 100;
+    private static final int QUEUE_CAPACITY = 5;
 
     private final OperationIssuer delegate;
     private final Map<ZoneId, ThreadPoolExecutor> executors;
@@ -139,8 +139,8 @@ public class ConcurrentOperationIssuer implements OperationIssuer {
                 .stream()
                 .map(ThreadPoolExecutor::getQueue)
                 .mapToInt(Collection::size)
-                .average()
-                .getAsDouble();
+                .max()
+                .getAsInt();
         saturation.set(queue / QUEUE_CAPACITY);
     }
 }

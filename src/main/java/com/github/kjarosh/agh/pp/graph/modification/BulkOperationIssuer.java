@@ -26,22 +26,11 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class BulkOperationIssuer implements OperationIssuer {
     private final int bulkSize;
     private final OperationIssuer delegate;
-    private final Duration timeSpan;
     private final Map<ZoneId, Deque<OperationDto>> operationQueue = new ConcurrentHashMap<>();
 
-    public BulkOperationIssuer(OperationIssuer delegate, int bulkSize, int ops) {
-        this(delegate, bulkSize, toTimeSpan(bulkSize, ops));
-    }
-
-    public BulkOperationIssuer(OperationIssuer delegate, int bulkSize, Duration timeSpan) {
+    public BulkOperationIssuer(OperationIssuer delegate, int bulkSize) {
         this.delegate = delegate;
         this.bulkSize = bulkSize;
-        this.timeSpan = timeSpan;
-    }
-
-    static Duration toTimeSpan(int bulkSize, double ops) {
-        double rps = ops / bulkSize;
-        return Duration.ofMillis((long) (1000 / rps));
     }
 
     private Deque<OperationDto> queue(ZoneId zone) {
@@ -62,7 +51,6 @@ public class BulkOperationIssuer implements OperationIssuer {
 
     private void delegate(ZoneId zone, List<OperationDto> ops) {
         delegate.simulateLoad(zone, LoadSimulationRequestDto.builder()
-                .timeSpan(timeSpan)
                 .operations(ops)
                 .build());
     }

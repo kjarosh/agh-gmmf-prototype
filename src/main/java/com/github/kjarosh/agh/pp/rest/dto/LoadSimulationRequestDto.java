@@ -21,8 +21,6 @@ import java.util.List;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class LoadSimulationRequestDto {
-    @JsonProperty("timeSpan")
-    private Duration timeSpan;
     @JsonProperty("ops")
     private List<OperationDto> operations;
 }
