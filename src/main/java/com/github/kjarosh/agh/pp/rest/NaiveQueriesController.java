@@ -8,6 +8,9 @@ import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
+import com.github.kjarosh.agh.pp.rest.dto.EffectivePermissionsResponseDto;
+import com.github.kjarosh.agh.pp.rest.dto.MembersResponseDto;
+import com.github.kjarosh.agh.pp.rest.dto.ReachesResponseDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,9 +18,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
@@ -35,9 +38,10 @@ public class NaiveQueriesController {
 
     @RequestMapping(method = RequestMethod.POST, path = "naive/reaches")
     @ResponseBody
-    public boolean reaches(
+    public ReachesResponseDto reaches(
             @RequestParam("from") String fromId,
             @RequestParam("to") String toId) {
+        long start = System.nanoTime();
         Graph graph = graphLoader.getGraph();
         EdgeId edgeId = EdgeId.of(
                 new VertexId(fromId),
@@ -49,41 +53,56 @@ public class NaiveQueriesController {
         }
 
         if (basicQueriesController.isAdjacent(fromId, toId)) {
-            return true;
+            long end = System.nanoTime();
+            return ReachesResponseDto.builder()
+                    .reaches(true)
+                    .duration(Duration.ofNanos(end - start))
+                    .build();
         }
 
-        return graph.getEdgesBySource(edgeId.getFrom())
+        boolean reaches = graph.getEdgesBySource(edgeId.getFrom())
                 .stream()
-                .anyMatch(e -> reaches(e.dst().toString(), toId));
+                .anyMatch(e -> reaches(e.dst().toString(), toId).isReaches());
+        long end = System.nanoTime();
+        return ReachesResponseDto.builder()
+                .reaches(reaches)
+                .duration(Duration.ofNanos(end - start))
+                .build();
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "naive/members")
     @ResponseBody
-    public List<String> members(
+    public MembersResponseDto members(
             @RequestParam("of") String ofId) {
+        long start = System.nanoTime();
         Graph graph = graphLoader.getGraph();
         VertexId of = new VertexId(ofId);
         ZoneId ofOwner = of.owner();
 
         if (!ofOwner.equals(ZONE_ID)) {
-            return new ArrayList<>(new ZoneClient().naive().members(ofOwner, of));
+            return new ZoneClient().naive().members(ofOwner, of);
         }
 
         Set<String> result = new HashSet<>();
 
         for (Edge edge : graph.getEdgesByDestination(of)) {
             result.add(edge.src().toString());
-            result.addAll(members(edge.src().toString()));
+            result.addAll(members(edge.src().toString()).getMembers());
         }
 
-        return new ArrayList<>(result);
+        long end = System.nanoTime();
+        return MembersResponseDto.builder()
+                .members(new ArrayList<>(result))
+                .duration(Duration.ofNanos(end - start))
+                .build();
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "naive/effective_permissions")
     @ResponseBody
-    public String effectivePermissions(
+    public EffectivePermissionsResponseDto effectivePermissions(
             @RequestParam("from") String fromId,
             @RequestParam("to") String toId) {
+        long start = System.nanoTime();
         Graph graph = graphLoader.getGraph();
         EdgeId edgeId = EdgeId.of(
                 new VertexId(fromId),
@@ -102,13 +121,17 @@ public class NaiveQueriesController {
                         permissions,
                         edge.permissions());
             } else {
-                String other = effectivePermissions(edge.dst().toString(), toId);
+                String other = effectivePermissions(edge.dst().toString(), toId).getEffectivePermissions();
                 permissions = Permissions.combine(
                         permissions,
                         other != null ? new Permissions(other) : null);
             }
         }
 
-        return permissions == null ? null : permissions.toString();
+        long end = System.nanoTime();
+        return EffectivePermissionsResponseDto.builder()
+                .effectivePermissions(permissions == null ? null : permissions.toString())
+                .duration(Duration.ofNanos(end - start))
+                .build();
     }
 }

@@ -52,30 +52,30 @@ public class ExampleGraphTest extends ExampleTestBase {
     @ParameterizedTest
     @ArgumentsSource(GraphQueryClientArgumentsProvider.class)
     void reaches(GraphQueryClient queryClient) {
-        assertThat(queryClient.reaches(zone, eid("zone0:bob", "zone0:datahub")))
+        assertThat(queryClient.reaches(zone, eid("zone0:bob", "zone0:datahub")).isReaches())
                 .isTrue();
-        assertThat(queryClient.reaches(zone, eid("zone0:bob", "zone1:admins")))
+        assertThat(queryClient.reaches(zone, eid("zone0:bob", "zone1:admins")).isReaches())
                 .isFalse();
-        assertThat(queryClient.reaches(zone, eid("zone0:bob", "zone0:dhub_members")))
+        assertThat(queryClient.reaches(zone, eid("zone0:bob", "zone0:dhub_members")).isReaches())
                 .isTrue();
-        assertThat(queryClient.reaches(zone, eid("zone0:luke", "zone1:krakow")))
+        assertThat(queryClient.reaches(zone, eid("zone0:luke", "zone1:krakow")).isReaches())
                 .isTrue();
-        assertThat(queryClient.reaches(zone, eid("zone1:anne", "zone0:lisbon")))
+        assertThat(queryClient.reaches(zone, eid("zone1:anne", "zone0:lisbon")).isReaches())
                 .isFalse();
-        assertThat(queryClient.reaches(zone, eid("zone0:luke", "zone0:dhub_members")))
+        assertThat(queryClient.reaches(zone, eid("zone0:luke", "zone0:dhub_members")).isReaches())
                 .isTrue();
-        assertThat(queryClient.reaches(zone, eid("zone0:jill", "zone1:krakow")))
+        assertThat(queryClient.reaches(zone, eid("zone0:jill", "zone1:krakow")).isReaches())
                 .isTrue();
     }
 
     @ParameterizedTest
     @ArgumentsSource(GraphQueryClientArgumentsProvider.class)
     void members(GraphQueryClient queryClient) {
-        assertThat(queryClient.members(zone, vid("zone1:admins"))).containsExactlyInAnyOrder(
+        assertThat(queryClient.members(zone, vid("zone1:admins")).getMembers()).containsExactlyInAnyOrder(
                 "zone0:uber_admins",
                 "zone0:luke");
 
-        assertThat(queryClient.members(zone, vid("zone0:eo_data"))).containsExactlyInAnyOrder(
+        assertThat(queryClient.members(zone, vid("zone0:eo_data")).getMembers()).containsExactlyInAnyOrder(
                 "zone0:dhub_mngrs",
                 "zone0:dhub_members",
                 "zone0:uber_admins",
@@ -84,11 +84,11 @@ public class ExampleGraphTest extends ExampleTestBase {
                 "zone0:bob",
                 "zone0:luke");
 
-        assertThat(queryClient.members(zone, vid("zone0:ebi"))).containsExactlyInAnyOrder(
+        assertThat(queryClient.members(zone, vid("zone0:ebi")).getMembers()).containsExactlyInAnyOrder(
                 "zone0:alice",
                 "zone0:jill");
 
-        assertThat(queryClient.members(zone, vid("zone1:cyfnet"))).containsExactlyInAnyOrder(
+        assertThat(queryClient.members(zone, vid("zone1:cyfnet")).getMembers()).containsExactlyInAnyOrder(
                 "zone1:audit",
                 "zone1:members",
                 "zone1:tom",
@@ -97,7 +97,7 @@ public class ExampleGraphTest extends ExampleTestBase {
                 "zone0:uber_admins",
                 "zone0:luke");
 
-        assertThat(queryClient.members(zone, vid("zone1:krakow"))).containsExactlyInAnyOrder(
+        assertThat(queryClient.members(zone, vid("zone1:krakow")).getMembers()).containsExactlyInAnyOrder(
                 "zone1:eosc",
                 "zone1:primage",
                 "zone1:members",
@@ -121,35 +121,35 @@ public class ExampleGraphTest extends ExampleTestBase {
     @ParameterizedTest
     @ArgumentsSource(GraphQueryClientArgumentsProvider.class)
     void effectivePermissions(GraphQueryClient queryClient) {
-        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:bob")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:bob")).getEffectivePermissions())
                 .isNull();
-        assertThat(queryClient.effectivePermissions(zone, eid("zone0:jill", "zone1:krakow")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:jill", "zone1:krakow")).getEffectivePermissions())
                 .isEqualTo("00000");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone0:jill", "zone0:paris")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:jill", "zone0:paris")).getEffectivePermissions())
                 .isNull();
-        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:ebi")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:ebi")).getEffectivePermissions())
                 .isEqualTo("11000");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone1:audit", "zone1:cyfnet")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone1:audit", "zone1:cyfnet")).getEffectivePermissions())
                 .isEqualTo("11001");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone1:audit", "zone1:eosc")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone1:audit", "zone1:eosc")).getEffectivePermissions())
                 .isEqualTo("11001");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone1:tom", "zone1:primage")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone1:tom", "zone1:primage")).getEffectivePermissions())
                 .isEqualTo("11011");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone0:luke", "zone1:eosc")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:luke", "zone1:eosc")).getEffectivePermissions())
                 .isEqualTo("11011");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone1:anne", "zone1:cyfnet")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone1:anne", "zone1:cyfnet")).getEffectivePermissions())
                 .isEqualTo("11001");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone0:luke", "zone0:dhub_members")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:luke", "zone0:dhub_members")).getEffectivePermissions())
                 .isEqualTo("11111");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone1:admins", "zone1:eosc")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone1:admins", "zone1:eosc")).getEffectivePermissions())
                 .isEqualTo("11011");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone0:ebi", "zone0:ceric")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:ebi", "zone0:ceric")).getEffectivePermissions())
                 .isEqualTo("10000");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone0:bob", "zone0:datahub")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:bob", "zone0:datahub")).getEffectivePermissions())
                 .isEqualTo("11111");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone1:tom", "zone1:eosc")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone1:tom", "zone1:eosc")).getEffectivePermissions())
                 .isEqualTo("11001");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:ceric")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:ceric")).getEffectivePermissions())
                 .isEqualTo("10000");
     }
 

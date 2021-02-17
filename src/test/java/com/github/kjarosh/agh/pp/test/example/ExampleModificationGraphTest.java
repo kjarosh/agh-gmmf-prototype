@@ -35,33 +35,33 @@ public class ExampleModificationGraphTest extends ExampleTestBase {
     @ParameterizedTest
     @ArgumentsSource(GraphQueryClientArgumentsProvider.class)
     void effectivePermissions(GraphQueryClient queryClient) {
-        assertThat(queryClient.effectivePermissions(zone, eid("zone1:tom", "zone1:primage")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone1:tom", "zone1:primage")).getEffectivePermissions())
                 .isEqualTo("11001");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone0:luke", "zone1:admins")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:luke", "zone1:admins")).getEffectivePermissions())
                 .isEqualTo("10100");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone0:luke", "zone1:eosc")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:luke", "zone1:eosc")).getEffectivePermissions())
                 .isEqualTo("10001");
-        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:ceric")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:ceric")).getEffectivePermissions())
                 .isNull();
-        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:ebi")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone0:ebi")).getEffectivePermissions())
                 .isNull();
-        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone1:krakow")))
+        assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone1:krakow")).getEffectivePermissions())
                 .isEqualTo("00000");
     }
 
     @ParameterizedTest
     @ArgumentsSource(GraphQueryClientArgumentsProvider.class)
     void members(GraphQueryClient queryClient) {
-        assertThat(queryClient.members(zone, vid("zone0:ebi")))
+        assertThat(queryClient.members(zone, vid("zone0:ebi")).getMembers())
                 .containsExactlyInAnyOrder("zone0:jill");
 
-        assertThat(queryClient.members(zone, vid("zone0:ceric")))
+        assertThat(queryClient.members(zone, vid("zone0:ceric")).getMembers())
                 .containsExactlyInAnyOrder(
                         "zone0:ebi",
                         "zone1:anne",
                         "zone0:jill");
 
-        assertThat(queryClient.members(zone, vid("zone1:krakow")))
+        assertThat(queryClient.members(zone, vid("zone1:krakow")).getMembers())
                 .containsExactlyInAnyOrder(
                         "zone1:eosc",
                         "zone1:primage",

@@ -13,7 +13,10 @@ import com.github.kjarosh.agh.pp.rest.dto.BulkEdgeCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkMessagesDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.DependentZonesDto;
+import com.github.kjarosh.agh.pp.rest.dto.EffectivePermissionsResponseDto;
 import com.github.kjarosh.agh.pp.rest.dto.LoadSimulationRequestDto;
+import com.github.kjarosh.agh.pp.rest.dto.MembersResponseDto;
+import com.github.kjarosh.agh.pp.rest.dto.ReachesResponseDto;
 import com.github.kjarosh.agh.pp.util.StringList;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
@@ -339,7 +342,7 @@ public class ZoneClient implements OperationIssuer {
         }
 
         @Override
-        public boolean reaches(ZoneId zone, EdgeId edgeId) {
+        public ReachesResponseDto reaches(ZoneId zone, EdgeId edgeId) {
             String url = baseUri(zone)
                     .path(prefix)
                     .path("/reaches")
@@ -347,22 +350,22 @@ public class ZoneClient implements OperationIssuer {
                     .queryParam("to", edgeId.getTo())
                     .build()
                     .toUriString();
-            return execute(url, Boolean.class);
+            return execute(url, ReachesResponseDto.class);
         }
 
         @Override
-        public List<String> members(ZoneId zone, VertexId of) {
+        public MembersResponseDto members(ZoneId zone, VertexId of) {
             String url = baseUri(zone)
                     .path(prefix)
                     .path("/members")
                     .queryParam("of", of)
                     .build()
                     .toUriString();
-            return execute(url, StringList.class);
+            return execute(url, MembersResponseDto.class);
         }
 
         @Override
-        public String effectivePermissions(ZoneId zone, EdgeId edgeId) {
+        public EffectivePermissionsResponseDto effectivePermissions(ZoneId zone, EdgeId edgeId) {
             String url = baseUri(zone)
                     .path(prefix)
                     .path("/effective_permissions")
@@ -370,7 +373,7 @@ public class ZoneClient implements OperationIssuer {
                     .queryParam("to", edgeId.getTo())
                     .build()
                     .toUriString();
-            return execute(url, String.class);
+            return execute(url, EffectivePermissionsResponseDto.class);
         }
 
         @Override

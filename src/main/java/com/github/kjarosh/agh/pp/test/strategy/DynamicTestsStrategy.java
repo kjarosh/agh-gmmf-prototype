@@ -50,7 +50,7 @@ public class DynamicTestsStrategy implements TestStrategy {
                 to = getRandom(graph.allVertices());
 
                 indexed = client.indexed().effectivePermissions(
-                        zone, EdgeId.of(from.id(), to.id()));
+                        zone, EdgeId.of(from.id(), to.id())).getEffectivePermissions();
                 reaches = indexed != null;
             } while (!reaches && nonReachablePerms.get() * 2 >= allPerms.get());
 
@@ -60,7 +60,7 @@ public class DynamicTestsStrategy implements TestStrategy {
             }
 
             String naive = client.naive().effectivePermissions(
-                    zone, EdgeId.of(from.id(), to.id()));
+                    zone, EdgeId.of(from.id(), to.id())).getEffectivePermissions();
             assertEqual(naive, indexed,
                     "testing permissions from " + from + ", to " + to);
         });
@@ -69,8 +69,8 @@ public class DynamicTestsStrategy implements TestStrategy {
         makeStream(count, parallel).forEach(i -> {
             Vertex of = getRandom(graph.allVertices());
 
-            List<String> naive = client.naive().members(zone, of.id());
-            Collection<String> indexed = client.indexed().members(zone, of.id());
+            List<String> naive = client.naive().members(zone, of.id()).getMembers();
+            Collection<String> indexed = client.indexed().members(zone, of.id()).getMembers();
             assertEqualSet(naive, indexed, "testing members of " + of.id());
         });
         Assert.Stats members = Assert.statistics.reset();

@@ -81,7 +81,7 @@ public class ConstantLoadClientMain {
         maxPoolSize = Integer.parseInt(cmd.getOptionValue("t", "0"));
         operationsPerSecond = Integer.parseInt(cmd.getOptionValue("n"));
         graph = GraphLoader.loadGraph(cmd.getOptionValue("g"));
-        permsProbability = Double.parseDouble(cmd.getOptionValue("prob.perms", "0.8"));
+        permsProbability = Double.parseDouble(cmd.getOptionValue("prob.perms", "0.95"));
         durationSeconds = Integer.parseInt(cmd.getOptionValue("d", "-1"));
         disableIndexation = cmd.hasOption("disable-indexation");
         ZoneClient zoneClient = new ZoneClient();

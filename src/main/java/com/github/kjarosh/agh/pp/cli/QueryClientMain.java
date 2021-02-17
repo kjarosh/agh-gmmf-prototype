@@ -116,15 +116,15 @@ public class QueryClientMain {
     private static void performRequest0(GraphQueryClient client, VertexId from, VertexId to) {
         switch (operationType) {
             case "reaches":
-                boolean reaches = client.reaches(from.owner(), new EdgeId(from, to));
+                boolean reaches = client.reaches(from.owner(), new EdgeId(from, to)).isReaches();
                 results.add(reaches ? 1 : 0);
                 break;
             case "members":
-                List<String> members = client.members(from.owner(), from);
+                List<String> members = client.members(from.owner(), from).getMembers();
                 results.add(members.size());
                 break;
             case "ep":
-                String ep = client.effectivePermissions(from.owner(), new EdgeId(from, to));
+                String ep = client.effectivePermissions(from.owner(), new EdgeId(from, to)).getEffectivePermissions();
                 results.add(ep != null ? 1 : 0);
                 break;
             default:

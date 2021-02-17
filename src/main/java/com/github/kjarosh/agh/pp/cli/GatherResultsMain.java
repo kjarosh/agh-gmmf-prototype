@@ -62,75 +62,11 @@ public class GatherResultsMain {
     private static final Map<String, SSHClient> clients = new HashMap<>();
 
     private static final GatherConfig[] configs = new GatherConfig[]{
-            configNaive()
-                    .operationsPerSecond(100)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(200)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(300)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(400)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(500)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(600)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(700)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(800)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(900)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(1000)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(1100)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(1200)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(1300)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(1400)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(1500)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(1600)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(1700)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(1800)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(1900)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(2000)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(2100)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(2200)
-                    .build(),
-            configNaive()
-                    .operationsPerSecond(2300)
-                    .build()
+            configNaive().operationsPerSecond(2000).build(),
+            configNaive().operationsPerSecond(2200).build(),
+            configNaive().operationsPerSecond(2500).build(),
+            configNaive().operationsPerSecond(2800).build(),
+            configNaive().operationsPerSecond(3100).build(),
     };
 
     static {
@@ -139,11 +75,11 @@ public class GatherResultsMain {
 
     private static GatherConfig.GatherConfigBuilder configIndexed() {
         return GatherConfig.builder()
-                .loadDuration(Duration.ofMinutes(5))
-                .analysisStartPercent(30)
+                .loadDuration(Duration.ofMinutes(4))
+                .analysisStartPercent(10)
                 .analysisEndPercent(90)
                 .requestsPerSecond(1)
-                .clientThreads(1);
+                .clientThreads(4);
     }
 
     private static GatherConfig.GatherConfigBuilder configNaive() {
@@ -151,9 +87,9 @@ public class GatherResultsMain {
                 .loadDuration(Duration.ofMinutes(2))
                 .analysisStartPercent(10)
                 .analysisEndPercent(90)
-                .requestsPerSecond(1)
+                .requestsPerSecond(10)
                 .indexationDisabled(true)
-                .clientThreads(1);
+                .clientThreads(12);
     }
 
     public static void main(String[] args) throws IOException, MavenInvocationException {
