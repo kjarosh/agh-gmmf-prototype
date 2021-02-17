@@ -62,7 +62,13 @@ public class NaiveQueriesController {
 
         boolean reaches = graph.getEdgesBySource(edgeId.getFrom())
                 .stream()
-                .anyMatch(e -> reaches(e.dst().toString(), toId).isReaches());
+                .anyMatch(e -> {
+                    try {
+                        return reaches(e.dst().toString(), toId).isReaches();
+                    } catch (StackOverflowError err) {
+                        throw new RuntimeException("Found a cycle");
+                    }
+                });
         long end = System.nanoTime();
         return ReachesResponseDto.builder()
                 .reaches(reaches)
@@ -87,7 +93,11 @@ public class NaiveQueriesController {
 
         for (Edge edge : graph.getEdgesByDestination(of)) {
             result.add(edge.src().toString());
-            result.addAll(members(edge.src().toString()).getMembers());
+            try {
+                result.addAll(members(edge.src().toString()).getMembers());
+            } catch (StackOverflowError e) {
+                throw new RuntimeException("Found a cycle");
+            }
         }
 
         long end = System.nanoTime();
@@ -121,10 +131,14 @@ public class NaiveQueriesController {
                         permissions,
                         edge.permissions());
             } else {
-                String other = effectivePermissions(edge.dst().toString(), toId).getEffectivePermissions();
-                permissions = Permissions.combine(
-                        permissions,
-                        other != null ? new Permissions(other) : null);
+                try {
+                    String other = effectivePermissions(edge.dst().toString(), toId).getEffectivePermissions();
+                    permissions = Permissions.combine(
+                            permissions,
+                            other != null ? new Permissions(other) : null);
+                } catch (StackOverflowError e) {
+                    throw new RuntimeException("Found a cycle");
+                }
             }
         }
 
