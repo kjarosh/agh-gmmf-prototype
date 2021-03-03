@@ -1,8 +1,8 @@
 package com.github.kjarosh.agh.pp.test.strategy;
 
 import com.github.kjarosh.agh.pp.graph.model.Graph;
-import com.github.kjarosh.agh.pp.test.EventStatsGatherer;
-import com.github.kjarosh.agh.pp.test.Supervisor;
+import com.github.kjarosh.agh.pp.rest.client.EventStatsGatherer;
+import com.github.kjarosh.agh.pp.rest.client.Supervisor;
 import com.github.kjarosh.agh.pp.graph.modification.RandomOperationIssuer;
 import lombok.SneakyThrows;
 

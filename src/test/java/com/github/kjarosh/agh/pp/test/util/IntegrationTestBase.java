@@ -8,7 +8,7 @@ import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
-import com.github.kjarosh.agh.pp.test.RemoteGraphBuilder;
+import com.github.kjarosh.agh.pp.rest.client.RemoteGraphBuilder;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

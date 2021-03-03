@@ -4,7 +4,7 @@ import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
-import com.github.kjarosh.agh.pp.test.RemoteGraphBuilder;
+import com.github.kjarosh.agh.pp.rest.client.RemoteGraphBuilder;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 

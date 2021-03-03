@@ -1,10 +1,9 @@
-package com.github.kjarosh.agh.pp.test;
+package com.github.kjarosh.agh.pp.rest.client;
 
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.rest.dto.BulkEdgeCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.EdgeCreationRequestDto;

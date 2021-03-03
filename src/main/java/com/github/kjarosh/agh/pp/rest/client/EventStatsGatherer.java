@@ -1,4 +1,4 @@
-package com.github.kjarosh.agh.pp.test;
+package com.github.kjarosh.agh.pp.rest.client;
 
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
