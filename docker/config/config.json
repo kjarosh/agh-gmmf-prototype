@@ -1,0 +1,9 @@
+{
+  "instrumentationEnabled": true,
+  "instrumentationReportPath": "instrumentation.csv",
+  "zones": {
+    "example_zone": {
+      "address": "10.0.0.0"
+    }
+  }
+}
