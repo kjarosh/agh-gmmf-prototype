@@ -22,7 +22,7 @@ import java.util.concurrent.Callable;
 /**
  * @author Kamil Jarosz
  */
-public class Cmd {
+public class CmdClient {
     private static final ZoneClient client = new ZoneClient();
     private static ZoneId zone = null;
 
@@ -103,7 +103,7 @@ public class Cmd {
         private String zone;
 
         public Void call() {
-            Cmd.zone = new ZoneId(zone);
+            CmdClient.zone = new ZoneId(zone);
             return null;
         }
     }

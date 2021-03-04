@@ -1,6 +1,6 @@
 package com.github.kjarosh.agh.pp;
 
-import com.github.kjarosh.agh.pp.cli.Cmd;
+import com.github.kjarosh.agh.pp.cli.CmdClient;
 import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
@@ -52,7 +52,7 @@ public class Main {
                 }
 
                 log.info("Running client");
-                Cmd.main(args);
+                CmdClient.main(args);
                 break;
             }
 
@@ -102,6 +102,6 @@ public class Main {
         log.info("  app test <zone id>               -- run tests on the given zone");
         log.info("  app client                       -- run CLI client");
         log.info("  app server                       -- run server");
-        log.info("  app load <zone id> <graph path>  -- run server");
+        log.info("  app load <zone id> <graph path>  -- load graph on the given zone");
     }
 }

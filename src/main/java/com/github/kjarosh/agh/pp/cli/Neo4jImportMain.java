@@ -34,7 +34,7 @@ public class Neo4jImportMain {
         String graph = cmd.getOptionValue("g");
 
         try (Neo4jImporter importer = new Neo4jImporter(uri, username, password)) {
-            if(cmd.hasOption("x")){
+            if (cmd.hasOption("x")) {
                 importer.purge();
             }
 
