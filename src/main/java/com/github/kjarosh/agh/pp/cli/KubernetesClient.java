@@ -1,8 +1,11 @@
 package com.github.kjarosh.agh.pp.cli;
 
-import com.github.kjarosh.agh.pp.k8s.ZoneDeployment;
+import com.github.kjarosh.agh.pp.k8s.K8sZone;
+import com.google.gson.Gson;
 import io.kubernetes.client.openapi.ApiClient;
+import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.Configuration;
+import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.KubeConfig;
 import lombok.SneakyThrows;
@@ -40,7 +43,11 @@ public class KubernetesClient {
         namespace = cmd.getOptionValue("n", "default");
         zones = Integer.parseInt(cmd.getOptionValue("z"));
 
-        setupZones();
+        try {
+            setupZones();
+        } catch (ApiException e) {
+            processApiException(e);
+        }
     }
 
     @SneakyThrows
@@ -61,10 +68,16 @@ public class KubernetesClient {
         }
     }
 
-    @SneakyThrows
-    private static void setupZones() {
+    private static void setupZones() throws ApiException {
         for (int zone = 0; zone < zones; ++zone) {
-            new ZoneDeployment(namespace, "zone" + zone).apply();
+            new K8sZone(namespace, "zone" + zone, zone).apply();
         }
+    }
+
+    private static void processApiException(ApiException e) {
+        Gson gson = JSON.createGson().setPrettyPrinting().create();
+        System.err.println("ApiException: " + e.getCode() + " " + e.getMessage());
+        System.err.println(gson.toJson(gson.fromJson(e.getResponseBody(), Object.class)));
+        e.printStackTrace();
     }
 }

@@ -68,6 +68,10 @@ public class Config {
 
     @JsonIgnore
     public String translateZoneToAddress(ZoneId zone) {
+        if (ZONE_ID != null && ZONE_ID.equals(zone)) {
+            return "127.0.0.1";
+        }
+
         String zoneId = zone.getId();
         ZoneConfig zoneConfig = zones.get(zoneId);
         return zoneConfig != null ? zoneConfig.getAddress() : zoneId;
