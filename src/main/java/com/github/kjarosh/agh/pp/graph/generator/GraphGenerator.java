@@ -176,13 +176,15 @@ public class GraphGenerator {
                     .stream()
                     .filter(v -> v.type() == Vertex.Type.GROUP)
                     .collect(Collectors.toList());
-            return vertices.get(random.nextInt(vertices.size()));
-        } else {
-            Vertex group = entityGenerator.generateVertex(generateGroupZone(spaceZone), Vertex.Type.GROUP);
-            graph.addVertex(group);
-            generateUserTree(graph, group, depth - 1, spaceZone);
-            return group;
+            if (vertices.size() > 0) {
+                return vertices.get(random.nextInt(vertices.size()));
+            }
         }
+
+        Vertex group = entityGenerator.generateVertex(generateGroupZone(spaceZone), Vertex.Type.GROUP);
+        graph.addVertex(group);
+        generateUserTree(graph, group, depth - 1, spaceZone);
+        return group;
     }
 
     private ZoneId generateUserZone(ZoneId spaceZone) {
