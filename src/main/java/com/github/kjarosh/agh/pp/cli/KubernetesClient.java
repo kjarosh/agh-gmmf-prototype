@@ -28,11 +28,13 @@ import java.nio.file.Paths;
 public class KubernetesClient {
     private static String namespace;
     private static int zones;
+    private static int portOffset;
 
     public static void main(String[] args) throws ParseException {
         Options options = new Options();
         options.addOption("c", "config", true, "path to kubectl config");
         options.addOption("n", "namespace", true, "k8s namespace");
+        options.addOption("p", "port-offset", true, "port offset for node ports, default 30080");
         options.addRequiredOption("z", "zones", true, "number of zones");
 
         CommandLineParser parser = new DefaultParser();
@@ -42,6 +44,7 @@ public class KubernetesClient {
 
         namespace = cmd.getOptionValue("n", "default");
         zones = Integer.parseInt(cmd.getOptionValue("z"));
+        portOffset = Integer.parseInt(cmd.getOptionValue("p", "30080"));
 
         try {
             setupZones();
@@ -70,7 +73,7 @@ public class KubernetesClient {
 
     private static void setupZones() throws ApiException {
         for (int zone = 0; zone < zones; ++zone) {
-            new K8sZone(namespace, "zone" + zone, zone).apply();
+            new K8sZone(namespace, "zone" + zone, portOffset + zone).apply();
         }
     }
 

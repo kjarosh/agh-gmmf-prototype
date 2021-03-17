@@ -29,17 +29,17 @@ public class K8sZone {
     private static final NetworkingV1Api networkingApi = new NetworkingV1Api();
 
     private final String namespace;
-    private final int portOffset;
+    private final int nodePort;
     private final String zoneId;
     private final String serviceName;
     private final String deploymentName;
     private final String ingressName;
     private final Map<String, String> labels;
 
-    public K8sZone(String namespace, String zoneId, int portOffset) {
+    public K8sZone(String namespace, String zoneId, int nodePort) {
         this.zoneId = zoneId;
         this.namespace = namespace;
-        this.portOffset = portOffset;
+        this.nodePort = nodePort;
         this.labels = new HashMap<>();
         this.labels.put("app", "gmm-indexer");
         this.labels.put("zone", zoneId);
@@ -113,7 +113,7 @@ public class K8sZone {
                 .withPorts()
                 .addNewPort()
                 .withPort(80)
-                .withNodePort(30080 + portOffset)
+                .withNodePort(nodePort)
                 .withNewTargetPort(80)
                 .endPort()
                 .endSpec()
@@ -153,7 +153,6 @@ public class K8sZone {
     public void apply() throws ApiException {
         applyDeployment();
         applyService();
-//        applyIngress();
     }
 
     private void applyDeployment() throws ApiException {
@@ -182,19 +181,6 @@ public class K8sZone {
         }
     }
 
-    private void applyIngress() throws ApiException {
-        try {
-            V1Ingress oldIngress = networkingApi.readNamespacedIngress(ingressName, namespace, null, false, false);
-            replaceIngress(oldIngress);
-        } catch (ApiException e) {
-            if (e.getCode() != 404) {
-                throw e;
-            }
-
-            createIngress();
-        }
-    }
-
     public void createDeployment() throws ApiException {
         V1Deployment deployment = buildDeployment(new V1Deployment());
         appsApi.createNamespacedDeployment(namespace, deployment, null, null, null);
@@ -218,10 +204,5 @@ public class K8sZone {
     public void replaceService(V1Service oldService) throws ApiException {
         V1Service service = buildService(oldService);
         coreApi.replaceNamespacedService(serviceName, namespace, service, null, null, null);
-    }
-
-    private void replaceIngress(V1Ingress oldIngress) throws ApiException {
-        V1Ingress ingress = buildIngress(oldIngress);
-        networkingApi.replaceNamespacedIngress(ingressName, namespace, ingress, null, null, null);
     }
 }
