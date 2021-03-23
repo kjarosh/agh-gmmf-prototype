@@ -77,7 +77,7 @@ public class ConstantLoadClientMain {
 
         loadGraph = cmd.hasOption("l");
         exitOnFail = cmd.hasOption("x");
-        bulkSize = Integer.parseInt(cmd.getOptionValue("b"));
+        bulkSize = Integer.parseInt(cmd.getOptionValue("b", "1"));
         maxPoolSize = Integer.parseInt(cmd.getOptionValue("t", "0"));
         operationsPerSecond = Integer.parseInt(cmd.getOptionValue("n"));
         graph = GraphLoader.loadGraph(cmd.getOptionValue("g"));

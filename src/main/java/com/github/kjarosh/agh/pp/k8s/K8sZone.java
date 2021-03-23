@@ -97,6 +97,7 @@ public class K8sZone {
                 .withPath("/healthcheck")
                 .endHttpGet()
                 .endReadinessProbe()
+                .withImagePullPolicy("Always")
                 .build();
     }
 
@@ -118,35 +119,6 @@ public class K8sZone {
                 .endPort()
                 .endSpec()
                 .withStatus(null)
-                .build();
-    }
-
-    private V1Ingress buildIngress(V1Ingress old) {
-        return new V1IngressBuilder(old)
-                .withApiVersion("networking.k8s.io/v1")
-                .withKind("Ingress")
-                .editOrNewMetadata()
-                .withName(ingressName)
-                .endMetadata()
-                .editOrNewSpec()
-                .withRules()
-                .addNewRule()
-                .editOrNewHttp()
-                .addNewPath()
-                .withPath("/")
-                .withPathType("Prefix")
-                .editOrNewBackend()
-                .editOrNewService()
-                .withName(serviceName)
-                .withNewPort()
-                .withNumber(80)
-                .endPort()
-                .endService()
-                .endBackend()
-                .endPath()
-                .endHttp()
-                .endRule()
-                .endSpec()
                 .build();
     }
 
@@ -189,11 +161,6 @@ public class K8sZone {
     public void createService() throws ApiException {
         V1Service service = buildService(new V1Service());
         coreApi.createNamespacedService(namespace, service, null, null, null);
-    }
-
-    public void createIngress() throws ApiException {
-        V1Ingress ingress = buildIngress(new V1Ingress());
-        networkingApi.createNamespacedIngress(namespace, ingress, null, null, null);
     }
 
     public void replaceDeployment(V1Deployment oldDeployment) throws ApiException {
