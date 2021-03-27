@@ -110,7 +110,7 @@ public class RemoteGraphBuilder {
         if (notHealthy.isEmpty()) {
             return true;
         } else {
-            log.debug("Zones not ready: {}", notHealthy);
+            log.info("Zones not healthy: {}", notHealthy);
             return false;
         }
     }

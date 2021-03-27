@@ -9,9 +9,9 @@ import com.github.kjarosh.agh.pp.graph.modification.ConcurrentOperationIssuer;
 import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
 import com.github.kjarosh.agh.pp.graph.modification.RandomOperationIssuer;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
-import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.rest.client.EventStatsGatherer;
 import com.github.kjarosh.agh.pp.rest.client.RemoteGraphBuilder;
+import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
@@ -45,6 +45,7 @@ public class ConstantLoadClientMain {
     private static boolean exitOnFail;
     private static int bulkSize;
     private static int operationsPerSecond;
+    private static int requestsPerSecond;
     private static Graph graph;
     private static double permsProbability;
     private static int maxPoolSize;
@@ -66,6 +67,7 @@ public class ConstantLoadClientMain {
         options.addOption("l", "load", false, "decide whether to load graph before running tests");
         options.addOption("x", "exit-on-fail", false, "exit on first fail");
         options.addOption("b", "bulk", true, "enable bulk requests and set bulk size");
+        options.addOption("r", "requests", true, "enable bulk requests and set requests per second");
         options.addOption("t", "concurrent-pool", true, "enable concurrency and set pool size");
         options.addOption("d", "duration-seconds", true, "stop load after the given number of seconds");
         options.addOption(null, "prob.perms", true,
@@ -77,9 +79,17 @@ public class ConstantLoadClientMain {
 
         loadGraph = cmd.hasOption("l");
         exitOnFail = cmd.hasOption("x");
-        bulkSize = Integer.parseInt(cmd.getOptionValue("b", "1"));
-        maxPoolSize = Integer.parseInt(cmd.getOptionValue("t", "0"));
         operationsPerSecond = Integer.parseInt(cmd.getOptionValue("n"));
+        bulkSize = Integer.parseInt(cmd.getOptionValue("b", "-1"));
+        requestsPerSecond = Integer.parseInt(cmd.getOptionValue("r", "-1"));
+        if (requestsPerSecond != -1 && bulkSize != -1) {
+            throw new RuntimeException("-b and -r defined simultaneously");
+        } else if (requestsPerSecond != -1) {
+            bulkSize = operationsPerSecond / requestsPerSecond;
+        } else if (bulkSize == -1) {
+            bulkSize = 1;
+        }
+        maxPoolSize = Integer.parseInt(cmd.getOptionValue("t", "0"));
         graph = GraphLoader.loadGraph(cmd.getOptionValue("g"));
         permsProbability = Double.parseDouble(cmd.getOptionValue("prob.perms", "0.95"));
         durationSeconds = Integer.parseInt(cmd.getOptionValue("d", "-1"));
