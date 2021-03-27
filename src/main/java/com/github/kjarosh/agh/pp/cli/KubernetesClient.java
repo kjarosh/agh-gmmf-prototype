@@ -32,7 +32,8 @@ import java.nio.file.Paths;
  */
 public class KubernetesClient {
     private static String namespace;
-    private static int portOffset;
+    private static String resourceCpu;
+    private static String resourceMemory;
 
     static {
         LogbackUtils.loadLogbackCli();
@@ -42,9 +43,10 @@ public class KubernetesClient {
         Options options = new Options();
         options.addOption("c", "config", true, "path to kubectl config");
         options.addOption("n", "namespace", true, "k8s namespace");
-        options.addOption("p", "port-offset", true, "port offset for node ports, default 30080");
         options.addOption("z", "zones", true, "number of zones");
         options.addOption("g", "graph", true, "path to the graph to use");
+        options.addOption(null, "require-cpu", true, "cpu requirement for k8s");
+        options.addOption(null, "require-memory", true, "memory requirement for k8s");
         options.addOption(null, "constant-load-opts", true, "run constant load with these options");
 
         CommandLineParser parser = new DefaultParser();
@@ -53,7 +55,8 @@ public class KubernetesClient {
         setupConfig(cmd.getOptionValue("c"));
 
         namespace = cmd.getOptionValue("n", "default");
-        portOffset = Integer.parseInt(cmd.getOptionValue("p", "30080"));
+        resourceCpu = cmd.getOptionValue("require-cpu", "1");
+        resourceMemory = cmd.getOptionValue("require-memory", "2Gi");
 
         try {
             if (cmd.hasOption("z")) {
@@ -91,7 +94,7 @@ public class KubernetesClient {
 
     private static void setupZones(int zones) throws ApiException {
         for (int zone = 0; zone < zones; ++zone) {
-            new K8sZone(namespace, "zone" + zone, portOffset + zone).apply();
+            new K8sZone(namespace, "zone" + zone, resourceCpu, resourceMemory).apply();
         }
     }
 

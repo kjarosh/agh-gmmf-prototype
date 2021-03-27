@@ -1,16 +1,14 @@
 package com.github.kjarosh.agh.pp.k8s;
 
+import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.AppsV1Api;
 import io.kubernetes.client.openapi.apis.CoreV1Api;
-import io.kubernetes.client.openapi.apis.NetworkingV1Api;
 import io.kubernetes.client.openapi.models.V1Container;
 import io.kubernetes.client.openapi.models.V1ContainerBuilder;
 import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1DeploymentBuilder;
 import io.kubernetes.client.openapi.models.V1DeploymentSpec;
-import io.kubernetes.client.openapi.models.V1Ingress;
-import io.kubernetes.client.openapi.models.V1IngressBuilder;
 import io.kubernetes.client.openapi.models.V1PodSpec;
 import io.kubernetes.client.openapi.models.V1PodTemplateSpec;
 import io.kubernetes.client.openapi.models.V1Service;
@@ -26,26 +24,25 @@ import java.util.Optional;
 public class K8sZone {
     private static final AppsV1Api appsApi = new AppsV1Api();
     private static final CoreV1Api coreApi = new CoreV1Api();
-    private static final NetworkingV1Api networkingApi = new NetworkingV1Api();
 
     private final String namespace;
-    private final int nodePort;
     private final String zoneId;
     private final String serviceName;
     private final String deploymentName;
-    private final String ingressName;
     private final Map<String, String> labels;
+    private final String resourceCpu;
+    private final String resourceMemory;
 
-    public K8sZone(String namespace, String zoneId, int nodePort) {
+    public K8sZone(String namespace, String zoneId, String resourceCpu, String resourceMemory) {
         this.zoneId = zoneId;
         this.namespace = namespace;
-        this.nodePort = nodePort;
         this.labels = new HashMap<>();
         this.labels.put("app", "gmm-indexer");
         this.labels.put("zone", zoneId);
         this.deploymentName = zoneId;
         this.serviceName = zoneId;
-        this.ingressName = zoneId;
+        this.resourceCpu = resourceCpu;
+        this.resourceMemory = resourceMemory;
     }
 
     private V1Deployment buildDeployment(V1Deployment old) {
@@ -98,6 +95,10 @@ public class K8sZone {
                 .endHttpGet()
                 .endReadinessProbe()
                 .withImagePullPolicy("Always")
+                .editOrNewResources()
+                .addToRequests("cpu", Quantity.fromString(resourceCpu))
+                .addToRequests("memory", Quantity.fromString(resourceMemory))
+                .endResources()
                 .build();
     }
 
@@ -109,12 +110,10 @@ public class K8sZone {
                 .withName(serviceName)
                 .endMetadata()
                 .editOrNewSpec()
-                .withType("NodePort")
                 .addToSelector(labels)
                 .withPorts()
                 .addNewPort()
                 .withPort(80)
-                .withNodePort(nodePort)
                 .withNewTargetPort(80)
                 .endPort()
                 .endSpec()
