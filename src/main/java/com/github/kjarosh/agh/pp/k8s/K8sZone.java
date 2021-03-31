@@ -50,7 +50,7 @@ public class K8sZone {
         this.labels.put("zone", zoneId);
         this.deploymentName = zoneId;
         this.serviceName = zoneId;
-        this.pvcName = zoneId + "-pv";
+        this.pvcName = zoneId + "-pvc";
         this.resourceCpu = resourceCpu;
         this.resourceMemory = resourceMemory;
     }
