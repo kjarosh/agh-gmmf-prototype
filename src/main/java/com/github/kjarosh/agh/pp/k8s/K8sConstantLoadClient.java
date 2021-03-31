@@ -1,5 +1,6 @@
 package com.github.kjarosh.agh.pp.k8s;
 
+import io.kubernetes.client.custom.Quantity;
 import io.kubernetes.client.openapi.ApiException;
 import io.kubernetes.client.openapi.apis.BatchV1Api;
 import io.kubernetes.client.openapi.models.V1Container;
@@ -21,12 +22,16 @@ public class K8sConstantLoadClient {
     private final String constantLoadOpts;
     private final String jobName = "constant-load";
     private final String volumeName = "graph-from-cm";
+    private final String resourceCpu;
+    private final String resourceMemory;
 
-    public K8sConstantLoadClient(String namespace, byte[] graph, String constantLoadOpts) {
+    public K8sConstantLoadClient(String namespace, byte[] graph, String constantLoadOpts, String resourceCpu, String resourceMemory) {
         this.graphName = "constant-client-graph";
         this.constantLoadOpts = constantLoadOpts;
         this.configMap = new K8sGraphConfigMap(namespace, graphName, graph);
         this.namespace = namespace;
+        this.resourceCpu = resourceCpu;
+        this.resourceMemory = resourceMemory;
     }
 
     private V1Job buildJob(V1Job old) {
@@ -58,6 +63,10 @@ public class K8sConstantLoadClient {
                 .withName(volumeName)
                 .withNewMountPath("/graph")
                 .endVolumeMount()
+                .editOrNewResources()
+                .addToRequests("cpu", Quantity.fromString(resourceCpu))
+                .addToRequests("memory", Quantity.fromString(resourceMemory))
+                .endResources()
                 .build();
     }
 

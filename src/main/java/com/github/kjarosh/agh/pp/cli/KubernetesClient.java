@@ -101,7 +101,7 @@ public class KubernetesClient {
     private static void setupConstantLoad(String constantLoadOpts, Path graphPath) throws ApiException {
         try (InputStream is = Files.newInputStream(graphPath)) {
             byte[] contents = ByteStreams.toByteArray(is);
-            new K8sConstantLoadClient(namespace, contents, constantLoadOpts)
+            new K8sConstantLoadClient(namespace, contents, constantLoadOpts, resourceCpu, resourceMemory)
                     .apply();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
