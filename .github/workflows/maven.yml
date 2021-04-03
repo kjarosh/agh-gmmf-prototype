@@ -49,8 +49,11 @@ jobs:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
+    -
+      name: Test with Maven
+      run: mvn --batch-mode --update-snapshots test
     - 
-      name: Build with Maven
+      name: Package with Maven
       run: mvn --batch-mode --update-snapshots package
     -
       name: Set up QEMU
