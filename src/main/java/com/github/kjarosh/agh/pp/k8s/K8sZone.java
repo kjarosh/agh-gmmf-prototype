@@ -90,7 +90,7 @@ public class K8sZone {
     private V1Container buildContainer(V1Container old) {
         return new V1ContainerBuilder(old)
                 .withName("zone")
-                .withImage("kjarosh/ms-graph-simulator")
+                .withImage("danieljodlos/gmm-indexer-fork")
                 .withArgs("server")
                 .addNewEnv()
                 .withName("ZONE_ID")
