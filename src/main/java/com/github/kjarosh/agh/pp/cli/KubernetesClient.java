@@ -12,17 +12,9 @@ import io.kubernetes.client.openapi.JSON;
 import io.kubernetes.client.util.Config;
 import io.kubernetes.client.util.KubeConfig;
 import lombok.SneakyThrows;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,6 +37,7 @@ public class KubernetesClient {
         options.addOption("n", "namespace", true, "k8s namespace");
         options.addOption("z", "zones", true, "number of zones");
         options.addOption("g", "graph", true, "path to the graph to use");
+        options.addOption("i", "image", true, "desired docker image");
         options.addOption(null, "require-cpu", true, "cpu requirement for k8s");
         options.addOption(null, "require-memory", true, "memory requirement for k8s");
         options.addOption(null, "constant-load-opts", true, "run constant load with these options");
@@ -61,7 +54,11 @@ public class KubernetesClient {
         try {
             if (cmd.hasOption("z")) {
                 int zones = Integer.parseInt(cmd.getOptionValue("z"));
-                setupZones(zones);
+                if(cmd.hasOption("i")) {
+                    setupZones(cmd.getOptionValue("i"), zones);
+                } else {
+                    setupZones(zones);
+                }
             }
 
             if (cmd.hasOption("g") && cmd.hasOption("constant-load-opts")) {
@@ -95,6 +92,12 @@ public class KubernetesClient {
     private static void setupZones(int zones) throws ApiException {
         for (int zone = 0; zone < zones; ++zone) {
             new K8sZone(namespace, "zone" + zone, resourceCpu, resourceMemory).apply();
+        }
+    }
+
+    private static void setupZones(String image, int zones) throws ApiException {
+        for (int zone = 0; zone < zones; ++zone) {
+            new K8sZone(image, namespace, "zone" + zone, resourceCpu, resourceMemory).apply();
         }
     }
 

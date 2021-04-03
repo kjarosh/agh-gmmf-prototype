@@ -41,6 +41,7 @@ public class K8sZone {
     private final Map<String, String> labels;
     private final String resourceCpu;
     private final String resourceMemory;
+    private String image;
 
     public K8sZone(String namespace, String zoneId, String resourceCpu, String resourceMemory) {
         this.zoneId = zoneId;
@@ -53,6 +54,12 @@ public class K8sZone {
         this.pvcName = zoneId + "-pvc";
         this.resourceCpu = resourceCpu;
         this.resourceMemory = resourceMemory;
+        this.image = System.getenv().getOrDefault("zone_image", "kjarosh/ms-graph-simulator");
+    }
+
+    public K8sZone(String image, String namespace, String zoneId, String resourceCpu, String resourceMemory) {
+        this(namespace, zoneId, resourceCpu, resourceMemory);
+        this.image = image;
     }
 
     private V1Deployment buildDeployment(V1Deployment old) {
@@ -90,7 +97,7 @@ public class K8sZone {
     private V1Container buildContainer(V1Container old) {
         return new V1ContainerBuilder(old)
                 .withName("zone")
-                .withImage("kjarosh/ms-graph-simulator")
+                .withImage(image)
                 .withArgs("server")
                 .addNewEnv()
                 .withName("ZONE_ID")
