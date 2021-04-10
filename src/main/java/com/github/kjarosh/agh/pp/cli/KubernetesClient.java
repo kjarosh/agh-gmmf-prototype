@@ -26,6 +26,8 @@ public class KubernetesClient {
     private static String namespace;
     private static String resourceCpu;
     private static String resourceMemory;
+    private static final String imageDefault = System.getenv().getOrDefault("zone_image", "kjarosh/ms-graph-simulator");
+    private static String image;
 
     static {
         LogbackUtils.loadLogbackCli();
@@ -50,15 +52,12 @@ public class KubernetesClient {
         namespace = cmd.getOptionValue("n", "default");
         resourceCpu = cmd.getOptionValue("require-cpu", "1");
         resourceMemory = cmd.getOptionValue("require-memory", "2Gi");
+        image = cmd.getOptionValue("i", imageDefault);
 
         try {
             if (cmd.hasOption("z")) {
                 int zones = Integer.parseInt(cmd.getOptionValue("z"));
-                if(cmd.hasOption("i")) {
-                    setupZones(cmd.getOptionValue("i"), zones);
-                } else {
-                    setupZones(zones);
-                }
+                setupZones(zones);
             }
 
             if (cmd.hasOption("g") && cmd.hasOption("constant-load-opts")) {
@@ -91,12 +90,6 @@ public class KubernetesClient {
 
     private static void setupZones(int zones) throws ApiException {
         for (int zone = 0; zone < zones; ++zone) {
-            new K8sZone(namespace, "zone" + zone, resourceCpu, resourceMemory).apply();
-        }
-    }
-
-    private static void setupZones(String image, int zones) throws ApiException {
-        for (int zone = 0; zone < zones; ++zone) {
             new K8sZone(image, namespace, "zone" + zone, resourceCpu, resourceMemory).apply();
         }
     }
@@ -104,7 +97,7 @@ public class KubernetesClient {
     private static void setupConstantLoad(String constantLoadOpts, Path graphPath) throws ApiException {
         try (InputStream is = Files.newInputStream(graphPath)) {
             byte[] contents = ByteStreams.toByteArray(is);
-            new K8sConstantLoadClient(namespace, contents, constantLoadOpts, resourceCpu, resourceMemory)
+            new K8sConstantLoadClient(image, namespace, contents, constantLoadOpts, resourceCpu, resourceMemory)
                     .apply();
         } catch (IOException e) {
             throw new UncheckedIOException(e);

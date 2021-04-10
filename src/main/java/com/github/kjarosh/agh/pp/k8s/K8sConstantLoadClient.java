@@ -15,6 +15,7 @@ import io.kubernetes.client.openapi.models.V1VolumeBuilder;
  */
 public class K8sConstantLoadClient {
     private static final BatchV1Api batchApi = new BatchV1Api();
+    private static final String imageDefault = System.getenv().getOrDefault("zone_image", "kjarosh/ms-graph-simulator");
 
     private final K8sGraphConfigMap configMap;
     private final String namespace;
@@ -24,14 +25,20 @@ public class K8sConstantLoadClient {
     private final String volumeName = "graph-from-cm";
     private final String resourceCpu;
     private final String resourceMemory;
+    private final String image;
 
     public K8sConstantLoadClient(String namespace, byte[] graph, String constantLoadOpts, String resourceCpu, String resourceMemory) {
+        this(imageDefault, namespace, graph, constantLoadOpts, resourceCpu, resourceMemory);
+    }
+
+    public K8sConstantLoadClient(String image, String namespace, byte[] graph, String constantLoadOpts, String resourceCpu, String resourceMemory) {
         this.graphName = "constant-client-graph";
         this.constantLoadOpts = constantLoadOpts;
         this.configMap = new K8sGraphConfigMap(namespace, graphName, graph);
         this.namespace = namespace;
         this.resourceCpu = resourceCpu;
         this.resourceMemory = resourceMemory;
+        this.image = image;
     }
 
     private V1Job buildJob(V1Job old) {
@@ -55,7 +62,7 @@ public class K8sConstantLoadClient {
     private V1Container buildContainer() {
         return new V1ContainerBuilder()
                 .withName("constant-load-client")
-                .withImage("kjarosh/ms-graph-simulator")
+                .withImage(image)
                 .withCommand("/run-main.sh", "com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain")
                 .withArgs("-g", "/graph/graph.json")
                 .addToArgs(constantLoadOpts.split("\\s+"))
