@@ -8,10 +8,7 @@ import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.util.RandomUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -21,7 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Kamil Jarosz
  */
 @Slf4j
-public class RandomOperationIssuer {
+public class RandomOperationIssuer implements IOperationPerformer {
     private final Random random;
     private final Graph graph;
     private final Set<Edge> removedEdges = new HashSet<>();
@@ -46,10 +43,15 @@ public class RandomOperationIssuer {
     }
 
     public RandomOperationIssuer withOperationIssuer(OperationIssuer operationIssuer) {
-        this.operationIssuer = operationIssuer;
+        setOperationIssuer(operationIssuer);
         return this;
     }
 
+    public void setOperationIssuer(OperationIssuer issuer) {
+        this.operationIssuer = issuer;
+    }
+
+    @Override
     public synchronized void perform() {
         perform0();
     }
