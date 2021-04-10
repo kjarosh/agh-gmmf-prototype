@@ -2,6 +2,7 @@ package com.github.kjarosh.agh.pp.cli;
 
 import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
+import com.github.kjarosh.agh.pp.graph.generator.SequenceOperationIssuer;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.graph.modification.BulkOperationPerformer;
@@ -20,6 +21,10 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -52,7 +57,7 @@ public class ConstantLoadClientMain {
     private static int durationSeconds;
     private static boolean disableIndexation;
 
-    private static RandomOperationIssuer randomOperationIssuer;
+    private static OperationIssuer operationIssuer;
     private static ConcurrentOperationPerformer baseOperationIssuer;
     private static OperationPerformer operationPerformer;
 
@@ -60,7 +65,7 @@ public class ConstantLoadClientMain {
         LogbackUtils.loadLogbackCli();
     }
 
-    public static void main(String[] args) throws ParseException, TimeoutException {
+    public static void main(String[] args) throws ParseException, TimeoutException, IOException {
         Options options = new Options();
         options.addRequiredOption("n", "operations", true, "number of operations per second");
         options.addRequiredOption("g", "graph", true, "path to graph");
@@ -70,6 +75,7 @@ public class ConstantLoadClientMain {
         options.addOption("r", "requests", true, "enable bulk requests and set requests per second");
         options.addOption("t", "concurrent-pool", true, "enable concurrency and set pool size");
         options.addOption("d", "duration-seconds", true, "stop load after the given number of seconds");
+        options.addOption("s", "sequence", true, "execute requests from this file");
         options.addOption(null, "prob.perms", true,
                 "probability that a random operation changes permissions");
         options.addOption(null, "disable-indexation", false, "");
@@ -113,9 +119,17 @@ public class ConstantLoadClientMain {
         } else {
             operationPerformer = baseOperationIssuer;
         }
-        randomOperationIssuer = new RandomOperationIssuer(graph)
-                .withPermissionsProbability(permsProbability)
-                .withOperationPerformer(operationPerformer);
+
+        if (cmd.hasOption("s")) {
+            String sequenceFile = cmd.getOptionValue("s");
+            InputStream is = Files.newInputStream(Paths.get(sequenceFile));
+            operationIssuer = new SequenceOperationIssuer(is);
+        } else {
+            operationIssuer = new RandomOperationIssuer(graph)
+                .withPermissionsProbability(permsProbability);
+        }
+
+        operationIssuer.withOperationPerformer(operationPerformer);
 
         String durationSuffix = "";
         if (durationSeconds > 0) {
@@ -181,7 +195,7 @@ public class ConstantLoadClientMain {
         long period = (long) (1e9 / operationsPerSecond);
         scheduledExecutor.scheduleAtFixedRate(() -> {
             try {
-                randomOperationIssuer.issue();
+                operationIssuer.issue();
             } catch (Throwable t) {
                 log.error("Error while performing operation", t);
                 errored.incrementAndGet();
