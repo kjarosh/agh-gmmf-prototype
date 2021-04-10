@@ -32,6 +32,7 @@ import java.util.Optional;
 public class K8sZone {
     private static final AppsV1Api appsApi = new AppsV1Api();
     private static final CoreV1Api coreApi = new CoreV1Api();
+    private static final String defaultImage = System.getenv().getOrDefault("zone_image", "kjarosh/ms-graph-simulator");
 
     private final String namespace;
     private final String zoneId;
@@ -41,9 +42,9 @@ public class K8sZone {
     private final Map<String, String> labels;
     private final String resourceCpu;
     private final String resourceMemory;
-    private String image;
+    private final String image;
 
-    public K8sZone(String namespace, String zoneId, String resourceCpu, String resourceMemory) {
+    public K8sZone(String image, String namespace, String zoneId, String resourceCpu, String resourceMemory) {
         this.zoneId = zoneId;
         this.namespace = namespace;
         this.labels = new HashMap<>();
@@ -54,12 +55,11 @@ public class K8sZone {
         this.pvcName = zoneId + "-pv";
         this.resourceCpu = resourceCpu;
         this.resourceMemory = resourceMemory;
-        this.image = System.getenv().getOrDefault("zone_image", "kjarosh/ms-graph-simulator");
+        this.image = image;
     }
 
-    public K8sZone(String image, String namespace, String zoneId, String resourceCpu, String resourceMemory) {
-        this(namespace, zoneId, resourceCpu, resourceMemory);
-        this.image = image;
+    public K8sZone(String namespace, String zoneId, String resourceCpu, String resourceMemory) {
+        this(defaultImage, namespace, zoneId, resourceCpu, resourceMemory);
     }
 
     private V1Deployment buildDeployment(V1Deployment old) {
