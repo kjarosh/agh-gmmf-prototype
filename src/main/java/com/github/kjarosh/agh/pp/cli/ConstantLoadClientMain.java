@@ -2,32 +2,23 @@ package com.github.kjarosh.agh.pp.cli;
 
 import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
+import com.github.kjarosh.agh.pp.graph.generator.SequenceOperationIssuer;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.graph.modification.BulkOperationIssuer;
-import com.github.kjarosh.agh.pp.graph.modification.ConcurrentOperationIssuer;
-import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
-import com.github.kjarosh.agh.pp.graph.modification.RandomOperationIssuer;
+import com.github.kjarosh.agh.pp.graph.modification.*;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.rest.client.EventStatsGatherer;
 import com.github.kjarosh.agh.pp.rest.client.RemoteGraphBuilder;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.*;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -52,7 +43,7 @@ public class ConstantLoadClientMain {
     private static int durationSeconds;
     private static boolean disableIndexation;
 
-    private static RandomOperationIssuer randomOperationIssuer;
+    private static IOperationPerformer operationPerformer;
     private static ConcurrentOperationIssuer baseOperationIssuer;
     private static OperationIssuer operationIssuer;
 
@@ -60,7 +51,7 @@ public class ConstantLoadClientMain {
         LogbackUtils.loadLogbackCli();
     }
 
-    public static void main(String[] args) throws ParseException, TimeoutException {
+    public static void main(String[] args) throws ParseException, TimeoutException, IOException {
         Options options = new Options();
         options.addRequiredOption("n", "operations", true, "number of operations per second");
         options.addRequiredOption("g", "graph", true, "path to graph");
@@ -70,6 +61,7 @@ public class ConstantLoadClientMain {
         options.addOption("r", "requests", true, "enable bulk requests and set requests per second");
         options.addOption("t", "concurrent-pool", true, "enable concurrency and set pool size");
         options.addOption("d", "duration-seconds", true, "stop load after the given number of seconds");
+        options.addOption("s", "sequence", true, "execute requests from this file");
         options.addOption(null, "prob.perms", true,
                 "probability that a random operation changes permissions");
         options.addOption(null, "disable-indexation", false, "");
@@ -113,9 +105,16 @@ public class ConstantLoadClientMain {
         } else {
             operationIssuer = baseOperationIssuer;
         }
-        randomOperationIssuer = new RandomOperationIssuer(graph)
-                .withPermissionsProbability(permsProbability)
-                .withOperationIssuer(operationIssuer);
+
+        if (cmd.hasOption("s")) {
+            operationPerformer = new SequenceOperationIssuer(cmd.getOptionValue("s"));
+        } else {
+            operationPerformer = new RandomOperationIssuer(graph)
+                .withPermissionsProbability(permsProbability);
+        }
+
+        operationPerformer
+                .setOperationIssuer(operationIssuer);
 
         String durationSuffix = "";
         if (durationSeconds > 0) {
@@ -181,7 +180,7 @@ public class ConstantLoadClientMain {
         long period = (long) (1e9 / operationsPerSecond);
         scheduledExecutor.scheduleAtFixedRate(() -> {
             try {
-                randomOperationIssuer.perform();
+                operationPerformer.perform();
             } catch (Throwable t) {
                 log.error("Error while performing operation", t);
                 errored.incrementAndGet();
