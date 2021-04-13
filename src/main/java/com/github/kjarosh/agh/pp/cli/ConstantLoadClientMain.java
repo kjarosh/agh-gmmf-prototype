@@ -171,6 +171,7 @@ public class ConstantLoadClientMain {
         } catch (InterruptedException e) {
             log.info("Interrupted. Exiting...");
         }
+
         log.info("Finished");
     }
 
