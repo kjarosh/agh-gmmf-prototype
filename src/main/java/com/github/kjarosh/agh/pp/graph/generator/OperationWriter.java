@@ -12,11 +12,10 @@ import lombok.SneakyThrows;
 
 import java.io.File;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.Queue;
 
 public class OperationWriter implements OperationIssuer {
-    private final List<Operation> operations = new LinkedList<>();
+    private final Queue<Operation> operations = new LinkedList<>();
 
     @SneakyThrows
     public void save(String filename) {
@@ -25,15 +24,18 @@ public class OperationWriter implements OperationIssuer {
         operations.clear();
     }
 
-    private void put(OperationType type, Map<String, Object> args) {
-        operations.add(new Operation(type, args));
+    private void put(OperationType type, EdgeId eid, ZoneId zid, String trace, Permissions permissions) {
+        operations.add(new Operation(type, eid, zid, trace, permissions));
     }
 
     @Override
     public void addEdge(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
         put(
                 OperationType.ADD_EDGE,
-                Map.of("EdgeId", id, "Permissions", permissions, "Trace", trace)
+               id,
+                null,
+                trace,
+                permissions
         );
     }
 
@@ -46,10 +48,10 @@ public class OperationWriter implements OperationIssuer {
     public void removeEdge(ZoneId zone, EdgeId id, String trace) {
         put(
                 OperationType.REMOVE_EDGE,
-                Map.of(
-                        "Id", id,
-                        "Trace", trace
-                )
+                id,
+                zone,
+                trace,
+                null
         );
     }
 
@@ -57,23 +59,13 @@ public class OperationWriter implements OperationIssuer {
     public void setPermissions(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
         put(
                 OperationType.SET_PERMISSIONS,
-                Map.of(
-                        "Id", id,
-                        "Permissions", permissions,
-                        "Trace", trace
-                )
+                id, zone, trace, permissions
         );
     }
 
     @Override
     public void addVertex(VertexId id, Vertex.Type type) {
-        put(
-                OperationType.ADD_VERTEX,
-                Map.of(
-                        "Id", id,
-                        "type", type
-                )
-        );
+        throw new RuntimeException("Not implemented");
     }
 
     @Override

@@ -1,37 +1,32 @@
 package com.github.kjarosh.agh.pp.graph.util;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.kjarosh.agh.pp.graph.model.EdgeId;
+import com.github.kjarosh.agh.pp.graph.model.Permissions;
+import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import java.util.HashMap;
-import java.util.Map;
-
+@Data
+@EqualsAndHashCode
 public class Operation {
     private final OperationType type;
-    private final Map<String, Object> arguments;
-
-    public OperationType getType() {
-        return type;
-    }
+    private final EdgeId edgeId;
+    private final ZoneId zoneId;
+    private final String trace;
+    private final Permissions permissions;
 
     @JsonCreator
-    public Operation(@JsonProperty("type") OperationType type) {
+    public Operation(@JsonProperty("type") OperationType type,
+                     @JsonProperty("edgeId") EdgeId edgeId,
+                     @JsonProperty("zoneId") ZoneId zoneId,
+                     @JsonProperty("trace") String trace,
+                     @JsonProperty("permissions") Permissions permissions) {
         this.type = type;
-        arguments = new HashMap<>();
-    }
-
-    public Operation(OperationType type, Map<String, Object> arguments) {
-        this.type = type;
-        this.arguments = arguments;
-    }
-
-    @JsonAnyGetter
-    public Map<String, Object> getProperties() { return this.arguments; }
-    
-    @JsonAnySetter
-    public void setProperties(String property, Object value) {
-        arguments.put(property, value);
+        this.edgeId = edgeId;
+        this.zoneId = zoneId;
+        this.trace = trace;
+        this.permissions = permissions;
     }
 }

@@ -1,9 +1,7 @@
 package com.github.kjarosh.agh.pp.graph.generator;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.kjarosh.agh.pp.graph.model.EdgeId;
-import com.github.kjarosh.agh.pp.graph.model.Permissions;
-import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.graph.modification.IOperationPerformer;
 import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
 import com.github.kjarosh.agh.pp.graph.util.Operation;
@@ -11,8 +9,6 @@ import com.github.kjarosh.agh.pp.graph.util.Operation;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.Map;
 import java.util.Queue;
 
 public class SequenceOperationIssuer implements IOperationPerformer {
@@ -30,11 +26,15 @@ public class SequenceOperationIssuer implements IOperationPerformer {
 
         switch (next.getType()) {
             case ADD_EDGE: {
-                addEdge(next.getProperties());
+                addEdge(next);
                 break;
             }
             case REMOVE_EDGE: {
-                removeEdge(next.getProperties());
+                removeEdge(next);
+                break;
+            }
+            case SET_PERMISSIONS: {
+                setPermissions(next);
                 break;
             }
             default:
@@ -42,21 +42,16 @@ public class SequenceOperationIssuer implements IOperationPerformer {
         }
     }
 
-    private void addEdge(Map<String, Object> properties) {
-        ZoneId zid = (ZoneId) properties.get("ZoneId");
-        EdgeId eid = (EdgeId) properties.get("EdgeId");
-        Permissions permissions = (Permissions) properties.get("Permissions");
-        String trace = (String) properties.get("Trace");
-
-        issuer.addEdge(zid, eid, permissions, trace);
+    private void setPermissions(Operation operation) {
+        issuer.setPermissions(operation.getZoneId(), operation.getEdgeId(), operation.getPermissions(), operation.getTrace());
     }
 
-    private void removeEdge(Map<String, Object> properties) {
-        ZoneId zid = (ZoneId) properties.get("ZoneId");
-        EdgeId eid = (EdgeId) properties.get("EdgeId");
-        String trace = (String) properties.get("Trace");
+    private void addEdge(Operation operation) {
+        issuer.addEdge(operation.getZoneId(), operation.getEdgeId(), operation.getPermissions(), operation.getTrace());
+    }
 
-        issuer.removeEdge(zid, eid, trace);
+    private void removeEdge(Operation operation) {
+        issuer.removeEdge(operation.getZoneId(), operation.getEdgeId(), operation.getTrace());
     }
 
     @Override
@@ -70,6 +65,6 @@ public class SequenceOperationIssuer implements IOperationPerformer {
             throw new FileNotFoundException();
         }
 
-        queue = (LinkedList<Operation>) new ObjectMapper().readValue(file, LinkedList.class);
+    queue = new ObjectMapper().readValue(file, new TypeReference<>() {});
     }
 }

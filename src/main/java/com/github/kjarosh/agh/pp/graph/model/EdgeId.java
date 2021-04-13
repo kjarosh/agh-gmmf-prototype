@@ -1,5 +1,7 @@
 package com.github.kjarosh.agh.pp.graph.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -16,7 +18,8 @@ public class EdgeId implements Comparable<EdgeId> {
     private final VertexId from;
     private final VertexId to;
 
-    public static EdgeId of(VertexId from, VertexId to) {
+    @JsonCreator
+    public static EdgeId of(@JsonProperty("from") VertexId from, @JsonProperty("to") VertexId to) {
         return new EdgeId(from, to);
     }
 
