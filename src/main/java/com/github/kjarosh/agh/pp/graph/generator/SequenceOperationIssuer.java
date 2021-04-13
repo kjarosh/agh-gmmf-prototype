@@ -1,8 +1,5 @@
 package com.github.kjarosh.agh.pp.graph.generator;
 
-import com.github.kjarosh.agh.pp.graph.model.EdgeId;
-import com.github.kjarosh.agh.pp.graph.model.Permissions;
-import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
 import com.github.kjarosh.agh.pp.graph.modification.OperationPerformer;
 import com.github.kjarosh.agh.pp.graph.util.Operation;
@@ -40,26 +37,25 @@ public class SequenceOperationIssuer implements OperationIssuer {
                 removeEdge(next);
                 break;
             }
+            case SET_PERMISSIONS: {
+                setPermissions(next);
+                break;
+            }
             default:
                 throw new IllegalArgumentException();
         }
     }
 
-    private void addEdge(Operation op) {
-        ZoneId zid = op.getZoneId();
-        EdgeId eid = op.getEdgeId();
-        Permissions permissions = op.getPermissions();
-        String trace = op.getTrace();
-
-        performer.addEdge(zid, eid, permissions, trace);
+    private void setPermissions(Operation operation) {
+        performer.setPermissions(operation.getZoneId(), operation.getEdgeId(), operation.getPermissions(), operation.getTrace());
     }
 
-    private void removeEdge(Operation op) {
-        ZoneId zid = op.getZoneId();
-        EdgeId eid = op.getEdgeId();
-        String trace = op.getTrace();
+    private void addEdge(Operation operation) {
+        performer.addEdge(operation.getZoneId(), operation.getEdgeId(), operation.getPermissions(), operation.getTrace());
+    }
 
-        performer.removeEdge(zid, eid, trace);
+    private void removeEdge(Operation operation) {
+        performer.removeEdge(operation.getZoneId(), operation.getEdgeId(), operation.getTrace());
     }
 
     @Override
