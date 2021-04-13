@@ -1,5 +1,7 @@
 package com.github.kjarosh.agh.pp.cli;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
@@ -7,6 +9,8 @@ import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
+import com.github.kjarosh.agh.pp.graph.util.Query;
+import com.github.kjarosh.agh.pp.graph.util.QueryType;
 import com.github.kjarosh.agh.pp.rest.client.GraphQueryClient;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.rest.dto.EffectivePermissionsResponseDto;
@@ -20,16 +24,13 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -51,15 +52,20 @@ public class QueryClientMain {
     private static List<Integer> results = new ArrayList<>();
     private static double existingRatio;
 
+    private static File file;
+    private static Queue<Query> querries;
+    private static boolean useSequence = false;
+
     static {
         LogbackUtils.loadLogbackCli();
     }
 
-    public static void main(String[] args) throws ParseException, TimeoutException {
+    public static void main(String[] args) throws ParseException, TimeoutException, IOException {
         Options options = new Options();
         options.addRequiredOption("g", "graph", true, "path to graph");
         options.addRequiredOption("t", "op-type", true, "operation type");
         options.addRequiredOption("d", "duration-seconds", true, "stop queries after the given number of seconds");
+        options.addOption("s", "sequence", true, "execute requests from this file");
         options.addOption(null, "naive", false, "naive");
         options.addOption(null, "existing", true, "existing ratio");
 
@@ -71,6 +77,16 @@ public class QueryClientMain {
         naive = cmd.hasOption("naive");
         existingRatio = Double.parseDouble(cmd.getOptionValue("existing", "0"));
         durationSeconds = Integer.parseInt(cmd.getOptionValue("d", "-1"));
+
+        if (cmd.hasOption("s")) {
+            file = new File(cmd.getOptionValue("s"));
+            if(!file.exists() || !file.isFile()) {
+                throw new FileNotFoundException();
+            }
+            querries = new ObjectMapper().readValue(file, new TypeReference<>() {});
+            useSequence = true;
+        }
+
         ZoneClient zoneClient = new ZoneClient();
 
         log.info("Running queries for {}", durationSeconds);
@@ -90,7 +106,13 @@ public class QueryClientMain {
                 Instant.MAX;
         while (!Thread.interrupted() && Instant.now().isBefore(deadline)) {
             try {
-                performRequest(client);
+                if (useSequence) {
+                    if (!querries.isEmpty()) {
+                        performRequestFromSequence(client);
+                    }
+                } else {
+                    performRequest(client);
+                }
             } catch (Exception e) {
                 log.error("Error performing request", e);
             }
@@ -132,6 +154,22 @@ public class QueryClientMain {
         }
 
         performRequest0(client, from, to);
+    }
+
+    private static void performRequestFromSequence(GraphQueryClient client) {
+        Query next = querries.remove();
+        QueryType type = next.getType();
+
+        if (type == QueryType.MEMBER) {
+            operationType = "members";
+            ++existing;
+            performRequest0(client, next.getFrom(), null);
+            return;
+        }
+
+        operationType = type == QueryType.REACHES ? "reaches" : "ep";
+        existing += next.getExisting() ? 1 : 0;
+        performRequest0(client, next.getFrom(), next.getTo());
     }
 
     private static VertexId findRandomPath(VertexId from) {
