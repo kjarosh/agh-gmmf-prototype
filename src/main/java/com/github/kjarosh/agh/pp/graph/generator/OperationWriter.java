@@ -32,8 +32,8 @@ public class OperationWriter implements OperationIssuer {
     public void addEdge(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
         put(
                 OperationType.ADD_EDGE,
-               id,
-                null,
+                id,
+                zone,
                 trace,
                 permissions
         );
