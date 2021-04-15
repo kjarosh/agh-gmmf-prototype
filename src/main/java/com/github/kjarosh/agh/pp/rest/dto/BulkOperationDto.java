@@ -19,7 +19,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class OperationDto {
+public class BulkOperationDto {
     @JsonProperty("t")
     private OperationType type;
     @JsonProperty("f")

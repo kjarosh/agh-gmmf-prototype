@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.Duration;
 import java.util.List;
 
 /**
@@ -22,5 +21,5 @@ import java.util.List;
 @EqualsAndHashCode
 public class LoadSimulationRequestDto {
     @JsonProperty("ops")
-    private List<OperationDto> operations;
+    private List<BulkOperationDto> operations;
 }
