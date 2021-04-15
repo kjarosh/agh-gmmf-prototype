@@ -8,12 +8,14 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import java.io.IOException;
+
 public class OperationSequenceGeneratorMain {
     private static String graphPath = "graph.json";
     private static String filename;
     private static OperationWriter writer;
 
-    public static void main(String[] args) throws ParseException {
+    public static void main(String[] args) throws ParseException, IOException {
         Options options = new Options();
         options.addOption("g", "graph", true, "Path to graph json file");
         options.addOption("n", "amount", true, "Amount of requests to be generated");
@@ -38,7 +40,7 @@ public class OperationSequenceGeneratorMain {
         System.out.printf("Sequence of %d operations has been generated. Output file: '%s'", amount, filename);
     }
 
-    public static RandomOperationIssuer getGenerator() {
+    public static RandomOperationIssuer getGenerator() throws IOException {
         var graph = GraphLoader.loadGraph(graphPath);
         RandomOperationIssuer generator = new RandomOperationIssuer(graph);
         writer = createWriterForFile();
@@ -46,12 +48,12 @@ public class OperationSequenceGeneratorMain {
         return generator;
     }
 
-    private static OperationWriter createWriterForFile() {
-        return new OperationWriter();
+    private static OperationWriter createWriterForFile() throws IOException {
+        return new OperationWriter(filename);
     }
 
     private static void commitFile() {
-       writer.save(filename);
+       writer.save();
     }
 
 }

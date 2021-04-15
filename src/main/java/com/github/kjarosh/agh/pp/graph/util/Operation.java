@@ -1,28 +1,29 @@
 package com.github.kjarosh.agh.pp.graph.util;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
 @EqualsAndHashCode
+@Builder
+@NoArgsConstructor
 public class Operation {
-    private final OperationType type;
-    private final EdgeId edgeId;
-    private final ZoneId zoneId;
-    private final String trace;
-    private final Permissions permissions;
+    private OperationType type;
+    private EdgeId edgeId;
+    private ZoneId zoneId;
+    private String trace;
+    private Permissions permissions;
 
-    @JsonCreator
-    public Operation(@JsonProperty("type") OperationType type,
-                     @JsonProperty("edgeId") EdgeId edgeId,
-                     @JsonProperty("zoneId") ZoneId zoneId,
-                     @JsonProperty("trace") String trace,
-                     @JsonProperty("permissions") Permissions permissions) {
+    public Operation(OperationType type,
+                     EdgeId edgeId,
+                     ZoneId zoneId,
+                     String trace,
+                     Permissions permissions) {
         this.type = type;
         this.edgeId = edgeId;
         this.zoneId = zoneId;

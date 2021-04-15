@@ -1,28 +1,34 @@
 package com.github.kjarosh.agh.pp.graph.generator;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.kjarosh.agh.pp.graph.modification.IOperationPerformer;
 import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
 import com.github.kjarosh.agh.pp.graph.util.Operation;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Queue;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class SequenceOperationIssuer implements IOperationPerformer {
-
-    Queue<Operation> queue;
     private OperationIssuer issuer;
+    private final BufferedReader fileReader;
+    private static final ObjectReader objectReader = new ObjectMapper().readerFor(Operation.class);
 
     public SequenceOperationIssuer(String filepath) throws IOException {
-        _load(filepath);
+        fileReader = new BufferedReader(_openFile(filepath));
+    }
+
+    private synchronized Operation next() throws IOException {
+        var str = fileReader.readLine();
+        return objectReader.readValue(str.trim());
     }
 
     @Override
-    public synchronized void perform() {
-        Operation next = queue.remove();
+    public synchronized void perform() throws IOException {
+        Operation next = next();
 
         switch (next.getType()) {
             case ADD_EDGE: {
@@ -59,12 +65,12 @@ public class SequenceOperationIssuer implements IOperationPerformer {
         this.issuer = issuer;
     }
 
-    private void _load(String filepath) throws IOException {
-        File file = new File(filepath);
-        if(!file.exists() || !file.isFile()) {
-            throw new FileNotFoundException();
+    private InputStreamReader _openFile(String filepath) throws IOException {
+        var path = Path.of(filepath);
+        if(!Files.exists(path) || Files.isDirectory(path)) {
+            throw new IllegalArgumentException(filepath + "doesn't point to correct file");
         }
 
-    queue = new ObjectMapper().readValue(file, new TypeReference<>() {});
+        return new InputStreamReader(Files.newInputStream(path));
     }
 }
