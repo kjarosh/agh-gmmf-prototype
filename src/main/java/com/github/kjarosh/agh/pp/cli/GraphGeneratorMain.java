@@ -28,13 +28,29 @@ public class GraphGeneratorMain {
         Options options = new Options();
         options.addRequiredOption("c", "config", true, "path to config file");
         options.addRequiredOption("o", "output", true, "path to output file");
+        options.addOption("n", "nodes-per-zone", true, "demanded nodes per zone");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
 
         GraphGeneratorConfig config = new ObjectMapper()
                 .readValue(new File(cmd.getOptionValue("c")), GraphGeneratorConfig.class);
+
         GraphGenerator g = new GraphGenerator(config);
+
+        if (cmd.hasOption("n")) {
+            long requiredNodesPerZone = Integer.parseInt(cmd.getOptionValue("n"));
+
+            double error;
+            double scaling_factor = 1.0;
+            do {
+                error = Math.abs(1.0 - (double)g.estimateVertices() / (requiredNodesPerZone * config.getZones()));
+                scaling_factor = (double)(requiredNodesPerZone * config.getZones()) / g.estimateVertices();
+
+                config.setSpaces((int) (scaling_factor * config.getSpaces()));
+                config.setProviders((int) (scaling_factor * config.getProviders()));
+            } while (error > 0.03);
+        }
 
         System.out.println("Estimated number of vertices: " + g.estimateVertices());
         System.out.println("Estimated number of edges: " + g.estimateEdges());
