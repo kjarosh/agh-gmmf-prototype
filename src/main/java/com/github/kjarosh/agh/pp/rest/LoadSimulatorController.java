@@ -1,7 +1,7 @@
 package com.github.kjarosh.agh.pp.rest;
 
 import com.github.kjarosh.agh.pp.rest.dto.LoadSimulationRequestDto;
-import com.github.kjarosh.agh.pp.rest.dto.OperationDto;
+import com.github.kjarosh.agh.pp.rest.dto.BulkOperationDto;
 import com.github.kjarosh.agh.pp.rest.error.OkException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -27,13 +27,13 @@ public class LoadSimulatorController {
     @RequestMapping(method = RequestMethod.POST, path = "simulate_load")
     @ResponseBody
     public void simulateLoad(@RequestBody LoadSimulationRequestDto request) {
-        List<OperationDto> operations = request.getOperations();
+        List<BulkOperationDto> operations = request.getOperations();
         if (operations.isEmpty()) {
             return;
         }
 
         Exception rethrow = null;
-        for (OperationDto op : operations) {
+        for (BulkOperationDto op : operations) {
             try {
                 executeOperation(op);
             } catch (OkException e) {
@@ -49,7 +49,7 @@ public class LoadSimulatorController {
         }
     }
 
-    private void executeOperation(OperationDto op) {
+    private void executeOperation(BulkOperationDto op) {
         switch (op.getType()) {
             case ADD_EDGE:
                 graphModificationController.addEdge(

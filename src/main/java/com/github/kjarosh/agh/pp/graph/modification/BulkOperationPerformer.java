@@ -8,7 +8,7 @@ import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.dto.BulkEdgeCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.LoadSimulationRequestDto;
-import com.github.kjarosh.agh.pp.rest.dto.OperationDto;
+import com.github.kjarosh.agh.pp.rest.dto.BulkOperationDto;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -25,21 +25,21 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 public class BulkOperationPerformer implements OperationPerformer {
     private final int bulkSize;
     private final OperationPerformer delegate;
-    private final Map<ZoneId, Deque<OperationDto>> operationQueue = new ConcurrentHashMap<>();
+    private final Map<ZoneId, Deque<BulkOperationDto>> operationQueue = new ConcurrentHashMap<>();
 
     public BulkOperationPerformer(OperationPerformer delegate, int bulkSize) {
         this.delegate = delegate;
         this.bulkSize = bulkSize;
     }
 
-    private Deque<OperationDto> queue(ZoneId zone) {
+    private Deque<BulkOperationDto> queue(ZoneId zone) {
         return operationQueue.computeIfAbsent(zone, k -> new ConcurrentLinkedDeque<>());
     }
 
     private synchronized void delegateIfPossible() {
         operationQueue.forEach((zone, queue) -> {
             while (queue.size() >= bulkSize) {
-                List<OperationDto> ops = new ArrayList<>();
+                List<BulkOperationDto> ops = new ArrayList<>();
                 for (int i = 0; i < bulkSize; ++i) {
                     ops.add(queue.removeFirst());
                 }
@@ -48,7 +48,7 @@ public class BulkOperationPerformer implements OperationPerformer {
         });
     }
 
-    private void delegate(ZoneId zone, List<OperationDto> ops) {
+    private void delegate(ZoneId zone, List<BulkOperationDto> ops) {
         delegate.simulateLoad(zone, LoadSimulationRequestDto.builder()
                 .operations(ops)
                 .build());
@@ -56,8 +56,8 @@ public class BulkOperationPerformer implements OperationPerformer {
 
     @Override
     public void addEdge(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
-        queue(zone).add(OperationDto.builder()
-                .type(OperationDto.OperationType.ADD_EDGE)
+        queue(zone).add(BulkOperationDto.builder()
+                .type(BulkOperationDto.OperationType.ADD_EDGE)
                 .fromId(id.getFrom())
                 .toId(id.getTo())
                 .permissions(permissions)
@@ -80,8 +80,8 @@ public class BulkOperationPerformer implements OperationPerformer {
 
     @Override
     public void removeEdge(ZoneId zone, EdgeId id, String trace) {
-        queue(zone).add(OperationDto.builder()
-                .type(OperationDto.OperationType.REMOVE_EDGE)
+        queue(zone).add(BulkOperationDto.builder()
+                .type(BulkOperationDto.OperationType.REMOVE_EDGE)
                 .fromId(id.getFrom())
                 .toId(id.getTo())
                 .trace(trace)
@@ -92,8 +92,8 @@ public class BulkOperationPerformer implements OperationPerformer {
 
     @Override
     public void setPermissions(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
-        queue(zone).add(OperationDto.builder()
-                .type(OperationDto.OperationType.SET_PERMS)
+        queue(zone).add(BulkOperationDto.builder()
+                .type(BulkOperationDto.OperationType.SET_PERMS)
                 .fromId(id.getFrom())
                 .toId(id.getTo())
                 .permissions(permissions)
