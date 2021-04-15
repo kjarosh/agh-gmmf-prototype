@@ -4,5 +4,5 @@ import java.io.IOException;
 
 public interface IOperationPerformer {
     void perform() throws IOException;
-    void setOperationIssuer(OperationIssuer issuer);
+    IOperationPerformer withOperationIssuer(OperationIssuer issuer);
 }

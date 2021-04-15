@@ -113,8 +113,7 @@ public class ConstantLoadClientMain {
                 .withPermissionsProbability(permsProbability);
         }
 
-        operationPerformer
-                .setOperationIssuer(operationIssuer);
+        operationPerformer = operationPerformer.withOperationIssuer(operationIssuer);
 
         String durationSuffix = "";
         if (durationSeconds > 0) {

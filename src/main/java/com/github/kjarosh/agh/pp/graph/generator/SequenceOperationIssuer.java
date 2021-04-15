@@ -61,8 +61,9 @@ public class SequenceOperationIssuer implements IOperationPerformer {
     }
 
     @Override
-    public void setOperationIssuer(OperationIssuer issuer) {
+    public IOperationPerformer withOperationIssuer(OperationIssuer issuer) {
         this.issuer = issuer;
+        return this;
     }
 
     private InputStreamReader _openFile(String filepath) throws IOException {

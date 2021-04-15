@@ -42,13 +42,10 @@ public class RandomOperationIssuer implements IOperationPerformer {
         return this;
     }
 
+    @Override
     public RandomOperationIssuer withOperationIssuer(OperationIssuer operationIssuer) {
-        setOperationIssuer(operationIssuer);
+        this.operationIssuer = operationIssuer;
         return this;
-    }
-
-    public void setOperationIssuer(OperationIssuer issuer) {
-        this.operationIssuer = issuer;
     }
 
     @Override

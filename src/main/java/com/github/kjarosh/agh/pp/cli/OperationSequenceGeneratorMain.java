@@ -42,8 +42,8 @@ public class OperationSequenceGeneratorMain {
 
     public static RandomOperationIssuer getGenerator() throws IOException {
         var graph = GraphLoader.loadGraph(graphPath);
-        RandomOperationIssuer generator = new RandomOperationIssuer(graph);
         writer = createWriterForFile();
+        RandomOperationIssuer generator = new RandomOperationIssuer(graph).withPermissionsProbability(0.95);
         generator.withOperationIssuer(writer);
         return generator;
     }
