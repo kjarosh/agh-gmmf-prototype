@@ -16,32 +16,44 @@ public class QueriesWriter {
 
     private void put(QueryType type, VertexId from, VertexId to, boolean existing) {
         writer.writeValue(new Query(type, from, to, existing));
+        put(new Query(type, from, to, existing));
+    }
+
+    @SneakyThrows
+    private void put(Query query) {
+        writer.writeValue(query);
     }
 
     public void member(VertexId from) {
         put(
-                QueryType.MEMBER,
-                from,
-                null,
-                true
+                Query.builder()
+                    .type(QueryType.MEMBER)
+                    .from(from)
+                    .to(null)
+                    .existing(true)
+                    .build()
         );
     }
 
     public void reaches(VertexId from, VertexId to, boolean existing) {
         put(
-                QueryType.REACHES,
-                from,
-                to,
-                existing
+                Query.builder()
+                        .type(QueryType.REACHES)
+                        .from(from)
+                        .to(to)
+                        .existing(existing)
+                        .build()
         );
     }
 
     public void effectivePermissions(VertexId from, VertexId to, boolean existing) {
         put(
-                QueryType.EFFECTIVE_PERMISSIONS,
-                from,
-                to,
-                existing
+                Query.builder()
+                        .type(QueryType.EFFECTIVE_PERMISSIONS)
+                        .from(from)
+                        .to(to)
+                        .existing(existing)
+                        .build()
         );
     }
 }

@@ -7,6 +7,7 @@ import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
+import com.github.kjarosh.agh.pp.graph.query.QueryClientResultsWriter;
 import com.github.kjarosh.agh.pp.graph.util.Query;
 import com.github.kjarosh.agh.pp.graph.util.QueryType;
 import com.github.kjarosh.agh.pp.rest.client.GraphQueryClient;
@@ -60,6 +61,9 @@ public class QueryClientMain {
 
     private static JsonLinesReader reader = null;
 
+    private static QueryClientResultsWriter resultsWriter;
+    private static boolean saveResults = false;
+
     static {
         LogbackUtils.loadLogbackCli();
     }
@@ -67,9 +71,10 @@ public class QueryClientMain {
     public static void main(String[] args) throws ParseException, TimeoutException, IOException {
         Options options = new Options();
         options.addRequiredOption("g", "graph", true, "path to graph");
-        options.addRequiredOption("t", "op-type", true, "operation type");
+        options.addOption("t", "op-type", true, "operation type");
         options.addRequiredOption("d", "duration-seconds", true, "stop queries after the given number of seconds");
         options.addOption("s", "sequence", true, "execute requests from this file");
+        options.addOption("r", "results", true, "save results to this file");
         options.addOption(null, "naive", false, "naive");
         options.addOption(null, "existing", true, "existing ratio");
 
@@ -85,6 +90,15 @@ public class QueryClientMain {
         if (cmd.hasOption("s")) {
             InputStream is = Files.newInputStream(Paths.get(cmd.getOptionValue("s")));
             reader = new JsonLinesReader(is);
+        }
+
+        if (cmd.hasOption("r")) {
+            saveResults = true;
+            resultsWriter = new QueryClientResultsWriter(cmd.getOptionValue("r"));
+        }
+
+        if (!cmd.hasOption("s") && !cmd.hasOption("t")) {
+            throw new RuntimeException("Cannot run queries without sequence file or operation type.");
         }
 
         ZoneClient zoneClient = new ZoneClient();
@@ -116,16 +130,34 @@ public class QueryClientMain {
             }
         }
         log.info("Performed {} requests ({} existing)", times.size(), existing);
-        logStats(times, Duration::plus, Duration::dividedBy);
+        logStats(times, Duration::plus, Duration::dividedBy, saveResults);
         log.info("Result stats:");
-        logStats(results, Integer::sum, (a, b) -> (double) a / b);
+        logStats(results, Integer::sum, (a, b) -> (double) a / b, false);
     }
 
-    private static <T extends Comparable<T>> void logStats(List<T> data, BinaryOperator<T> accumulator, BiFunction<T, Integer, Object> divide) {
+    private static QueryType convertType() {
+        if (operationType.equals("members")) {
+            return QueryType.MEMBER;
+        }
+
+        if (operationType.equals("reaches")) {
+            return QueryType.REACHES;
+        }
+
+        return QueryType.EFFECTIVE_PERMISSIONS;
+    }
+
+    private static <T extends Comparable<T>> void logStats(List<T> data, BinaryOperator<T> accumulator, BiFunction<T, Integer, Object> divide, boolean toSave) {
         log.info("  min {}", data.stream().min(Comparator.comparing(Function.identity())).orElseThrow());
         T sum = data.stream().reduce(accumulator).orElseThrow();
-        log.info("  avg {}", divide.apply(sum, data.size()));
-        log.info("  max {}", data.stream().max(Comparator.comparing(Function.identity())).orElseThrow());
+        Object avg = divide.apply(sum, data.size());
+        log.info("  avg {}", avg);
+        T max = data.stream().max(Comparator.comparing(Function.identity())).orElseThrow();
+        log.info("  max {}", max);
+
+        if (toSave) {
+            resultsWriter.put(convertType(), naive, (Object) max, avg);
+        }
     }
 
     private static void performRequest(GraphQueryClient client) {

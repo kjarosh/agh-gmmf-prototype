@@ -1,31 +1,22 @@
 package com.github.kjarosh.agh.pp.graph.util;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @EqualsAndHashCode
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Query {
-    private final QueryType type;
-    private final VertexId from;
-    private final VertexId to;
-    private final boolean existing;
-
-    @JsonCreator
-    public Query(
-            @JsonProperty("type") QueryType type,
-            @JsonProperty("from") VertexId from,
-            @JsonProperty("to") VertexId to,
-            @JsonProperty("existing") boolean existing
-    ) {
-        this.type = type;
-        this.from = from;
-        this.to = to;
-        this.existing = existing;
-    }
+    private QueryType type;
+    private VertexId from;
+    private VertexId to;
+    private boolean existing;
 }

@@ -48,6 +48,9 @@ public class QuerySequenceGeneratorMain {
 
         for (int n = 0; n < count; n++) {
             generateQuery();
+            if ((n+1) % 100 == 0) {
+                System.out.println("Generated: " + (n+1) + " of " + (count));
+            }
         }
 
         log.info("Sequence of {} operations has been generated. Output file: {}", count, outputPath);
