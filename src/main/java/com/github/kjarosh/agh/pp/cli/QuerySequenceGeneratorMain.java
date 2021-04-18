@@ -13,17 +13,18 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import java.io.IOException;
 import java.util.*;
 
 public class QuerySequenceGeneratorMain {
     private static String filename;
     private static String operationType;
-    private static QuerriesWriter writer = new QuerriesWriter();
+    private static QuerriesWriter writer;
     private static Random random = new Random();
     private static Graph graph;
     private static double existingRatio;
 
-    public static void main(String[] args) throws ParseException {
+    public static void main(String[] args) throws ParseException, IOException {
         Options options = new Options();
         options.addRequiredOption("t", "op-type", true, "operation type");
         options.addOption("g", "graph", true, "Path to graph json file");
@@ -38,12 +39,16 @@ public class QuerySequenceGeneratorMain {
 
         graph = GraphLoader.loadGraph(cmd.getOptionValue("g", "graph.json"));
         filename = cmd.getOptionValue("o", "output.json");
+        writer = new QuerriesWriter(filename);
         operationType = cmd.getOptionValue("t");
         int amount = Integer.parseInt(cmd.getOptionValue("n"));
         existingRatio = Double.parseDouble(cmd.getOptionValue("e", "0"));
 
         for(int n = 0; n < amount; n++) {
             generateQuery();
+            if ((n+1) % 100 == 0) {
+                System.out.println("Generated: " + (n+1) + " of " + (amount));
+            }
         }
 
         commitFile();
@@ -51,7 +56,7 @@ public class QuerySequenceGeneratorMain {
     }
 
     private static void commitFile() {
-        writer.save(filename);
+        writer.save();
     }
 
     private static VertexId randomVertex(Vertex.Type... types) {

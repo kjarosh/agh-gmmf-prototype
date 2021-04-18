@@ -2,6 +2,7 @@ package com.github.kjarosh.agh.pp.cli;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
@@ -9,6 +10,8 @@ import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
+import com.github.kjarosh.agh.pp.graph.query.QueryClientResultsWriter;
+import com.github.kjarosh.agh.pp.graph.util.Operation;
 import com.github.kjarosh.agh.pp.graph.util.Query;
 import com.github.kjarosh.agh.pp.graph.util.QueryType;
 import com.github.kjarosh.agh.pp.rest.client.GraphQueryClient;
@@ -24,9 +27,10 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import javax.management.RuntimeErrorException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -52,9 +56,12 @@ public class QueryClientMain {
     private static List<Integer> results = new ArrayList<>();
     private static double existingRatio;
 
-    private static File file;
-    private static Queue<Query> querries;
+    private static BufferedReader fileReader;
+    private static final ObjectReader objectReader = new ObjectMapper().readerFor(Query.class);
     private static boolean useSequence = false;
+
+    private static QueryClientResultsWriter resultsWriter;
+    private static boolean saveResults = false;
 
     static {
         LogbackUtils.loadLogbackCli();
@@ -63,9 +70,10 @@ public class QueryClientMain {
     public static void main(String[] args) throws ParseException, TimeoutException, IOException {
         Options options = new Options();
         options.addRequiredOption("g", "graph", true, "path to graph");
-        options.addRequiredOption("t", "op-type", true, "operation type");
+        options.addOption("t", "op-type", true, "operation type");
         options.addRequiredOption("d", "duration-seconds", true, "stop queries after the given number of seconds");
         options.addOption("s", "sequence", true, "execute requests from this file");
+        options.addOption("r", "results", true, "save results to this file");
         options.addOption(null, "naive", false, "naive");
         options.addOption(null, "existing", true, "existing ratio");
 
@@ -79,12 +87,22 @@ public class QueryClientMain {
         durationSeconds = Integer.parseInt(cmd.getOptionValue("d", "-1"));
 
         if (cmd.hasOption("s")) {
-            file = new File(cmd.getOptionValue("s"));
-            if(!file.exists() || !file.isFile()) {
-                throw new FileNotFoundException();
+            var path = Path.of(cmd.getOptionValue("s"));
+            if(!Files.exists(path) || Files.isDirectory(path)) {
+                throw new IllegalArgumentException("path doesn't point to correct file");
             }
-            querries = new ObjectMapper().readValue(file, new TypeReference<>() {});
+
+            fileReader = new BufferedReader(new InputStreamReader(Files.newInputStream(path)));
             useSequence = true;
+        }
+
+        if (cmd.hasOption("r")) {
+            saveResults = true;
+            resultsWriter = new QueryClientResultsWriter(cmd.getOptionValue("r"));
+        }
+
+        if (!cmd.hasOption("s") && !cmd.hasOption("t")) {
+            throw new RuntimeException("Cannot run queries without sequence file or operation type.");
         }
 
         ZoneClient zoneClient = new ZoneClient();
@@ -107,9 +125,7 @@ public class QueryClientMain {
         while (!Thread.interrupted() && Instant.now().isBefore(deadline)) {
             try {
                 if (useSequence) {
-                    if (!querries.isEmpty()) {
-                        performRequestFromSequence(client);
-                    }
+                    performRequestFromSequence(client);
                 } else {
                     performRequest(client);
                 }
@@ -118,16 +134,34 @@ public class QueryClientMain {
             }
         }
         log.info("Performed {} requests ({} existing)", times.size(), existing);
-        logStats(times, Duration::plus, Duration::dividedBy);
+        logStats(times, Duration::plus, Duration::dividedBy, saveResults);
         log.info("Result stats:");
-        logStats(results, Integer::sum, (a, b) -> (double) a / b);
+        logStats(results, Integer::sum, (a, b) -> (double) a / b, false);
     }
 
-    private static <T extends Comparable<T>> void logStats(List<T> data, BinaryOperator<T> accumulator, BiFunction<T, Integer, Object> divide) {
+    private static QueryType convertType() {
+        if (operationType == "members") {
+            return QueryType.MEMBER;
+        }
+
+        if (operationType == "reaches") {
+            return QueryType.REACHES;
+        }
+
+        return QueryType.EFFECTIVE_PERMISSIONS;
+    }
+
+    private static <T extends Comparable<T>> void logStats(List<T> data, BinaryOperator<T> accumulator, BiFunction<T, Integer, Object> divide, boolean toSave) {
         log.info("  min {}", data.stream().min(Comparator.comparing(Function.identity())).orElseThrow());
         T sum = data.stream().reduce(accumulator).orElseThrow();
-        log.info("  avg {}", divide.apply(sum, data.size()));
-        log.info("  max {}", data.stream().max(Comparator.comparing(Function.identity())).orElseThrow());
+        Object avg = divide.apply(sum, data.size());
+        log.info("  avg {}", avg);
+        T max = data.stream().max(Comparator.comparing(Function.identity())).orElseThrow();
+        log.info("  max {}", max);
+
+        if (toSave) {
+            resultsWriter.put(convertType(), naive, (Object) max, avg);
+        }
     }
 
     private static void performRequest(GraphQueryClient client) {
@@ -156,8 +190,13 @@ public class QueryClientMain {
         performRequest0(client, from, to);
     }
 
-    private static void performRequestFromSequence(GraphQueryClient client) {
-        Query next = querries.remove();
+    private static synchronized Query next() throws IOException {
+        var str = fileReader.readLine();
+        return objectReader.readValue(str.trim());
+    }
+
+    private static void performRequestFromSequence(GraphQueryClient client) throws IOException {
+        Query next = next();
         QueryType type = next.getType();
 
         if (type == QueryType.MEMBER) {
