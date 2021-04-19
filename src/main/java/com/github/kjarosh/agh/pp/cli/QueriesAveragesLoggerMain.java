@@ -18,10 +18,21 @@ import java.util.List;
 public class QueriesAveragesLoggerMain {
     private static BufferedReader fileReader;
     private static final ObjectReader objectReader = new ObjectMapper().readerFor(QueryClientResults.class);
-    private static List<Duration> indexedMax = new ArrayList<>();
-    private static List<Duration> naiveMax = new ArrayList<>();
-    private static List<Duration> indexedAvg = new ArrayList<>();
-    private static List<Duration> naiveAvg = new ArrayList<>();
+
+    private static List<Duration> indexedMaxMembers = new ArrayList<>();
+    private static List<Duration> naiveMaxMembers = new ArrayList<>();
+    private static List<Duration> indexedAvgMembers = new ArrayList<>();
+    private static List<Duration> naiveAvgMembers = new ArrayList<>();
+
+    private static List<Duration> indexedMaxReaches = new ArrayList<>();
+    private static List<Duration> naiveMaxReaches = new ArrayList<>();
+    private static List<Duration> indexedAvgReaches = new ArrayList<>();
+    private static List<Duration> naiveAvgReaches = new ArrayList<>();
+
+    private static List<Duration> indexedMaxEp = new ArrayList<>();
+    private static List<Duration> naiveMaxEp = new ArrayList<>();
+    private static List<Duration> indexedAvgEp = new ArrayList<>();
+    private static List<Duration> naiveAvgEp = new ArrayList<>();
 
     private static synchronized QueryClientResults next() throws IOException {
         var str = fileReader.readLine();
@@ -46,21 +57,96 @@ public class QueriesAveragesLoggerMain {
             while (true) {
                 QueryClientResults next = next();
 
-                if (next.getNaive()) {
-                    naiveMax.add(Duration.ofNanos((Integer) ((LinkedHashMap) next.getMax()).get("nano")));
-                    naiveAvg.add(Duration.ofNanos((Integer) ((LinkedHashMap) next.getMax()).get("nano")));
-                } else {
-                    indexedMax.add(Duration.ofNanos((Integer) ((LinkedHashMap) next.getMax()).get("nano")));
-                    indexedAvg.add(Duration.ofNanos((Integer) ((LinkedHashMap) next.getMax()).get("nano")));
+                switch (next.getType()) {
+                    case MEMBER:
+                        if (next.getNaive()) {
+                            naiveMaxMembers.add(Duration.ofNanos(
+                                    ((Integer) (((LinkedHashMap) next.getMax()).get("nano"))) + ((Integer) (((LinkedHashMap) next.getMax()).get("seconds"))) * 1000000000
+                                    )
+                            );
+                            naiveAvgMembers.add(Duration.ofNanos(
+                                    ((Integer) (((LinkedHashMap) next.getAvg()).get("nano"))) + ((Integer) (((LinkedHashMap) next.getAvg()).get("seconds"))) * 1000000000
+                                    )
+                            );
+                        } else {
+                            indexedMaxMembers.add(Duration.ofNanos(
+                                    ((Integer) (((LinkedHashMap) next.getMax()).get("nano"))) + ((Integer) (((LinkedHashMap) next.getMax()).get("seconds"))) * 1000000000
+                                    )
+                            );
+                            indexedAvgMembers.add(Duration.ofNanos(
+                                    ((Integer) (((LinkedHashMap) next.getAvg()).get("nano"))) + ((Integer) (((LinkedHashMap) next.getAvg()).get("seconds"))) * 1000000000
+                                    )
+                            );
+                        }
+                        break;
+                    case REACHES:
+                        if (next.getNaive()) {
+                            naiveMaxReaches.add(Duration.ofNanos(
+                                    ((Integer) (((LinkedHashMap) next.getMax()).get("nano"))) + ((Integer) (((LinkedHashMap) next.getMax()).get("seconds"))) * 1000000000
+                                    )
+                            );
+                            naiveAvgReaches.add(Duration.ofNanos(
+                                    ((Integer) (((LinkedHashMap) next.getAvg()).get("nano"))) + ((Integer) (((LinkedHashMap) next.getAvg()).get("seconds"))) * 1000000000
+                                    )
+                            );
+                        } else {
+                            indexedMaxReaches.add(Duration.ofNanos(
+                                    ((Integer) (((LinkedHashMap) next.getMax()).get("nano"))) + ((Integer) (((LinkedHashMap) next.getMax()).get("seconds"))) * 1000000000
+                                    )
+                            );
+                            indexedAvgReaches.add(Duration.ofNanos(
+                                    ((Integer) (((LinkedHashMap) next.getAvg()).get("nano"))) + ((Integer) (((LinkedHashMap) next.getAvg()).get("seconds"))) * 1000000000
+                                    )
+                            );
+                        }
+                        break;
+                    case EFFECTIVE_PERMISSIONS:
+                        if (next.getNaive()) {
+                            naiveMaxEp.add(Duration.ofNanos(
+                                    ((Integer) (((LinkedHashMap) next.getMax()).get("nano"))) + ((Integer) (((LinkedHashMap) next.getMax()).get("seconds"))) * 1000000000
+                                    )
+                            );
+                            naiveAvgEp.add(Duration.ofNanos(
+                                    ((Integer) (((LinkedHashMap) next.getAvg()).get("nano"))) + ((Integer) (((LinkedHashMap) next.getAvg()).get("seconds"))) * 1000000000
+                                    )
+                            );
+                        } else {
+                            indexedMaxEp.add(Duration.ofNanos(
+                                    ((Integer) (((LinkedHashMap) next.getMax()).get("nano"))) + ((Integer) (((LinkedHashMap) next.getMax()).get("seconds"))) * 1000000000
+                                    )
+                            );
+                            indexedAvgEp.add(Duration.ofNanos(
+                                    ((Integer) (((LinkedHashMap) next.getAvg()).get("nano"))) + ((Integer) (((LinkedHashMap) next.getAvg()).get("seconds"))) * 1000000000
+                                    )
+                            );
+                        }
+                        break;
                 }
             }
         } catch (NullPointerException error) {
-            System.out.println("Naive:");
-            System.out.println("max - " + (naiveMax.stream().reduce(Duration::plus).orElseThrow()).dividedBy(naiveMax.size()));
-            System.out.println("avg - " + (naiveAvg.stream().reduce(Duration::plus).orElseThrow()).dividedBy(naiveMax.size()));
-            System.out.println("Indexed:");
-            System.out.println("max - " + (indexedMax.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedMax.size()));
-            System.out.println("avg - " + (indexedAvg.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedMax.size()));
+            System.out.println("Type - MEMBERS:");
+            System.out.println("\tNaive:");
+            System.out.println("\t\tmax - " + (naiveMaxMembers.stream().reduce(Duration::plus).orElseThrow()).dividedBy(naiveMaxMembers.size()));
+            System.out.println("\t\tavg - " + (naiveAvgMembers.stream().reduce(Duration::plus).orElseThrow()).dividedBy(naiveAvgMembers.size()));
+            System.out.println("\tIndexed:");
+            System.out.println("\t\tmax - " + (indexedMaxMembers.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedMaxMembers.size()));
+            System.out.println("\t\tavg - " + (indexedAvgMembers.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedAvgMembers.size()));
+
+            System.out.println("Type - REACHES:");
+            System.out.println("\tNaive:");
+            System.out.println("\t\tmax - " + (naiveMaxReaches.stream().reduce(Duration::plus).orElseThrow()).dividedBy(naiveMaxReaches.size()));
+            System.out.println("\t\tavg - " + (naiveAvgReaches.stream().reduce(Duration::plus).orElseThrow()).dividedBy(naiveAvgReaches.size()));
+            System.out.println("\tIndexed:");
+            System.out.println("\t\tmax - " + (indexedMaxReaches.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedMaxReaches.size()));
+            System.out.println("\t\tavg - " + (indexedAvgReaches.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedAvgReaches.size()));
+
+            System.out.println("Type - EFFECTIVE_PERMISSIONS:");
+            System.out.println("\tNaive:");
+            System.out.println("\t\tmax - " + (naiveMaxEp.stream().reduce(Duration::plus).orElseThrow()).dividedBy(naiveMaxEp.size()));
+            System.out.println("\t\tavg - " + (naiveAvgEp.stream().reduce(Duration::plus).orElseThrow()).dividedBy(naiveAvgEp.size()));
+            System.out.println("\tIndexed:");
+            System.out.println("\t\tmax - " + (indexedMaxEp.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedMaxEp.size()));
+            System.out.println("\t\tavg - " + (indexedAvgEp.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedAvgEp.size()));
         }
     }
 }
