@@ -286,8 +286,9 @@ postgres_import() {
 }
 
 calculate_avg_report() {
-  # TODO implement me :(
+  # $1 = folder z wynikami testu
   echo "TODO"
+  # python sql-and-python/calculate_avg_report.py $1
 }
 
 # CONSTANT LOAD
