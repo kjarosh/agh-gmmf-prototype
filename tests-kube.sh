@@ -6,7 +6,7 @@
 
 # kubernetes
 path_to_kubernetes_config="$HOME/.kube/student-k8s-cyf.yaml"
-kubernetes_user_name="gmm-pmarszal"
+kubernetes_user_name=$(cat ${path_to_kubernetes_config} | grep namespace | awk '{print $2}')
 
 # constant paths
 sql_py_scripts="sql-and-python"
