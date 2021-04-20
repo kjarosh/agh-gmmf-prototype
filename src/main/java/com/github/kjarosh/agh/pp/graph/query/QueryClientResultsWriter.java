@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 
 import static java.nio.file.StandardOpenOption.APPEND;
 import static java.nio.file.StandardOpenOption.CREATE;
@@ -41,7 +42,7 @@ public class QueryClientResultsWriter {
     }
 
     @SneakyThrows
-    public void put(QueryType type, boolean naive, Object max, Object avg) {
+    public void put(QueryType type, boolean naive, LinkedHashMap max, LinkedHashMap avg) {
         QueryClientResults results = QueryClientResults.builder()
                 .type(type)
                 .naive(naive)

@@ -156,7 +156,7 @@ public class QueryClientMain {
         log.info("  max {}", max);
 
         if (toSave) {
-            resultsWriter.put(convertType(), naive, (Object) max, avg);
+            resultsWriter.put(convertType(), naive, (LinkedHashMap) max, (LinkedHashMap) avg);
         }
     }
 
