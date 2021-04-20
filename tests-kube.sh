@@ -288,7 +288,8 @@ postgres_import() {
 calculate_avg_report() {
   # $1 = folder z wynikami testu
   echo "TODO"
-  # python sql-and-python/calculate_avg_report.py $1
+  result=$(python sql-and-python/calculate_avg_report.py $1)
+  echo $result >> ${path_to_merged_csv}
 }
 
 # CONSTANT LOAD
@@ -407,8 +408,11 @@ for interzone_arg in ${inter_zone_levels[*]}; do
 
       # TODO get value from average report to merged csv
       #grep 'Operations per second' "${path_to_average_report}" | cut -d':' -f6 | tr -d ' ' | head -n 1 >> "${path_to_merged_csv}"
-      echo "1" >> "${path_to_merged_csv}"
+      # echo "1" >> "${path_to_merged_csv}"
 
+      echo "${interzone_arg},${load}," >> ${path_to_merged_csv}
+
+      calculate_avg_report ${path_for_load}
     done
 
     # create plot from merged.csv
