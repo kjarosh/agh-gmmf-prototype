@@ -277,7 +277,7 @@ postgres_clear() {
 }
 
 postgres_report() {
-  database ${sql_py_scripts}/get_report.sql > "${path_to_report}"
+  database ${sql_py_scripts}/get_report.sql > "${path_to_report}" 2>&1
 }
 
 postgres_import() {
