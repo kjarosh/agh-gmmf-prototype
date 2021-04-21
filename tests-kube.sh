@@ -351,7 +351,7 @@ run_test() {
 parse_config
 
 # create pods and obtain references to them
-create_zones
+# create_zones
 load_zones
 
 ## initialize new directory for test's results, including merged_csv file
@@ -398,7 +398,7 @@ for interzone_arg in ${inter_zone_levels[*]}; do
       echo -n "${interzone_arg},${npz_arg},${load}," >> "${path_to_merged_csv}"
 
       # repeat test
-      for ((i = 0; i < REPETITIONS; i++)); do
+      for i in $(seq 1 $REPETITIONS); do
         mkdir_for_repetition "${i}"
         run_test "${graph_name}" "${queries_name}" "${load}" ${naive}
       done
