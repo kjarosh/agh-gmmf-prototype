@@ -17,6 +17,7 @@ public class QueryClientResults {
     private boolean naive;
     private LinkedHashMap max;
     private LinkedHashMap avg;
+    private String label;
 
     public QueryType getType() {
         return this.type;
@@ -32,6 +33,10 @@ public class QueryClientResults {
 
     public LinkedHashMap getAvg() {
         return this.avg;
+    }
+
+    public String getLabel() {
+        return this.label;
     }
 
     public Duration getMaxDuration() {
@@ -50,11 +55,13 @@ public class QueryClientResults {
             QueryType type,
             boolean naive,
             LinkedHashMap max,
-            LinkedHashMap avg
+            LinkedHashMap avg,
+            String label
     ) {
         this.type = type;
         this.naive = naive;
         this.max = max;
         this.avg = avg;
+        this.label = label;
     }
 }

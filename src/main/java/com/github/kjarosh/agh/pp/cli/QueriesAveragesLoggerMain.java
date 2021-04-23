@@ -24,10 +24,15 @@ public class QueriesAveragesLoggerMain {
     private static List<Duration> indexedAvgMembers = new ArrayList<>();
     private static List<Duration> naiveAvgMembers = new ArrayList<>();
 
-    private static List<Duration> indexedMaxReaches = new ArrayList<>();
-    private static List<Duration> naiveMaxReaches = new ArrayList<>();
-    private static List<Duration> indexedAvgReaches = new ArrayList<>();
-    private static List<Duration> naiveAvgReaches = new ArrayList<>();
+    private static List<Duration> indexedMaxReachesExist = new ArrayList<>();
+    private static List<Duration> naiveMaxReachesExist = new ArrayList<>();
+    private static List<Duration> indexedAvgReachesExist = new ArrayList<>();
+    private static List<Duration> naiveAvgReachesExist = new ArrayList<>();
+
+    private static List<Duration> indexedMaxReachesNonexist = new ArrayList<>();
+    private static List<Duration> naiveMaxReachesNonexist = new ArrayList<>();
+    private static List<Duration> indexedAvgReachesNonexist = new ArrayList<>();
+    private static List<Duration> naiveAvgReachesNonexist = new ArrayList<>();
 
     private static List<Duration> indexedMaxEp = new ArrayList<>();
     private static List<Duration> naiveMaxEp = new ArrayList<>();
@@ -68,12 +73,22 @@ public class QueriesAveragesLoggerMain {
                         }
                         break;
                     case REACHES:
-                        if (next.getNaive()) {
-                            naiveMaxReaches.add(next.getMaxDuration());
-                            naiveAvgReaches.add(next.getAvgDuration());
+                        if (next.getLabel() != null && next.getLabel().equals("exist")) {
+                            if (next.getNaive()) {
+                                naiveMaxReachesExist.add(next.getMaxDuration());
+                                naiveAvgReachesExist.add(next.getAvgDuration());
+                            } else {
+                                indexedMaxReachesExist.add(next.getMaxDuration());
+                                indexedAvgReachesExist.add(next.getAvgDuration());
+                            }
                         } else {
-                            indexedMaxReaches.add(next.getMaxDuration());
-                            indexedAvgReaches.add(next.getAvgDuration());
+                            if (next.getNaive()) {
+                                naiveMaxReachesNonexist.add(next.getMaxDuration());
+                                naiveAvgReachesNonexist.add(next.getAvgDuration());
+                            } else {
+                                indexedMaxReachesNonexist.add(next.getMaxDuration());
+                                indexedAvgReachesNonexist.add(next.getAvgDuration());
+                            }
                         }
                         break;
                     case EFFECTIVE_PERMISSIONS:
@@ -96,13 +111,21 @@ public class QueriesAveragesLoggerMain {
             System.out.println("\t\tmax - " + (indexedMaxMembers.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedMaxMembers.size()));
             System.out.println("\t\tavg - " + (indexedAvgMembers.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedAvgMembers.size()));
 
-            System.out.println("Type - REACHES:");
+            System.out.println("Type - REACHES (existing):");
             System.out.println("\tNaive:");
-            System.out.println("\t\tmax - " + (naiveMaxReaches.stream().reduce(Duration::plus).orElseThrow()).dividedBy(naiveMaxReaches.size()));
-            System.out.println("\t\tavg - " + (naiveAvgReaches.stream().reduce(Duration::plus).orElseThrow()).dividedBy(naiveAvgReaches.size()));
+            System.out.println("\t\tmax - " + (naiveMaxReachesExist.stream().reduce(Duration::plus).orElseThrow()).dividedBy(naiveMaxReachesExist.size()));
+            System.out.println("\t\tavg - " + (naiveAvgReachesExist.stream().reduce(Duration::plus).orElseThrow()).dividedBy(naiveAvgReachesExist.size()));
             System.out.println("\tIndexed:");
-            System.out.println("\t\tmax - " + (indexedMaxReaches.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedMaxReaches.size()));
-            System.out.println("\t\tavg - " + (indexedAvgReaches.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedAvgReaches.size()));
+            System.out.println("\t\tmax - " + (indexedMaxReachesExist.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedMaxReachesExist.size()));
+            System.out.println("\t\tavg - " + (indexedAvgReachesExist.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedAvgReachesExist.size()));
+
+            System.out.println("Type - REACHES (nonexisting):");
+            System.out.println("\tNaive:");
+            System.out.println("\t\tmax - " + (naiveMaxReachesNonexist.stream().reduce(Duration::plus).orElseThrow()).dividedBy(naiveMaxReachesNonexist.size()));
+            System.out.println("\t\tavg - " + (naiveAvgReachesNonexist.stream().reduce(Duration::plus).orElseThrow()).dividedBy(naiveAvgReachesNonexist.size()));
+            System.out.println("\tIndexed:");
+            System.out.println("\t\tmax - " + (indexedMaxReachesNonexist.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedMaxReachesNonexist.size()));
+            System.out.println("\t\tavg - " + (indexedAvgReachesNonexist.stream().reduce(Duration::plus).orElseThrow()).dividedBy(indexedAvgReachesNonexist.size()));
 
             System.out.println("Type - EFFECTIVE_PERMISSIONS:");
             System.out.println("\tNaive:");

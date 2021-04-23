@@ -52,6 +52,7 @@ public class QueryClientMain {
     private static int durationSeconds;
     private static Graph graph;
     private static String operationType;
+    private static String label;
     private static boolean naive;
     private static int existing = 0;
 
@@ -75,6 +76,7 @@ public class QueryClientMain {
         options.addRequiredOption("d", "duration-seconds", true, "stop queries after the given number of seconds");
         options.addOption("s", "sequence", true, "execute requests from this file");
         options.addOption("r", "results", true, "save results to this file");
+        options.addOption("l", "label", true, "additional label to results");
         options.addOption(null, "naive", false, "naive");
         options.addOption(null, "existing", true, "existing ratio");
 
@@ -86,6 +88,7 @@ public class QueryClientMain {
         naive = cmd.hasOption("naive");
         existingRatio = Double.parseDouble(cmd.getOptionValue("existing", "0"));
         durationSeconds = Integer.parseInt(cmd.getOptionValue("d", "-1"));
+        label = cmd.getOptionValue("l");
 
         if (cmd.hasOption("s")) {
             InputStream is = Files.newInputStream(Paths.get(cmd.getOptionValue("s")));
@@ -121,6 +124,10 @@ public class QueryClientMain {
         while (!Thread.interrupted() && Instant.now().isBefore(deadline)) {
             try {
                 if (reader != null) {
+                    Query next = reader.nextValue(Query.class);
+                    if (next == null) {
+                        break;
+                    }
                     performRequestFromSequence(client);
                 } else {
                     performRequest(client);
@@ -156,7 +163,7 @@ public class QueryClientMain {
         log.info("  max {}", max);
 
         if (toSave) {
-            resultsWriter.put(convertType(), naive, (LinkedHashMap) max, (LinkedHashMap) avg);
+            resultsWriter.put(convertType(), naive, (LinkedHashMap) max, (LinkedHashMap) avg, label);
         }
     }
 
