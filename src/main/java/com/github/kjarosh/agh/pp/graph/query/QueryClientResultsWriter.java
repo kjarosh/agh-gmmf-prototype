@@ -42,12 +42,13 @@ public class QueryClientResultsWriter {
     }
 
     @SneakyThrows
-    public void put(QueryType type, boolean naive, LinkedHashMap max, LinkedHashMap avg) {
+    public void put(QueryType type, boolean naive, LinkedHashMap max, LinkedHashMap avg, String label) {
         QueryClientResults results = QueryClientResults.builder()
                 .type(type)
                 .naive(naive)
                 .max(max)
                 .avg(avg)
+                .label(label)
                 .build();
         file.println(writer.writeValueAsString(results));
     }
