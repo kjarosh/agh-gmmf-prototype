@@ -169,7 +169,7 @@ public class QueryClientMain {
         log.info("  max {}", max);
 
         if (toSave) {
-            resultsWriter.put(convertType(), naive, max, avg, label);
+            resultsWriter.put(convertType(), naive, (Object) max, avg, label);
         }
     }
 
