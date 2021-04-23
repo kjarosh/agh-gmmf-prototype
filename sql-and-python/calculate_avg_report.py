@@ -18,8 +18,10 @@ def extract_value(filename):
     logger.debug(f"File {filename} is open")
     with open(filename, 'r') as file:
         lines = file.readlines()
-        logger.debug(lines)
-    return float(list(filter(has_value, lines))[0].split(':')[1].strip())
+    
+    matching = list(filter(has_value, lines))
+    logger.debug(matching)
+    return float(matching[0].split(':')[-1].strip())
 
 def get_report_file(dir):
     return f"{source_dir}/{dir}/report.txt"
