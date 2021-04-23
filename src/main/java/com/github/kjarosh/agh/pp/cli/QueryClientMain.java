@@ -128,13 +128,11 @@ public class QueryClientMain {
         while (!Thread.interrupted() && Instant.now().isBefore(deadline)) {
             try {
                 if (useSequence) {
-                    Query next = next();
-
-                    if (next == null) {
+                    try {
+                        performRequestFromSequence(client);
+                    } catch (NullPointerException error) {
                         break;
                     }
-
-                    performRequestFromSequence(client, next);
                 } else {
                     performRequest(client);
                 }
@@ -204,7 +202,8 @@ public class QueryClientMain {
         return objectReader.readValue(str.trim());
     }
 
-    private static void performRequestFromSequence(GraphQueryClient client, Query next) throws IOException {
+    private static void performRequestFromSequence(GraphQueryClient client) throws IOException {
+        Query next = next();
         QueryType type = next.getType();
 
         if (type == QueryType.MEMBER) {

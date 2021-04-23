@@ -39,22 +39,6 @@ public class QueryClientResults {
         return this.label;
     }
 
-    private long getField(Object obj, String field) {
-        return ((Integer) (((LinkedHashMap) obj).get(field))).longValue();
-    }
-
-    public Duration getMaxDuration() {
-        return Duration.ofNanos(
-                getField(this.max, "nano") + getField(this.max, "seconds") * 1000000000
-        );
-    }
-
-    public Duration getAvgDuration() {
-        return Duration.ofNanos(
-                getField(this.avg, "nano") + getField(this.avg, "seconds") * 1000000000
-        );
-    }
-
     public QueryClientResults(
             QueryType type,
             boolean naive,
