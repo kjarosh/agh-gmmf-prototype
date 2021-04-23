@@ -15,8 +15,8 @@ import java.util.LinkedHashMap;
 public class QueryClientResults {
     private QueryType type;
     private boolean naive;
-    private LinkedHashMap max;
-    private LinkedHashMap avg;
+    private Object max;
+    private Object avg;
     private String label;
 
     public QueryType getType() {
@@ -27,11 +27,11 @@ public class QueryClientResults {
         return this.naive;
     }
 
-    public LinkedHashMap getMax() {
+    public Object getMax() {
         return this.max;
     }
 
-    public LinkedHashMap getAvg() {
+    public Object getAvg() {
         return this.avg;
     }
 
@@ -39,23 +39,27 @@ public class QueryClientResults {
         return this.label;
     }
 
+    private long getField(Object obj, String field) {
+        return ((Integer) (((LinkedHashMap) obj).get(field))).longValue();
+    }
+
     public Duration getMaxDuration() {
         return Duration.ofNanos(
-                ((Integer) (this.max.get("nano"))).longValue() + ((Integer) (this.max.get("seconds"))).longValue() * 1000000000
+                getField(this.max, "nano") + getField(this.max, "seconds") * 1000000000
         );
     }
 
     public Duration getAvgDuration() {
         return Duration.ofNanos(
-                ((Integer) (this.avg.get("nano"))).longValue() + ((Integer) (this.avg.get("seconds"))).longValue() * 1000000000
+                getField(this.avg, "nano") + getField(this.avg, "seconds") * 1000000000
         );
     }
 
     public QueryClientResults(
             QueryType type,
             boolean naive,
-            LinkedHashMap max,
-            LinkedHashMap avg,
+            Object max,
+            Object avg,
             String label
     ) {
         this.type = type;
