@@ -129,9 +129,11 @@ public class QueryClientMain {
             try {
                 if (useSequence) {
                     Query next = next();
+
                     if (next == null) {
                         break;
                     }
+
                     performRequestFromSequence(client, next);
                 } else {
                     performRequest(client);
