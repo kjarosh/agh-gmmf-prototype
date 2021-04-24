@@ -128,11 +128,7 @@ public class QueryClientMain {
         while (!Thread.interrupted() && Instant.now().isBefore(deadline)) {
             try {
                 if (useSequence) {
-                    try {
-                        performRequestFromSequence(client);
-                    } catch (NullPointerException error) {
-                        break;
-                    }
+                    performRequestFromSequence(client);
                 } else {
                     performRequest(client);
                 }
