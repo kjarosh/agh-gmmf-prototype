@@ -348,7 +348,7 @@ run_test() {
 service postgresql start
 runuser -l postgres -c 'cd / && createuser --superuser root && createdb root'
 service postgresql restart >> logs.txt
-psql -f set_postgres_passwd.sql >> logs.txt 
+psql -f ${sql_py_scripts}/set_postgres_passwd.sql >> logs.txt 
 service postgresql restart >> logs.txt
 
 # read config file
