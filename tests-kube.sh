@@ -6,7 +6,7 @@
 
 # kubernetes
 path_to_kubernetes_config="$HOME/.kube/student-k8s-cyf.yaml"
-kubernetes_user_name=$(cat ${path_to_kubernetes_config} | grep namespace | awk '{print $2}')
+kubernetes_user_name=$(kubectl config view --minify | grep namespace: | cut -d':' -f2)
 
 # constant paths
 sql_py_scripts="sql-and-python"
@@ -103,8 +103,7 @@ parse_config() {
 
 create_zones() {
   total_zones=$((COUNT_ZONES + 1))
-  mvn compile exec:java -Dexec.mainClass="com.github.kjarosh.agh.pp.cli.KubernetesClient" \
-                        -Dexec.args="-z ${total_zones} -c ${path_to_kubernetes_config} -n ${kubernetes_user_name} -i pmarszal/ms-graph-simulator"
+  ./run-main.sh com.github.kjarosh.agh.pp.cli.KubernetesClient -z ${total_zones} -c ${path_to_kubernetes_config} -n ${kubernetes_user_name} -i danieljodlos/gmm-indexer-fork
 
   # local variables
   local incomings=1
@@ -211,8 +210,7 @@ generate_graph() {
   echo "  \"existingGroupProb\": 0.1" >> "${pgc}"
   echo "}" >> "${pgc}"
 
-  mvn compile exec:java -Dexec.mainClass="com.github.kjarosh.agh.pp.cli.GraphGeneratorMain" \
-                        -Dexec.args="-c ${pgc} -o ${path_to_graph} -n ${2}"
+  ./run-main.sh com.github.kjarosh.agh.pp.cli.GraphGeneratorMain -c ${pgc} -o ${path_to_graph} -n ${2}
 }
 
 generate_queries() {
@@ -225,8 +223,7 @@ generate_queries() {
 
   total_operations=$((TEST_TIME * max * 12 / 10))
 
-  mvn compile exec:java -Dexec.mainClass="com.github.kjarosh.agh.pp.cli.OperationSequenceGeneratorMain" \
-                        -Dexec.args="-g ${path_to_graph} -n ${total_operations} -o ${path_to_queries}"
+  ./run-main.sh com.github.kjarosh.agh.pp.cli.OperationSequenceGeneratorMain -g ${path_to_graph} -n ${total_operations} -o ${path_to_queries}
 }
 
 # INSTRUMENTATION
@@ -284,8 +281,7 @@ postgres_report() {
 }
 
 postgres_import() {
-  mvn compile exec:java -Dexec.mainClass="com.github.kjarosh.agh.pp.cli.PostgresImportMain" \
-                        -Dexec.args="${path_for_repetition}"
+  ./run-main.sh com.github.kjarosh.agh.pp.cli.PostgresImportMain ${path_for_repetition}
 }
 
 calculate_avg_report() {
@@ -349,6 +345,11 @@ run_test() {
 ####################
 # SCRIPT EXECUTION #
 ####################
+service postgresql start
+runuser -l postgres -c 'cd / && createuser --superuser root && createdb root'
+service postgresql restart >> logs.txt
+psql -f set_postgres_passwd.sql >> logs.txt 
+service postgresql restart >> logs.txt
 
 # read config file
 parse_config
