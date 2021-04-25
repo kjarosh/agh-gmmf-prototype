@@ -269,7 +269,7 @@ clear_redises() {
 # POSTGRES
 
 database() {
-  psql "dbname='postgres' user='postgres' password='admin' host='localhost' port='5432'" -f "$1"
+  psql "dbname='postgres'" -f "$1"
 }
 
 postgres_clear() {

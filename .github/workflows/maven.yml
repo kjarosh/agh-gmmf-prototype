@@ -68,9 +68,18 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     -
-      name: Build and push
+      name: Build and push zone
       uses: docker/build-push-action@v2
       with:
         context: .
         push: true
         tags: danieljodlos/gmm-indexer-fork:latest
+        
+    -
+      name: Build and push test image
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        file: Dockerfile.tests
+        tags: danieljodlos/gmm-tester:latest
