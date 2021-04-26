@@ -411,7 +411,7 @@ for interzone_arg in ${inter_zone_levels[*]}; do
       #grep 'Operations per second' "${path_to_average_report}" | cut -d':' -f6 | tr -d ' ' | head -n 1 >> "${path_to_merged_csv}"
       # echo "1" >> "${path_to_merged_csv}"
 
-      echo "${interzone_arg},${load}," >> ${path_to_merged_csv}
+      echo -n "${interzone_arg},${load}," >> ${path_to_merged_csv}
 
       calculate_avg_report ${path_for_load}
     done
@@ -421,4 +421,12 @@ for interzone_arg in ${inter_zone_levels[*]}; do
 
   done
 
+done
+
+echo "Tests finished!"
+
+### infinite loop waiting for manual termination
+while :
+do
+    sleep 10
 done
