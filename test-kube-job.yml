@@ -1,0 +1,20 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gmm-tester
+spec:
+  template:
+    spec:
+      volumes:
+          - name: gmm-tests-pv-storage
+            persistentVolumeClaim:
+                claimName: gmm-tests-pv-claim
+      containers:
+      - name: test
+        image: danieljodlos/gmm-tester:latest
+        volumeMounts:
+            - mountPath: "tests--artifacts-and-results/kubernetes"
+              name: gmm-tests-pv-storage
+      restartPolicy: Never
+
+
