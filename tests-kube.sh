@@ -287,7 +287,7 @@ postgres_import() {
 calculate_avg_report() {
   # $1 = folder z wynikami testu
   echo "TODO"
-  result=$(python sql-and-python/calculate_avg_report.py $1)
+  result=$(python3 sql-and-python/calculate_avg_report.py $1)
   echo $result >> ${path_to_merged_csv}
 }
 
