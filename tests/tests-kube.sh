@@ -13,7 +13,7 @@ sql_py_scripts="sql-and-python"
 results_root="tests--artifacts-and-results/kubernetes"
 
 # file names
-test_config_path="configs/${1:-'test-config.txt'}"
+test_config_path=${1:-'test-config.txt'}
 echo -n "Config is: "
 echo $test_config_path
 merged_csv_name="merged.csv"
@@ -158,7 +158,7 @@ mkdir_for_whole_test() {
   path_to_plot="${path_for_test}/${plot_name}"
 
   # copy config
-  cp "test-config.txt" "${path_for_test}/test-config.txt"
+  cp ${test_config_path} "${path_for_test}/test-config.txt"
 
   # create merged_csv file
   touch "${path_to_merged_csv}"
@@ -446,5 +446,6 @@ echo "Tests finished!"
 ### infinite loop waiting for manual termination
 while :
 do
+    echo "Awaiting termination. Stuck in infinite loop"
     sleep 10
 done
