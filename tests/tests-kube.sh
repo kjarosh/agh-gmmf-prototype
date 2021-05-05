@@ -325,7 +325,7 @@ constant_load() {
 
   # restore previous redis state
   kubectl exec "${EXECUTOR}" -- redis-cli shutdown
-  kubectl exec "${EXECUTOR}" -- cp -p /var/lib/redis/graph.rdb /var/lub/redis/dump.rdb
+  kubectl exec "${EXECUTOR}" -- cp -p /var/lib/redis/graph.rdb /var/lib/redis/dump.rdb
   kubectl exec "${EXECUTOR}" -- redis-server /redis.conf
 }
 
