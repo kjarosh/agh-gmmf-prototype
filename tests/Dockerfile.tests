@@ -7,13 +7,13 @@ RUN curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packa
     apt-get clean
 
 RUN pip3 install numpy matplotlib
-RUN mkdir tests--artifacts-and-results && mkdir tests--artifacts-and-results/kubernetes
+RUN mkdir -p tests--artifacts-and-results/kubernetes
 
 COPY target/agh-pp-simulator-*.jar app.jar
 COPY docker/run-main.sh run-main.sh
-COPY tests-kube.sh entrypoint.sh
-COPY sql-and-python/ sql-and-python/
-COPY test-config.txt test-config.txt
+COPY tests/tests-kube.sh entrypoint.sh
+COPY tests/sql-and-python/ sql-and-python/
+COPY tests/configs configs/
 
 
 ENTRYPOINT ["./entrypoint.sh"]

@@ -81,5 +81,5 @@ jobs:
       with:
         context: .
         push: true
-        file: Dockerfile.tests
+        file: tests/Dockerfile.tests
         tags: danieljodlos/gmm-tester:latest

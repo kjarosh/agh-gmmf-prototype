@@ -13,7 +13,9 @@ sql_py_scripts="sql-and-python"
 results_root="tests--artifacts-and-results/kubernetes"
 
 # file names
-test_config_path="test-config.txt"
+test_config_path="configs/${1:-'test-config.txt'}"
+echo -n "Config is: "
+echo $test_config_path
 merged_csv_name="merged.csv"
 graph_name="graph.json"
 queries_name="queries.json"
