@@ -307,8 +307,12 @@ load_graph() {
 
 
   # make sure there is a backup
-  kubectl exec "${EXECUTOR}" -- redis-cli save
-  kubectl exec "${EXECUTOR}" -- cp -p /var/lib/redis/dump.rdb /var/lib/redis/graph.rdb
+
+  for ((i = 0; i < COUNT_ZONES; i++)); do
+    kubectl exec "${ZONES[i]}" -- redis-cli save
+    kubectl exec "${ZONES[i]}" -- cp -p /var/lib/redis/dump.rdb /var/lib/redis/graph.rdb
+    my_printf "Redis state snapshoted for ${ZONES[i]}"
+  done
 }
 
 constant_load() {
@@ -326,9 +330,12 @@ constant_load() {
   fi
 
   # restore previous redis state
-  kubectl exec "${EXECUTOR}" -- redis-cli shutdown
-  kubectl exec "${EXECUTOR}" -- cp -p /var/lib/redis/graph.rdb /var/lib/redis/dump.rdb
-  kubectl exec "${EXECUTOR}" -- redis-server /redis.conf
+  for ((i = 0; i < COUNT_ZONES; i++)); do
+    kubectl exec "${ZONES[i]}" -- redis-cli shutdown
+    kubectl exec "${ZONES[i]}" -- cp -p /var/lib/redis/graph.rdb /var/lib/redis/dump.rdb
+    kubectl exec "${ZONES[i]}" -- redis-server /redis.conf
+    my_printf "Redis state restored for ZONE ${ZONES[i]}"
+  done
 }
 
 ######################
