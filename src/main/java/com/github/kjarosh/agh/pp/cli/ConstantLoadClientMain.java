@@ -80,12 +80,14 @@ public class ConstantLoadClientMain {
         options.addOption(null, "prob.perms", true,
                 "probability that a random operation changes permissions");
         options.addOption(null, "disable-indexation", false, "");
+        options.addOption(null, "no-load", false, "");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
 
         loadGraph = cmd.hasOption("l");
         exitOnFail = cmd.hasOption("x");
+        boolean skipLoad = cmd.hasOption("no-load");
         operationsPerSecond = Integer.parseInt(cmd.getOptionValue("n"));
         bulkSize = Integer.parseInt(cmd.getOptionValue("b", "-1"));
         requestsPerSecond = Integer.parseInt(cmd.getOptionValue("r", "-1"));
@@ -112,6 +114,11 @@ public class ConstantLoadClientMain {
 
         if (loadGraph) {
             loadGraph();
+
+            if(skipLoad) {
+                log.info("Skipping constant load part");
+                return;
+            }
         }
 
         baseOperationIssuer = new ConcurrentOperationPerformer(maxPoolSize, zoneClient);
