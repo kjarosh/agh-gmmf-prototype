@@ -303,7 +303,7 @@ load_graph() {
   kubectl cp "${path_to_queries}" "${EXECUTOR}:${queries_name}"
 
   kubectl exec -it "${EXECUTOR}" -- bash \
-            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -l -b 5 -g ${graph_name} -n 100 -d 0"
+            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -l -b 5 -g ${graph_name} -n 100 --no-load"
 
 
   # make sure there is a backup
