@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# End the idiotic, bughiding properties of bash
+set -eu
+
 ####################
 # Global constants #
 ####################
@@ -10,7 +13,9 @@ kubernetes_user_name=$(kubectl config view --minify | grep namespace: | cut -d':
 
 # constant paths
 sql_py_scripts="sql-and-python"
-results_root="tests--artifacts-and-results/kubernetes"
+results_root="results"
+
+mkdir -p ${results_root}
 
 # file names
 test_config_path=${1:-'test-config.txt'}
@@ -298,7 +303,7 @@ load_graph() {
   kubectl cp "${path_to_queries}" "${EXECUTOR}:${queries_name}"
 
   kubectl exec -it "${EXECUTOR}" -- bash \
-            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -l -b 5 -g ${graph_name} -n 100 -d 0 -t"
+            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -l -b 5 -g ${graph_name} -n 100 -d 0"
 
 
   # make sure there is a backup

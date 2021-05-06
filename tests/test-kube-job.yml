@@ -12,6 +12,7 @@ spec:
       containers:
       - name: test
         image: danieljodlos/gmm-tester:latest
+        args: ['test-small.txt']
         volumeMounts:
             - mountPath: "tests--artifacts-and-results/kubernetes"
               name: gmm-tests-pv-storage
