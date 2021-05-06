@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # End the idiotic, bughiding properties of bash
-set -eu
+set -e
 
 ####################
 # Global constants #
@@ -370,6 +370,7 @@ service postgresql restart >> logs.txt
 
 # read config file
 parse_config
+echo "Config read"
 
 # create pods and obtain references to them
 # create_zones
