@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# End the idiotic, bughiding properties of bash
-set -e
-
 ####################
 # Global constants #
 ####################
