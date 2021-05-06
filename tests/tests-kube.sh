@@ -20,7 +20,7 @@ mkdir -p ${results_root}
 # file names
 test_config_path=${1:-'test-config.txt'}
 echo -n "Config is: "
-echo $test_config_path
+echo "$test_config_path"
 merged_csv_name="merged.csv"
 graph_name="graph.json"
 queries_name="queries.json"
@@ -375,9 +375,11 @@ echo "Config read"
 # create pods and obtain references to them
 # create_zones
 load_zones
+echo "Zones loaded"
 
 ## initialize new directory for test's results, including merged_csv file
 mkdir_for_whole_test
+echo "Directory structure created"
 
 # for each interzone..
 for interzone_arg in ${inter_zone_levels[*]}; do
@@ -434,7 +436,7 @@ for interzone_arg in ${inter_zone_levels[*]}; do
 
       echo -n "${interzone_arg},${load}," >> ${path_to_merged_csv}
 
-      calculate_avg_report ${path_for_load}
+      calculate_avg_report "${path_for_load}"
     done
 
     # create plot from merged.csv
@@ -449,6 +451,5 @@ echo "Tests finished!"
 ### infinite loop waiting for manual termination
 while :
 do
-    echo "Awaiting termination. Stuck in infinite loop"
-    sleep 10
+    sleep 100
 done
