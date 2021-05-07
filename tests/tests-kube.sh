@@ -164,7 +164,7 @@ mkdir_for_whole_test() {
 
   # create merged_csv file
   touch "${path_to_merged_csv}"
-  echo 'interzone,nodes_per_zone,target,real' >"${path_to_merged_csv}"
+  echo 'interzone,nodes_per_zone,target,real,std' >"${path_to_merged_csv}"
 }
 
 mkdir_for_graph() {
@@ -292,7 +292,7 @@ calculate_avg_report() {
   # $1 = folder z wynikami testu
   echo "TODO"
   result=$(python3 sql-and-python/calculate_avg_report.py $1)
-  echo $result >> ${path_to_merged_csv}
+  echo "$result" >> "${path_to_merged_csv}"
 }
 
 # CONSTANT LOAD
@@ -441,8 +441,6 @@ for interzone_arg in ${inter_zone_levels[*]}; do
       #grep 'Operations per second' "${path_to_average_report}" | cut -d':' -f6 | tr -d ' ' | head -n 1 >> "${path_to_merged_csv}"
       # echo "1" >> "${path_to_merged_csv}"
 
-      echo -n "${interzone_arg},${load}," >> ${path_to_merged_csv}
-
       calculate_avg_report "${path_for_load}"
     done
 
@@ -450,8 +448,11 @@ for interzone_arg in ${inter_zone_levels[*]}; do
     python3 -W ignore "${sql_py_scripts}/plot.py" "${path_to_merged_csv}" "${path_to_plot}"
 
   done
-
 done
+
+tar -czvf results.tar.gz "${path_for_test}"
+echo "Tar generated. Copy with:"
+echo "kubectl cp $(kubectl get pods | grep gmm-tester | awk '{ print $1 }'):results.tar gz results.tar.gz"
 
 echo "Tests finished!"
 
