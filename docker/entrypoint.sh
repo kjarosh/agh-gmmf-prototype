@@ -4,8 +4,13 @@ set -e
 if [[ $REDIS != "false" ]]; then
   redis-server /redis.conf 2>&1 | sed 's/^/[redis] /' >&2 &
 fi
+if [[ -n $DEBUG_SUSPEND ]]; then
+  DEBUG_SUSPEND=y
+else
+  DEBUG_SUSPEND=n
+fi
 java \
-    -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8080 \
+    -agentlib:jdwp=transport=dt_socket,server=y,suspend=${DEBUG_SUSPEND},address=*:8080 \
     -Dapp.config_path=config/config.json \
     -Dapp.redis=$REDIS \
     -Dcom.sun.management.jmxremote=true \
