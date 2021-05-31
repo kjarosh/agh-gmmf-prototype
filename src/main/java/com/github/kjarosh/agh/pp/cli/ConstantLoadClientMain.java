@@ -118,7 +118,7 @@ public class ConstantLoadClientMain {
             if (bulkSize >= 1) {
                 operationIssuer = new BulkOperationIssuer(baseOperationIssuer, bulkSize);
             } else {
-                operationIssuer = baseOperationIssuer;
+                operationIssuer = new ConcurrentOperationIssuer(maxPoolSize, zoneClient);
             }
             ConcurrentOperationPerformer concurrentOperationPerformer = new ConcurrentOperationPerformer(graph);
             concurrentOperationPerformer = concurrentOperationPerformer.withOperationIssuer(operationIssuer);
