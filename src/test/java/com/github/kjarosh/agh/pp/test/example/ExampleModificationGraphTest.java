@@ -30,6 +30,15 @@ public class ExampleModificationGraphTest extends ExampleTestBase {
 
         client.removeEdge(zone,
                 eid("zone0:alice", "zone0:ebi"), null);
+        client.removeEdge(zone,
+                eid("zone1:anne", "zone1:audit"), null);
+    }
+
+    @ParameterizedTest
+    @ArgumentsSource(GraphQueryClientArgumentsProvider.class)
+    void reaches(GraphQueryClient queryClient) {
+        assertThat(queryClient.reaches(zone, eid("zone0:alice", "zone1:krakow")).isReaches())
+                .isTrue();
     }
 
     @ParameterizedTest
@@ -47,6 +56,12 @@ public class ExampleModificationGraphTest extends ExampleTestBase {
                 .isNull();
         assertThat(queryClient.effectivePermissions(zone, eid("zone0:alice", "zone1:krakow")).getEffectivePermissions())
                 .isEqualTo("00000");
+        assertThat(queryClient.effectivePermissions(zone, eid("zone1:anne", "zone1:cyfnet")).getEffectivePermissions())
+                .isEqualTo("10000");
+        assertThat(queryClient.effectivePermissions(zone, eid("zone1:anne", "zone1:audit")).getEffectivePermissions())
+                .isNull();
+        assertThat(queryClient.effectivePermissions(zone, eid("zone1:anne", "zone1:primage")).getEffectivePermissions())
+                .isEqualTo("11000");
     }
 
     @ParameterizedTest

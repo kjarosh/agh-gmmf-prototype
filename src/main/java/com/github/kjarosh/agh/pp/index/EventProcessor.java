@@ -6,6 +6,7 @@ import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.index.EffectiveVertex.RecalculationResult;
 import com.github.kjarosh.agh.pp.index.events.Event;
+import com.github.kjarosh.agh.pp.index.events.EventType;
 import com.github.kjarosh.agh.pp.instrumentation.Instrumentation;
 import com.github.kjarosh.agh.pp.instrumentation.Notification;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -24,6 +26,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Class responsible for processing {@link Event}s and
@@ -106,12 +109,15 @@ public class EventProcessor {
         VertexIndex index = graph.getVertex(id).index();
 
         AtomicBoolean propagate = new AtomicBoolean(false);
+        AtomicReference<EventType> eventType = new AtomicReference<>(event.getType());
         if (delete) {
             VertexId toRemove = event.getOriginalSender();
             index.getEffectiveParent(toRemove).ifPresent(effectiveVertex -> {
                 effectiveVertex.removeIntermediateVertex(event.getSender(), () -> propagate.set(true));
                 if (effectiveVertex.getIntermediateVertices().isEmpty()) {
                     index.removeEffectiveParent(toRemove);
+                } else {
+                    eventType.set(EventType.PARENT_CHANGE);
                 }
             });
         } else {
@@ -122,9 +128,10 @@ public class EventProcessor {
         }
 
         if (propagate.get()) {
-            Set<VertexId> effectiveParents = index.getEffectiveParentsSet();
+            Set<VertexId> effectiveParents = eventType.get() == EventType.PARENT_REMOVE ?
+                    Collections.emptySet() : index.getEffectiveParentsSet();
             Set<VertexId> recipients = graph.getSourcesByDestination(id);
-            propagateEvent(id, recipients, event, effectiveParents);
+            propagateEvent(id, recipients, event, effectiveParents, eventType.get());
         }
     }
 
@@ -135,12 +142,16 @@ public class EventProcessor {
         Set<Edge> edgesToCalculate = graph.getEdgesByDestination(id);
 
         AtomicBoolean propagate = new AtomicBoolean(false);
+        AtomicReference<EventType> eventType = new AtomicReference<>(event.getType());
         if (delete) {
             VertexId toRemove = event.getOriginalSender();
             index.getEffectiveChild(toRemove).ifPresent(effectiveVertex -> {
                 effectiveVertex.removeIntermediateVertex(event.getSender(), () -> propagate.set(true));
                 if (effectiveVertex.getIntermediateVertices().isEmpty()) {
                     index.removeEffectiveChild(toRemove);
+                } else {
+                    eventType.set(EventType.CHILD_CHANGE);
+                    recalculatePermissions(event, edgesToCalculate, toRemove, effectiveVertex);
                 }
             });
         } else {
@@ -151,15 +162,7 @@ public class EventProcessor {
                 Runnable job = () -> {
                     EffectiveVertex effectiveVertex = index.getOrAddEffectiveChild(subjectId, () -> propagate.set(true));
                     effectiveVertex.addIntermediateVertex(event.getSender(), () -> propagate.set(true));
-                    effectiveVertex.recalculatePermissions(edgesToCalculate).thenAccept(result -> {
-                        if (result == RecalculationResult.DIRTY) {
-                            instrumentation.notify(Notification.markedDirty(subjectId, event));
-                            log.warn("Marking vertex {} as dirty", subjectId);
-                        } else if (result == RecalculationResult.CLEANED) {
-                            instrumentation.notify(Notification.markedClean(subjectId, event));
-                            log.info("Marking vertex {} as not dirty", subjectId);
-                        }
-                    });
+                    recalculatePermissions(event, edgesToCalculate, subjectId, effectiveVertex);
                 };
                 if (executor != null) {
                     futures.add(executor.submit(job));
@@ -171,10 +174,23 @@ public class EventProcessor {
         }
 
         if (propagate.get()) {
-            Set<VertexId> effectiveChildren = index.getEffectiveChildrenSet();
+            Set<VertexId> effectiveChildren = eventType.get() == EventType.CHILD_REMOVE ?
+                    Collections.emptySet() : index.getEffectiveChildrenSet();
             Set<VertexId> recipients = graph.getDestinationsBySource(id);
-            propagateEvent(id, recipients, event, effectiveChildren);
+            propagateEvent(id, recipients, event, effectiveChildren, eventType.get());
         }
+    }
+
+    private void recalculatePermissions(Event event, Set<Edge> edgesToCalculate, VertexId subjectId, EffectiveVertex effectiveVertex) {
+        effectiveVertex.recalculatePermissions(edgesToCalculate).thenAccept(result -> {
+            if (result == RecalculationResult.DIRTY) {
+                instrumentation.notify(Notification.markedDirty(subjectId, event));
+                log.warn("Marking vertex {} as dirty", subjectId);
+            } else if (result == RecalculationResult.CLEANED) {
+                instrumentation.notify(Notification.markedClean(subjectId, event));
+                log.info("Marking vertex {} as not dirty", subjectId);
+            }
+        });
     }
 
     private void waitForAll(Collection<Future<?>> futures) {
@@ -194,7 +210,8 @@ public class EventProcessor {
             VertexId sender,
             Collection<VertexId> recipients,
             Event event,
-            Set<VertexId> effectiveVertices) {
+            Set<VertexId> effectiveVertices,
+            EventType type) {
         int size = recipients.size();
         if (size > 0) {
             instrumentation.notify(Notification.forkEvent(sender, event, size));
@@ -202,7 +219,7 @@ public class EventProcessor {
         recipients.forEach(r -> {
             Event newEvent = Event.builder()
                     .trace(event.getTrace())
-                    .type(event.getType())
+                    .type(type)
                     .effectiveVertices(effectiveVertices)
                     .sender(sender)
                     .originalSender(event.getOriginalSender())
