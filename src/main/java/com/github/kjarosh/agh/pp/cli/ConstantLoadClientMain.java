@@ -43,7 +43,7 @@ public class ConstantLoadClientMain {
     private static int maxPoolSize;
     private static int durationSeconds;
     private static boolean disableIndexation;
-    private static ArrayList<IOperationPerformer> operationPerformers;
+    private static ArrayList<IOperationPerformer> operationPerformers = new ArrayList<>();
     private static ConcurrentOperationIssuer baseOperationIssuer;
     private static OperationIssuer operationIssuer;
 
