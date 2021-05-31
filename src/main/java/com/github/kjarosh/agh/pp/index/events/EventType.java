@@ -9,6 +9,8 @@ public enum EventType {
     /**
      * When some child changed. E.g. a user changes permissions in a group.
      * The event is then propagated to the group and all parents.
+     *
+     * Bottom-up
      */
     @JsonProperty("child")
     CHILD_CHANGE,
@@ -16,6 +18,8 @@ public enum EventType {
     /**
      * When some parent changed. E.g. a group changes permissions in a space.
      * The event is then propagated to all children.
+     *
+     * Top-down
      */
     @JsonProperty("parent")
     PARENT_CHANGE,
