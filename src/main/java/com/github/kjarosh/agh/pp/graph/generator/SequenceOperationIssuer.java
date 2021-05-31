@@ -2,6 +2,7 @@ package com.github.kjarosh.agh.pp.graph.generator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.graph.modification.IOperationPerformer;
 import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
 import com.github.kjarosh.agh.pp.graph.util.Operation;
@@ -16,6 +17,7 @@ public class SequenceOperationIssuer implements IOperationPerformer {
     private OperationIssuer issuer;
     private final BufferedReader fileReader;
     private static final ObjectReader objectReader = new ObjectMapper().readerFor(Operation.class);
+    private ZoneId zone;
 
     public SequenceOperationIssuer(String filepath) throws IOException {
         fileReader = new BufferedReader(_openFile(filepath));
@@ -25,6 +27,9 @@ public class SequenceOperationIssuer implements IOperationPerformer {
         var str = fileReader.readLine();
         return objectReader.readValue(str.trim());
     }
+
+    @Override
+    public void setZone(ZoneId zone) { this.zone = zone; }
 
     @Override
     public synchronized void perform() throws IOException {

@@ -10,12 +10,10 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
-/**
- * @author Kamil Jarosz
- */
 @Slf4j
-public class RandomOperationIssuer implements IOperationPerformer {
+public class ConcurrentOperationPerformer implements IOperationPerformer {
     private final Random random;
     private final Graph graph;
     private final Set<Edge> removedEdges = new HashSet<>();
@@ -25,23 +23,23 @@ public class RandomOperationIssuer implements IOperationPerformer {
     private double permissionsProbability = 0.8;
     private OperationIssuer operationIssuer = new ZoneClient();
 
-    public RandomOperationIssuer(Graph graph) {
+    public ConcurrentOperationPerformer(Graph graph) {
         this(new Random(), graph);
     }
 
-    public RandomOperationIssuer(Random random, Graph graph) {
+    public ConcurrentOperationPerformer(Random random, Graph graph) {
         this.random = random;
         this.graph = graph;
     }
 
-    public RandomOperationIssuer withPermissionsProbability(double permissionsProbability) {
+    public ConcurrentOperationPerformer withPermissionsProbability(double permissionsProbability) {
         this.permissionsProbability = permissionsProbability;
         return this;
     }
     @Override
     public void setZone(ZoneId zone) { this.zone = zone; }
     @Override
-    public RandomOperationIssuer withOperationIssuer(OperationIssuer operationIssuer) {
+    public ConcurrentOperationPerformer withOperationIssuer(OperationIssuer operationIssuer) {
         this.operationIssuer = operationIssuer;
         return this;
     }
@@ -61,7 +59,7 @@ public class RandomOperationIssuer implements IOperationPerformer {
         }
 
         if (!mustAddEdge && random.nextDouble() < permissionsProbability) {
-            EdgeId id = RandomUtils.randomElement(random, graph.allEdges()).id();
+            EdgeId id = RandomUtils.randomElement(random, graph.allEdges().stream().filter(edge -> edge.src().owner().equals(zone)).collect(Collectors.toList())).id();
             log.debug("Changing permissions of {}", id);
             operationIssuer.setPermissions(id.getFrom().owner(), id, randomPermissions(), trace());
             return;
@@ -91,15 +89,15 @@ public class RandomOperationIssuer implements IOperationPerformer {
         removedEdges.remove(e);
         graph.addEdge(e);
         log.debug("Adding edge {}", e);
-        operationIssuer.addEdge(e.src().owner(), e.id(), randomPermissions(), trace());
+        operationIssuer.addEdge(zone, e.id(), randomPermissions(), trace());
     }
 
     private void removeEdge() {
-        Edge e = RandomUtils.randomElement(random, graph.allEdges());
+        Edge e = RandomUtils.randomElement(random, graph.allEdges().stream().filter(edge -> edge.src().owner().equals(zone)).collect(Collectors.toList()));
         graph.removeEdge(e);
         removedEdges.add(e);
         log.debug("Removing edge {}", e);
-        operationIssuer.removeEdge(e.src().owner(), e.id(), trace());
+        operationIssuer.removeEdge(zone, e.id(), trace());
     }
 
     private Permissions randomPermissions() {
