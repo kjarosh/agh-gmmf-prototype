@@ -213,8 +213,6 @@ public class ConstantLoadClientMain {
 
     private static Thread zoneExecutor(IOperationPerformer performer, ScheduledExecutorService scheduledExecutor, LinkedBlockingQueue<AtomicInteger> countQueue, LinkedBlockingQueue<AtomicInteger> errorQueue ){
         return new Thread(() ->{
-            if (operationsPerSecond == 0) return;
-
             long period = (long) (1e9 / operationsPerSecond);
             scheduledExecutor.scheduleAtFixedRate(() -> {
                 try {
@@ -230,8 +228,6 @@ public class ConstantLoadClientMain {
     }
     private static Thread countCollector(AtomicInteger count, AtomicInteger errored, LinkedBlockingQueue<AtomicInteger> countQueue, LinkedBlockingQueue<AtomicInteger> errorQueue ){
         return new Thread(() ->{
-            if (operationsPerSecond == 0) return;
-
             while(true){
                 while(!countQueue.isEmpty()){
                     count.incrementAndGet();
