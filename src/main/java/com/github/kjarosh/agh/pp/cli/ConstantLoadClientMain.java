@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -32,7 +32,7 @@ public class ConstantLoadClientMain {
             .setDaemon(true)
             .build();
 
-    private static final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor(treadFactory);
+    //private static final ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor(treadFactory);
     private static boolean loadGraph;
     private static boolean exitOnFail;
     private static int bulkSize;
@@ -43,8 +43,7 @@ public class ConstantLoadClientMain {
     private static int maxPoolSize;
     private static int durationSeconds;
     private static boolean disableIndexation;
-
-    private static IOperationPerformer operationPerformer;
+    private static ArrayList<IOperationPerformer> operationPerformers = new ArrayList<>();
     private static ConcurrentOperationIssuer baseOperationIssuer;
     private static OperationIssuer operationIssuer;
 
@@ -52,7 +51,7 @@ public class ConstantLoadClientMain {
         LogbackUtils.loadLogbackCli();
     }
 
-    public static void main(String[] args) throws ParseException, TimeoutException, IOException {
+    public static void main(String[] args) throws ParseException, TimeoutException, IOException, InterruptedException {
         Options options = new Options();
         options.addRequiredOption("n", "operations", true, "number of operations per second");
         options.addRequiredOption("g", "graph", true, "path to graph");
@@ -108,20 +107,28 @@ public class ConstantLoadClientMain {
         }
 
         baseOperationIssuer = new ConcurrentOperationIssuer(maxPoolSize, zoneClient);
-        if (bulkSize >= 1) {
-            operationIssuer = new BulkOperationIssuer(baseOperationIssuer, bulkSize);
-        } else {
-            operationIssuer = baseOperationIssuer;
-        }
 
         //if (cmd.hasOption("s")) {
-        //    operationPerformer = new SequenceOperationIssuer(cmd.getOptionValue("s"));
+        // tu trzeba dodac tyle operationissuerow ile jest zone'ow
+        //    operationPerformers.add(new SequenceOperationIssuer(cmd.getOptionValue("s")));
+
         //} else {
-            operationPerformer = new ConcurrentOperationPerformer(graph)
-                    .withPermissionsProbability(permsProbability);
+        //tu trzeba dodac tyle operationissuerow ile jest zone'ow
+        for(ZoneId zone: graph.allZones()) {
+            if (bulkSize >= 1) {
+                operationIssuer = new BulkOperationIssuer(baseOperationIssuer, bulkSize);
+            } else {
+                operationIssuer = new ConcurrentOperationIssuer(maxPoolSize, zoneClient);
+            }
+            ConcurrentOperationPerformer concurrentOperationPerformer = new ConcurrentOperationPerformer(graph);
+            concurrentOperationPerformer = concurrentOperationPerformer.withOperationIssuer(operationIssuer);
+            concurrentOperationPerformer.setZone(zone);
+            operationPerformers.add(concurrentOperationPerformer);
+        }
         //}
-        operationPerformer.setZone((ZoneId) Arrays.stream(graph.allZones().toArray()).toArray()[0]);
-        operationPerformer = operationPerformer.withOperationIssuer(operationIssuer);
+
+        // tu trzeba kazdemu pododawac zone i operationIssuera
+        //operationPerformers = operationPerformer.withOperationIssuer(operationIssuer);
 
         String durationSuffix = "";
         if (durationSeconds > 0) {
@@ -136,10 +143,25 @@ public class ConstantLoadClientMain {
         new RemoteGraphBuilder(graph, client).build(client);
     }
 
-    private static void runRandomOperations() {
+    private static void runRandomOperations() throws InterruptedException {
         AtomicInteger count = new AtomicInteger(0);
         AtomicInteger errored = new AtomicInteger(0);
-        scheduleRequestExecutor(count, errored);
+
+        LinkedBlockingQueue<AtomicInteger> countQueue = new LinkedBlockingQueue<>();
+        LinkedBlockingQueue<AtomicInteger> errorQueue = new LinkedBlockingQueue<>();
+        Thread counter = countCollector(count, errored, countQueue, errorQueue);
+        counter.start();
+        ArrayList<ScheduledExecutorService> executorServiceArrayList = new ArrayList<>();
+        ArrayList<Thread> threads = new ArrayList<>();
+        threads.add(counter);
+        for(IOperationPerformer performer: operationPerformers) {
+            ScheduledExecutorService scheduledZoneExecutor = Executors.newSingleThreadScheduledExecutor(treadFactory);
+            executorServiceArrayList.add(scheduledZoneExecutor);
+            Thread zoneExecutor = zoneExecutor(performer, scheduledZoneExecutor, countQueue, errorQueue);
+            threads.add(zoneExecutor);
+            zoneExecutor.start();
+        }
+        // scheduleRequestExecutor(count, errored);
 
         EventStatsGatherer eventStatsGatherer = new EventStatsGatherer(graph.allZones());
 
@@ -171,17 +193,54 @@ public class ConstantLoadClientMain {
                     fd(baseOperationIssuer.getRequestTime()));
         }
 
+        counter.join();
+        for(Thread thread: threads){
+            thread.join();
+        }
+
         log.info("Shutting down gracefully...");
-        scheduledExecutor.shutdown();
-        try {
-            scheduledExecutor.awaitTermination(5, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            log.info("Interrupted. Exiting...");
+        for(ScheduledExecutorService executorService: executorServiceArrayList){
+            executorService.shutdown();
+            try {
+                executorService.awaitTermination(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                log.info("Interrupted. Exiting...");
+            }
         }
 
         log.info("Finished");
     }
 
+    private static Thread zoneExecutor(IOperationPerformer performer, ScheduledExecutorService scheduledExecutor, LinkedBlockingQueue<AtomicInteger> countQueue, LinkedBlockingQueue<AtomicInteger> errorQueue ){
+        return new Thread(() ->{
+            long period = (long) (1e9 / operationsPerSecond);
+            scheduledExecutor.scheduleAtFixedRate(() -> {
+                try {
+                    performer.perform();
+                } catch (Throwable t) {
+                    log.error("Error while performing operation", t);
+                    errorQueue.add(new AtomicInteger(1));
+                    if (exitOnFail) System.exit(1);
+                }
+                countQueue.add(new AtomicInteger(1));
+            }, 0, period, TimeUnit.NANOSECONDS);
+        });
+    }
+    private static Thread countCollector(AtomicInteger count, AtomicInteger errored, LinkedBlockingQueue<AtomicInteger> countQueue, LinkedBlockingQueue<AtomicInteger> errorQueue ){
+        return new Thread(() ->{
+            while(true){
+                while(!countQueue.isEmpty()){
+                    countQueue.peek();
+                    count.incrementAndGet();
+                }
+                while(!errorQueue.isEmpty()){
+                    errorQueue.peek();
+                    errored.incrementAndGet();
+                }
+            }
+        });
+    }
+    /*
     private static void scheduleRequestExecutor(AtomicInteger count, AtomicInteger errored) {
         if (operationsPerSecond == 0) return;
 
@@ -197,7 +256,7 @@ public class ConstantLoadClientMain {
             count.incrementAndGet();
         }, 0, period, TimeUnit.NANOSECONDS);
     }
-
+    */
     private static String fd(double d) {
         return String.format("%.2f", d);
     }
