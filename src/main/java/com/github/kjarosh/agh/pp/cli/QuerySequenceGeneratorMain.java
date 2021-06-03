@@ -14,6 +14,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
@@ -41,15 +42,17 @@ public class QuerySequenceGeneratorMain {
 
         graph = GraphLoader.loadGraph(cmd.getOptionValue("g", "graph.json"));
         String outputPath = cmd.getOptionValue("o", "output.jsonl");
-        writer = new QueriesWriter(Files.newOutputStream(Paths.get(outputPath), StandardOpenOption.CREATE_NEW));
         operationType = cmd.getOptionValue("t");
         int count = Integer.parseInt(cmd.getOptionValue("n"));
         existingRatio = Double.parseDouble(cmd.getOptionValue("e", "0"));
 
-        for (int n = 0; n < count; n++) {
-            generateQuery();
-            if ((n+1) % 100 == 0) {
-                System.out.println("Generated: " + (n+1) + " of " + (count));
+        try (OutputStream os = Files.newOutputStream(Paths.get(outputPath), StandardOpenOption.CREATE_NEW)) {
+            writer = new QueriesWriter(os);
+            for (int n = 0; n < count; n++) {
+                generateQuery();
+                if ((n + 1) % 100 == 0) {
+                    System.out.println("Generated: " + (n + 1) + " of " + (count));
+                }
             }
         }
 
