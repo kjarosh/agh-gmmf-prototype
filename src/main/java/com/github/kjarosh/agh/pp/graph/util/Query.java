@@ -1,40 +1,20 @@
 package com.github.kjarosh.agh.pp.graph.util;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
-
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-
-@Data
+@Getter
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 @EqualsAndHashCode
 public class Query {
     private final QueryType type;
     private final VertexId from;
     private final VertexId to;
     private final boolean existing;
-
-    public QueryType getType() {
-        return type;
-    }
-
-    public VertexId getFrom() {
-        return from;
-    }
-
-    public VertexId getTo() {
-        return to;
-    }
-
-    public boolean getExisting() {
-        return existing;
-    }
 
     @JsonCreator
     public Query(

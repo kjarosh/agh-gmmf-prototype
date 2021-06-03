@@ -1,7 +1,5 @@
 package com.github.kjarosh.agh.pp.cli;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
@@ -16,6 +14,7 @@ import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.rest.dto.EffectivePermissionsResponseDto;
 import com.github.kjarosh.agh.pp.rest.dto.MembersResponseDto;
 import com.github.kjarosh.agh.pp.rest.dto.ReachesResponseDto;
+import com.github.kjarosh.agh.pp.util.JsonLinesReader;
 import com.github.kjarosh.agh.pp.util.RandomUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
@@ -24,13 +23,20 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -52,9 +58,7 @@ public class QueryClientMain {
     private static List<Integer> results = new ArrayList<>();
     private static double existingRatio;
 
-    private static File file;
-    private static Queue<Query> querries;
-    private static boolean useSequence = false;
+    private static JsonLinesReader reader = null;
 
     static {
         LogbackUtils.loadLogbackCli();
@@ -79,12 +83,8 @@ public class QueryClientMain {
         durationSeconds = Integer.parseInt(cmd.getOptionValue("d", "-1"));
 
         if (cmd.hasOption("s")) {
-            file = new File(cmd.getOptionValue("s"));
-            if(!file.exists() || !file.isFile()) {
-                throw new FileNotFoundException();
-            }
-            querries = new ObjectMapper().readValue(file, new TypeReference<>() {});
-            useSequence = true;
+            InputStream is = Files.newInputStream(Paths.get(cmd.getOptionValue("s")));
+            reader = new JsonLinesReader(is);
         }
 
         ZoneClient zoneClient = new ZoneClient();
@@ -106,10 +106,8 @@ public class QueryClientMain {
                 Instant.MAX;
         while (!Thread.interrupted() && Instant.now().isBefore(deadline)) {
             try {
-                if (useSequence) {
-                    if (!querries.isEmpty()) {
-                        performRequestFromSequence(client);
-                    }
+                if (reader != null) {
+                    performRequestFromSequence(client);
                 } else {
                     performRequest(client);
                 }
@@ -157,7 +155,7 @@ public class QueryClientMain {
     }
 
     private static void performRequestFromSequence(GraphQueryClient client) {
-        Query next = querries.remove();
+        Query next = reader.nextValue(Query.class);
         QueryType type = next.getType();
 
         if (type == QueryType.MEMBER) {
@@ -168,7 +166,7 @@ public class QueryClientMain {
         }
 
         operationType = type == QueryType.REACHES ? "reaches" : "ep";
-        existing += next.getExisting() ? 1 : 0;
+        existing += next.isExisting() ? 1 : 0;
         performRequest0(client, next.getFrom(), next.getTo());
     }
 

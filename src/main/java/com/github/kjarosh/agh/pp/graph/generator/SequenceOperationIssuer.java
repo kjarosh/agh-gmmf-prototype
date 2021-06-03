@@ -1,39 +1,26 @@
 package com.github.kjarosh.agh.pp.graph.generator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
 import com.github.kjarosh.agh.pp.graph.modification.OperationPerformer;
 import com.github.kjarosh.agh.pp.graph.util.Operation;
+import com.github.kjarosh.agh.pp.util.JsonLinesReader;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UncheckedIOException;
 import java.util.NoSuchElementException;
 
 public class SequenceOperationIssuer implements OperationIssuer {
-    private final ObjectMapper mapper = new ObjectMapper();
-    private final BufferedReader reader;
+    private final JsonLinesReader reader;
     private OperationPerformer performer;
 
     public SequenceOperationIssuer(InputStream is) {
-        this.reader = new BufferedReader(new InputStreamReader(is));
+        this.reader = new JsonLinesReader(is);
     }
 
     private Operation getNext() {
-        try {
-            String line = reader.readLine();
-            if (line == null) {
-                return null;
-            }
-            return mapper.readValue(line, Operation.class);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        return reader.nextValue(Operation.class);
     }
 
     @Override

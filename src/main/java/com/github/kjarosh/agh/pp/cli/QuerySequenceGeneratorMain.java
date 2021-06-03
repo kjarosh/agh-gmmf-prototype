@@ -5,53 +5,52 @@ import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
-import com.github.kjarosh.agh.pp.graph.query.QuerriesWriter;
-import com.github.kjarosh.agh.pp.graph.util.QueryType;
+import com.github.kjarosh.agh.pp.graph.query.QueriesWriter;
 import com.github.kjarosh.agh.pp.util.RandomUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import java.util.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
 
+@Slf4j
 public class QuerySequenceGeneratorMain {
-    private static String filename;
+    private static final Random random = new Random();
     private static String operationType;
-    private static QuerriesWriter writer = new QuerriesWriter();
-    private static Random random = new Random();
+    private static QueriesWriter writer;
     private static Graph graph;
     private static double existingRatio;
 
-    public static void main(String[] args) throws ParseException {
+    public static void main(String[] args) throws ParseException, IOException {
         Options options = new Options();
         options.addRequiredOption("t", "op-type", true, "operation type");
-        options.addOption("g", "graph", true, "Path to graph json file");
-        options.addOption("n", "amount", true, "Amount of requests to be generated");
-        options.addOption("o", "output", true, "Output file path");
+        options.addRequiredOption("n", "count", true, "number of requests to be generated");
+        options.addOption("g", "graph", true, "path to graph json file");
+        options.addOption("o", "output", true, "output file path");
         options.addOption("e", "existing", true, "existing ratio");
         CommandLine cmd = new DefaultParser().parse(options, args);
 
-        if(!cmd.hasOption("n")) {
-            throw new RuntimeException("Argument 'n' is required");
-        }
-
         graph = GraphLoader.loadGraph(cmd.getOptionValue("g", "graph.json"));
-        filename = cmd.getOptionValue("o", "output.json");
+        String outputPath = cmd.getOptionValue("o", "output.jsonl");
+        writer = new QueriesWriter(Files.newOutputStream(Paths.get(outputPath), StandardOpenOption.CREATE_NEW));
         operationType = cmd.getOptionValue("t");
-        int amount = Integer.parseInt(cmd.getOptionValue("n"));
+        int count = Integer.parseInt(cmd.getOptionValue("n"));
         existingRatio = Double.parseDouble(cmd.getOptionValue("e", "0"));
 
-        for(int n = 0; n < amount; n++) {
+        for (int n = 0; n < count; n++) {
             generateQuery();
         }
 
-        commitFile();
-        System.out.printf("Sequence of %d operations has been generated. Output file: '%s'", amount, filename);
-    }
-
-    private static void commitFile() {
-        writer.save(filename);
+        log.info("Sequence of {} operations has been generated. Output file: {}", count, outputPath);
     }
 
     private static VertexId randomVertex(Vertex.Type... types) {
@@ -65,7 +64,7 @@ public class QuerySequenceGeneratorMain {
 
     private static VertexId findRandomPath(VertexId from) {
         VertexId to = from;
-        while(!graph.getEdgesBySource(to).isEmpty()){
+        while (!graph.getEdgesBySource(to).isEmpty()) {
             to = RandomUtils.randomElement(random, graph.getEdgesBySource(to)).dst();
         }
         return to;
@@ -97,7 +96,7 @@ public class QuerySequenceGeneratorMain {
         if (operationType.equals("reaches")) {
             writer.reaches(from, to, existing);
         } else if (operationType.equals("ep")) {
-            writer.effectivePermisions(from, to, existing);
+            writer.effectivePermissions(from, to, existing);
         }
     }
 }

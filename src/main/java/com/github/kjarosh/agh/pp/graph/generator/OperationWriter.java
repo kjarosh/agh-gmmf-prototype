@@ -1,6 +1,5 @@
 package com.github.kjarosh.agh.pp.graph.generator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
@@ -12,28 +11,19 @@ import com.github.kjarosh.agh.pp.graph.util.OperationType;
 import com.github.kjarosh.agh.pp.rest.dto.BulkEdgeCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.LoadSimulationRequestDto;
-import com.github.kjarosh.agh.pp.util.NonCloseableOutputStream;
+import com.github.kjarosh.agh.pp.util.JsonLinesWriter;
 
-import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 
 public class OperationWriter implements OperationPerformer {
-    private final OutputStream os;
-    private final ObjectMapper mapper;
+    private final JsonLinesWriter writer;
 
     public OperationWriter(OutputStream os) {
-        this.os = os;
-        this.mapper = new ObjectMapper();
+        this.writer = new JsonLinesWriter(os);
     }
 
     private void write(Operation op) {
-        try {
-            mapper.writeValue(new NonCloseableOutputStream(os), op);
-            os.write('\n');
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        writer.writeValue(op);
     }
 
     @Override
