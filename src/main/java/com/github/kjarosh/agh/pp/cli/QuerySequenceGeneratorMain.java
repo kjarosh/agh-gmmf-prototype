@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 
 @Slf4j
 public class QuerySequenceGeneratorMain {
@@ -48,12 +50,16 @@ public class QuerySequenceGeneratorMain {
 
         try (OutputStream os = Files.newOutputStream(Paths.get(outputPath), StandardOpenOption.CREATE_NEW)) {
             writer = new QueriesWriter(os);
-            for (int n = 0; n < count; n++) {
-                generateQuery();
-                if ((n + 1) % 100 == 0) {
-                    System.out.println("Generated: " + (n + 1) + " of " + (count));
-                }
-            }
+            AtomicInteger generated = new AtomicInteger(0);
+            IntStream.range(0, count)
+                    .parallel()
+                    .forEach(i -> {
+                        generateQuery();
+                        int g = generated.incrementAndGet();
+                        if (g % 1000 == 0) {
+                            log.info("Generated: {} of {}", g, count);
+                        }
+                    });
         }
 
         log.info("Sequence of {} operations has been generated. Output file: {}", count, outputPath);

@@ -15,7 +15,9 @@ public class QueriesWriter {
     }
 
     private void put(Query query) {
-        writer.writeValue(query);
+        synchronized (this) {
+            writer.writeValue(query);
+        }
     }
 
     public void member(VertexId from) {
