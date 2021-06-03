@@ -7,6 +7,7 @@ import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.graph.modification.BulkOperationPerformer;
 import com.github.kjarosh.agh.pp.graph.modification.ConcurrentOperationPerformer;
+import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
 import com.github.kjarosh.agh.pp.graph.modification.OperationPerformer;
 import com.github.kjarosh.agh.pp.graph.modification.RandomOperationIssuer;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
