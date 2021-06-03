@@ -5,7 +5,7 @@
 ####################
 
 # kubernetes
-path_to_kubernetes_config="/home/pawel/.kube/student-k8s-cyf.yaml"
+path_to_kubernetes_config="$HOME/.kube/student-k8s-cyf.yaml"
 kubernetes_user_name="gmm-pmarszal"
 
 # constant paths
@@ -66,10 +66,7 @@ loads=()
 #############
 
 my_printf() {
-  echo ""
-  echo -n "[PMarshall Script] "
-  echo "${1}"
-  echo ""
+  printf "[tests-kube] %s\n" "$1"
 }
 
 parse_config() {
