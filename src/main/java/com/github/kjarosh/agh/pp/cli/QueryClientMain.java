@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
@@ -49,7 +48,7 @@ import java.util.function.Function;
  */
 @Slf4j
 public class QueryClientMain {
-    private static Random random = new Random();
+    private static final Random random = new Random();
     private static int durationSeconds;
     private static Graph graph;
     private static String operationType;
