@@ -1,38 +1,29 @@
 package com.github.kjarosh.agh.pp.graph.util;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.github.kjarosh.agh.pp.graph.model.EdgeId;
+import com.github.kjarosh.agh.pp.graph.model.Permissions;
+import com.github.kjarosh.agh.pp.graph.model.Vertex;
+import com.github.kjarosh.agh.pp.graph.model.VertexId;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.HashMap;
-import java.util.Map;
-
+@Getter
+@Setter
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class Operation {
     private final OperationType type;
-    private final Map<String, Object> arguments;
+
+    private EdgeId edgeId;
+    private Permissions permissions;
+    private String trace;
+    private VertexId vertexId;
+    private Vertex.Type vertexType;
 
     @JsonCreator
     public Operation(@JsonProperty("type") OperationType type) {
-        this(type, new HashMap<>());
-    }
-
-    public Operation(OperationType type, Map<String, Object> arguments) {
         this.type = type;
-        this.arguments = arguments;
-    }
-
-    public OperationType getType() {
-        return type;
-    }
-
-    @JsonAnyGetter
-    public Map<String, Object> getProperties() {
-        return this.arguments;
-    }
-
-    @JsonAnySetter
-    public void setProperties(String property, Object value) {
-        arguments.put(property, value);
     }
 }

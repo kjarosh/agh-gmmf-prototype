@@ -1,40 +1,49 @@
 package com.github.kjarosh.agh.pp.graph.generator;
 
+import ch.qos.logback.core.encoder.NonClosableInputStream;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.kjarosh.agh.pp.graph.model.*;
+import com.github.kjarosh.agh.pp.graph.model.EdgeId;
+import com.github.kjarosh.agh.pp.graph.model.Permissions;
+import com.github.kjarosh.agh.pp.graph.model.Vertex;
+import com.github.kjarosh.agh.pp.graph.model.VertexId;
+import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
 import com.github.kjarosh.agh.pp.graph.util.Operation;
 import com.github.kjarosh.agh.pp.graph.util.OperationType;
 import com.github.kjarosh.agh.pp.rest.dto.BulkEdgeCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.LoadSimulationRequestDto;
-import lombok.SneakyThrows;
+import com.github.kjarosh.agh.pp.util.NonCloseableOutputStream;
 
-import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 
 public class OperationWriter implements OperationIssuer {
-    private final List<Operation> operations = new LinkedList<>();
+    private final OutputStream os;
+    private final ObjectMapper mapper;
 
-    @SneakyThrows
-    public void save(String filename) {
-        File file = new File(filename);
-        new ObjectMapper().writeValue(file, operations);
-        operations.clear();
+    public OperationWriter(OutputStream os) {
+        this.os = os;
+        this.mapper = new ObjectMapper();
     }
 
-    private void put(OperationType type, Map<String, Object> args) {
-        operations.add(new Operation(type, args));
+    private void write(Operation op) {
+        try {
+            mapper.writeValue(new NonCloseableOutputStream(os), op);
+            os.write('\n');
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Override
     public void addEdge(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
-        put(
-                OperationType.ADD_EDGE,
-                Map.of("EdgeId", id, "Permissions", permissions, "Trace", trace)
-        );
+        Operation op = new Operation(OperationType.ADD_EDGE);
+        op.setEdgeId(id);
+        op.setPermissions(permissions);
+        op.setTrace(trace);
+        write(op);
     }
 
     @Override
@@ -44,36 +53,26 @@ public class OperationWriter implements OperationIssuer {
 
     @Override
     public void removeEdge(ZoneId zone, EdgeId id, String trace) {
-        put(
-                OperationType.REMOVE_EDGE,
-                Map.of(
-                        "Id", id,
-                        "Trace", trace
-                )
-        );
+        Operation op = new Operation(OperationType.REMOVE_EDGE);
+        op.setEdgeId(id);
+        op.setTrace(trace);
+        write(op);
     }
 
     @Override
     public void setPermissions(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
-        put(
-                OperationType.SET_PERMISSIONS,
-                Map.of(
-                        "Id", id,
-                        "Permissions", permissions,
-                        "Trace", trace
-                )
-        );
+        Operation op = new Operation(OperationType.SET_PERMISSIONS);
+        op.setEdgeId(id);
+        op.setTrace(trace);
+        write(op);
     }
 
     @Override
     public void addVertex(VertexId id, Vertex.Type type) {
-        put(
-                OperationType.ADD_VERTEX,
-                Map.of(
-                        "Id", id,
-                        "type", type
-                )
-        );
+        Operation op = new Operation(OperationType.ADD_VERTEX);
+        op.setVertexId(id);
+        op.setVertexType(type);
+        write(op);
     }
 
     @Override
