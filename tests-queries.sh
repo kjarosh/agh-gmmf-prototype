@@ -1,7 +1,15 @@
 #!/bin/bash
+set -e
 
 COUNT_ZONES=${1}
 ZONES=()
+
+graph_path=${2:-./graph.json}
+
+if [[ ! -f "$graph_path" ]]; then
+  echo "graph not found"
+  exit 1
+fi
 
 load_zones() {
   for ((i = 0; i < COUNT_ZONES; i++)); do
@@ -24,7 +32,7 @@ load_zones
 clear_redises
 
 kubectl exec -it "${ZONES[COUNT_ZONES - 1]}" -- bash -c "rm -f ./queriesResults.json"
-kubectl cp ./graph.json ${ZONES[COUNT_ZONES - 1]}:/graph.json
+kubectl cp "$graph_path" ${ZONES[COUNT_ZONES - 1]}:/graph.json
 kubectl cp ./queries_caller.sh ${ZONES[COUNT_ZONES - 1]}:/queries_caller.sh
 kubectl exec -it "${ZONES[COUNT_ZONES - 1]}" -- bash -c "chmod 777 ./queries_caller.sh"
 kubectl exec -it "${ZONES[COUNT_ZONES - 1]}" -- bash -c "./queries_caller.sh"
