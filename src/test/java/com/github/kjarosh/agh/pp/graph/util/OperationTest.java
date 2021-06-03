@@ -10,13 +10,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OperationTest {
     @Test
-    void test_serialize() throws JsonProcessingException {
+    void testSerialize() throws JsonProcessingException {
         Operation op = new Operation(OperationType.ADD_EDGE, Map.of("zoneid", "oh"));
         new ObjectMapper().writeValueAsString(op);
     }
 
     @Test
-    void test_deserialize() throws JsonProcessingException {
+    void testDeserialize() throws JsonProcessingException {
         var mapper = new ObjectMapper().reader().forType(Operation.class);
 
         Map<String, Object> args = Map.of("zoneid", "oh");

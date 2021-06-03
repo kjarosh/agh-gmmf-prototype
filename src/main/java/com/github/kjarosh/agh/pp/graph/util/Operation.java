@@ -12,14 +12,9 @@ public class Operation {
     private final OperationType type;
     private final Map<String, Object> arguments;
 
-    public OperationType getType() {
-        return type;
-    }
-
     @JsonCreator
     public Operation(@JsonProperty("type") OperationType type) {
-        this.type = type;
-        arguments = new HashMap<>();
+        this(type, new HashMap<>());
     }
 
     public Operation(OperationType type, Map<String, Object> arguments) {
@@ -27,9 +22,15 @@ public class Operation {
         this.arguments = arguments;
     }
 
+    public OperationType getType() {
+        return type;
+    }
+
     @JsonAnyGetter
-    public Map<String, Object> getProperties() { return this.arguments; }
-    
+    public Map<String, Object> getProperties() {
+        return this.arguments;
+    }
+
     @JsonAnySetter
     public void setProperties(String property, Object value) {
         arguments.put(property, value);

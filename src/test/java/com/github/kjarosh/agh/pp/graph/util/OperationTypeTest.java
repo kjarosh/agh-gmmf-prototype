@@ -10,14 +10,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class OperationTypeTest {
     @Test
-    void test_serialize() throws JsonProcessingException {
+    void testSerialize() throws JsonProcessingException {
         for(OperationType type : OperationType.values()) {
             new ObjectMapper().writeValueAsString(type);
         }
     }
 
     @Test
-    void test_json_deserialize() throws JsonProcessingException {
+    void testDeserialize() throws JsonProcessingException {
         var mapper = new ObjectMapper().reader().forType(OperationType.class);
         for (OperationType type : OperationType.values()) {
             String value = new ObjectMapper().writeValueAsString(type);
