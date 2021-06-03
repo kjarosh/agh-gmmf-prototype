@@ -18,8 +18,10 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,6 +33,7 @@ public class QuerySequenceGeneratorMain {
     private static String operationType;
     private static QueriesWriter writer;
     private static Graph graph;
+    private static List<Vertex> graphVertices;
     private static double existingRatio;
 
     public static void main(String[] args) throws ParseException, IOException {
@@ -43,6 +46,7 @@ public class QuerySequenceGeneratorMain {
         CommandLine cmd = new DefaultParser().parse(options, args);
 
         graph = GraphLoader.loadGraph(cmd.getOptionValue("g", "graph.json"));
+        graphVertices = new ArrayList<>(graph.allVertices());
         String outputPath = cmd.getOptionValue("o", "output.jsonl");
         operationType = cmd.getOptionValue("t");
         int count = Integer.parseInt(cmd.getOptionValue("n"));
@@ -56,7 +60,7 @@ public class QuerySequenceGeneratorMain {
                     .forEach(i -> {
                         generateQuery();
                         int g = generated.incrementAndGet();
-                        if (g % 1000 == 0) {
+                        if (g % 10_000 == 0) {
                             log.info("Generated: {} of {}", g, count);
                         }
                     });
@@ -69,7 +73,7 @@ public class QuerySequenceGeneratorMain {
         Set<Vertex.Type> s = new HashSet<>(Arrays.asList(types));
         Vertex v;
         do {
-            v = RandomUtils.randomElement(random, graph.allVertices());
+            v = RandomUtils.randomElement(random, graphVertices);
         } while (!s.contains(v.type()));
         return v.id();
     }
@@ -93,12 +97,12 @@ public class QuerySequenceGeneratorMain {
         VertexId to;
         boolean existing = false;
         if (random.nextDouble() >= existingRatio) {
-            from = RandomUtils.randomElement(random, graph.allVertices()).id();
-            to = RandomUtils.randomElement(random, graph.allVertices()).id();
+            from = RandomUtils.randomElement(random, graphVertices).id();
+            to = RandomUtils.randomElement(random, graphVertices).id();
         } else {
             Set<Edge> edgesBySource;
             do {
-                from = RandomUtils.randomElement(random, graph.allVertices()).id();
+                from = RandomUtils.randomElement(random, graphVertices).id();
                 edgesBySource = graph.getEdgesBySource(from);
             } while (edgesBySource.isEmpty());
             to = findRandomPath(from);
