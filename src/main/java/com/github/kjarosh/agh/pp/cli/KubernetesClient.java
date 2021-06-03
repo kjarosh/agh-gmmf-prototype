@@ -54,11 +54,7 @@ public class KubernetesClient {
         try {
             if (cmd.hasOption("z")) {
                 int zones = Integer.parseInt(cmd.getOptionValue("z"));
-                if(cmd.hasOption("i")) {
-                    setupZones(cmd.getOptionValue("i"), zones);
-                } else {
-                    setupZones(zones);
-                }
+                setupZones(cmd.getOptionValue("i", K8sZone.DEFAULT_IMAGE), zones);
             }
 
             if (cmd.hasOption("g") && cmd.hasOption("constant-load-opts")) {
@@ -86,12 +82,6 @@ public class KubernetesClient {
                 Reader reader = new InputStreamReader(is)) {
             ApiClient client = Config.fromConfig(KubeConfig.loadKubeConfig(reader));
             Configuration.setDefaultApiClient(client);
-        }
-    }
-
-    private static void setupZones(int zones) throws ApiException {
-        for (int zone = 0; zone < zones; ++zone) {
-            new K8sZone(namespace, "zone" + zone, resourceCpu, resourceMemory).apply();
         }
     }
 

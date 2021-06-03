@@ -30,9 +30,12 @@ import java.util.Optional;
  * @author Kamil Jarosz
  */
 public class K8sZone {
+    public static final String DEFAULT_IMAGE = "kjarosh/ms-graph-simulator";
+
     private static final AppsV1Api appsApi = new AppsV1Api();
     private static final CoreV1Api coreApi = new CoreV1Api();
 
+    private final String image;
     private final String namespace;
     private final String zoneId;
     private final String serviceName;
@@ -41,9 +44,9 @@ public class K8sZone {
     private final Map<String, String> labels;
     private final String resourceCpu;
     private final String resourceMemory;
-    private String image;
 
-    public K8sZone(String namespace, String zoneId, String resourceCpu, String resourceMemory) {
+    public K8sZone(String image, String namespace, String zoneId, String resourceCpu, String resourceMemory) {
+        this.image = image != null ? image : DEFAULT_IMAGE;
         this.zoneId = zoneId;
         this.namespace = namespace;
         this.labels = new HashMap<>();
@@ -54,12 +57,6 @@ public class K8sZone {
         this.pvcName = zoneId + "-pvc";
         this.resourceCpu = resourceCpu;
         this.resourceMemory = resourceMemory;
-        this.image = System.getenv().getOrDefault("zone_image", "kjarosh/ms-graph-simulator");
-    }
-
-    public K8sZone(String image, String namespace, String zoneId, String resourceCpu, String resourceMemory) {
-        this(namespace, zoneId, resourceCpu, resourceMemory);
-        this.image = image;
     }
 
     private V1Deployment buildDeployment(V1Deployment old) {
