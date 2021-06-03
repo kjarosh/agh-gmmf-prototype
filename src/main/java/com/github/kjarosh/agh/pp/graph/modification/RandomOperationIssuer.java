@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Kamil Jarosz
  */
 @Slf4j
-public class RandomOperationIssuer implements IOperationPerformer {
+public class RandomOperationIssuer implements OperationIssuer {
     private final Random random;
     private final Graph graph;
     private final Set<Edge> removedEdges = new HashSet<>();

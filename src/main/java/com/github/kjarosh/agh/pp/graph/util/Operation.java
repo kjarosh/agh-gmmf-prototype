@@ -7,6 +7,7 @@ import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
+import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +17,7 @@ import lombok.Setter;
 public class Operation {
     private final OperationType type;
 
+    private ZoneId zoneId;
     private EdgeId edgeId;
     private Permissions permissions;
     private String trace;

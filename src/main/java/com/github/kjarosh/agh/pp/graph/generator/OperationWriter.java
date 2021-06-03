@@ -39,6 +39,7 @@ public class OperationWriter implements OperationPerformer {
     @Override
     public void addEdge(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
         Operation op = new Operation(OperationType.ADD_EDGE);
+        op.setZoneId(zone);
         op.setEdgeId(id);
         op.setPermissions(permissions);
         op.setTrace(trace);
@@ -53,6 +54,7 @@ public class OperationWriter implements OperationPerformer {
     @Override
     public void removeEdge(ZoneId zone, EdgeId id, String trace) {
         Operation op = new Operation(OperationType.REMOVE_EDGE);
+        op.setZoneId(zone);
         op.setEdgeId(id);
         op.setTrace(trace);
         write(op);
@@ -61,6 +63,7 @@ public class OperationWriter implements OperationPerformer {
     @Override
     public void setPermissions(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
         Operation op = new Operation(OperationType.SET_PERMISSIONS);
+        op.setZoneId(zone);
         op.setEdgeId(id);
         op.setTrace(trace);
         write(op);
