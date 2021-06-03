@@ -33,7 +33,7 @@ public class OperationSequenceGeneratorMain {
             var graph = GraphLoader.loadGraph(graphPath);
             var generator = createIssuer(os, graph);
             for (int n = 0; n < count; n++) {
-                generator.perform();
+                generator.issue();
             }
         }
 
@@ -42,7 +42,7 @@ public class OperationSequenceGeneratorMain {
 
     private static RandomOperationIssuer createIssuer(OutputStream os, Graph graph) {
         RandomOperationIssuer generator = new RandomOperationIssuer(graph);
-        generator.withOperationIssuer(new OperationWriter(os));
+        generator.withOperationPerformer(new OperationWriter(os));
         return generator;
     }
 }

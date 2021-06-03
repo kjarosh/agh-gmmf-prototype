@@ -12,7 +12,7 @@ import com.github.kjarosh.agh.pp.rest.dto.LoadSimulationRequestDto;
 /**
  * @author Kamil Jarosz
  */
-public interface OperationIssuer {
+public interface OperationPerformer {
     void addEdge(ZoneId zone, EdgeId id, Permissions permissions, String trace);
 
     void addEdges(ZoneId zone, BulkEdgeCreationRequestDto bulkRequest);

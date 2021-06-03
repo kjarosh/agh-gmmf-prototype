@@ -26,17 +26,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Kamil Jarosz
  */
 @Slf4j
-public class ConcurrentOperationIssuer implements OperationIssuer {
+public class ConcurrentOperationPerformer implements OperationPerformer {
     private static final int QUEUE_CAPACITY = 5;
 
-    private final OperationIssuer delegate;
+    private final OperationPerformer delegate;
     private final Map<ZoneId, ThreadPoolExecutor> executors;
     private final AtomicDouble saturation = new AtomicDouble();
     private final AtomicDouble requestTime = new AtomicDouble();
     private final AtomicInteger failed = new AtomicInteger();
     private final int maxPoolSize;
 
-    public ConcurrentOperationIssuer(int maxPoolSize, OperationIssuer delegate) {
+    public ConcurrentOperationPerformer(int maxPoolSize, OperationPerformer delegate) {
         this.maxPoolSize = maxPoolSize;
         if (maxPoolSize >= 1) {
             this.executors = new HashMap<>();

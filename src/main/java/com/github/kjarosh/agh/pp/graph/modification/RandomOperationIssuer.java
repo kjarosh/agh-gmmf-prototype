@@ -8,10 +8,7 @@ import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.util.RandomUtils;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -29,7 +26,7 @@ public class RandomOperationIssuer {
 
     // config
     private double permissionsProbability = 0.8;
-    private OperationIssuer operationIssuer = new ZoneClient();
+    private OperationPerformer operationPerformer = new ZoneClient();
 
     public RandomOperationIssuer(Graph graph) {
         this(new Random(), graph);
@@ -45,16 +42,16 @@ public class RandomOperationIssuer {
         return this;
     }
 
-    public RandomOperationIssuer withOperationIssuer(OperationIssuer operationIssuer) {
-        this.operationIssuer = operationIssuer;
+    public RandomOperationIssuer withOperationPerformer(OperationPerformer operationPerformer) {
+        this.operationPerformer = operationPerformer;
         return this;
     }
 
-    public synchronized void perform() {
-        perform0();
+    public synchronized void issue() {
+        issue0();
     }
 
-    private void perform0() {
+    private void issue0() {
         boolean mustAddEdge = graph.allEdges().isEmpty();
         boolean mustRemoveEdge = removedEdges.isEmpty();
 
@@ -66,7 +63,7 @@ public class RandomOperationIssuer {
         if (!mustAddEdge && random.nextDouble() < permissionsProbability) {
             EdgeId id = RandomUtils.randomElement(random, graph.allEdges()).id();
             log.debug("Changing permissions of {}", id);
-            operationIssuer.setPermissions(id.getFrom().owner(), id, randomPermissions(), trace());
+            operationPerformer.setPermissions(id.getFrom().owner(), id, randomPermissions(), trace());
             return;
         }
 
@@ -94,7 +91,7 @@ public class RandomOperationIssuer {
         removedEdges.remove(e);
         graph.addEdge(e);
         log.debug("Adding edge {}", e);
-        operationIssuer.addEdge(e.src().owner(), e.id(), randomPermissions(), trace());
+        operationPerformer.addEdge(e.src().owner(), e.id(), randomPermissions(), trace());
     }
 
     private void removeEdge() {
@@ -102,7 +99,7 @@ public class RandomOperationIssuer {
         graph.removeEdge(e);
         removedEdges.add(e);
         log.debug("Removing edge {}", e);
-        operationIssuer.removeEdge(e.src().owner(), e.id(), trace());
+        operationPerformer.removeEdge(e.src().owner(), e.id(), trace());
     }
 
     private Permissions randomPermissions() {

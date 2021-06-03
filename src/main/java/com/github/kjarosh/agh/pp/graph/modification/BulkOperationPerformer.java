@@ -11,7 +11,6 @@ import com.github.kjarosh.agh.pp.rest.dto.LoadSimulationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.OperationDto;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
@@ -23,12 +22,12 @@ import java.util.concurrent.ConcurrentLinkedDeque;
  * @author Kamil Jarosz
  */
 @Slf4j
-public class BulkOperationIssuer implements OperationIssuer {
+public class BulkOperationPerformer implements OperationPerformer {
     private final int bulkSize;
-    private final OperationIssuer delegate;
+    private final OperationPerformer delegate;
     private final Map<ZoneId, Deque<OperationDto>> operationQueue = new ConcurrentHashMap<>();
 
-    public BulkOperationIssuer(OperationIssuer delegate, int bulkSize) {
+    public BulkOperationPerformer(OperationPerformer delegate, int bulkSize) {
         this.delegate = delegate;
         this.bulkSize = bulkSize;
     }

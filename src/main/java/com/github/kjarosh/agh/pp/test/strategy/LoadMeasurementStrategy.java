@@ -47,7 +47,7 @@ public class LoadMeasurementStrategy implements TestStrategy {
                     }
                 }
 
-                executor.execute(randomOperationIssuer::perform);
+                executor.execute(randomOperationIssuer::issue);
             }
         });
         delegate.start();

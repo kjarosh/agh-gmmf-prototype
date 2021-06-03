@@ -6,7 +6,7 @@ import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.Vertex;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
+import com.github.kjarosh.agh.pp.graph.modification.OperationPerformer;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.rest.dto.BulkEdgeCreationRequestDto;
@@ -34,7 +34,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * @author Kamil Jarosz
  */
-public class ZoneClient implements OperationIssuer {
+public class ZoneClient implements OperationPerformer {
     private static final RestTemplate restTemplate = new RestTemplate();
 
     private final GraphQueryClient naiveGraphQueryClient;

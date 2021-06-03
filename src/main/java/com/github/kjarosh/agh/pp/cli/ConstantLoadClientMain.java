@@ -4,9 +4,9 @@ import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
-import com.github.kjarosh.agh.pp.graph.modification.BulkOperationIssuer;
-import com.github.kjarosh.agh.pp.graph.modification.ConcurrentOperationIssuer;
-import com.github.kjarosh.agh.pp.graph.modification.OperationIssuer;
+import com.github.kjarosh.agh.pp.graph.modification.BulkOperationPerformer;
+import com.github.kjarosh.agh.pp.graph.modification.ConcurrentOperationPerformer;
+import com.github.kjarosh.agh.pp.graph.modification.OperationPerformer;
 import com.github.kjarosh.agh.pp.graph.modification.RandomOperationIssuer;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.rest.client.EventStatsGatherer;
@@ -53,8 +53,8 @@ public class ConstantLoadClientMain {
     private static boolean disableIndexation;
 
     private static RandomOperationIssuer randomOperationIssuer;
-    private static ConcurrentOperationIssuer baseOperationIssuer;
-    private static OperationIssuer operationIssuer;
+    private static ConcurrentOperationPerformer baseOperationIssuer;
+    private static OperationPerformer operationPerformer;
 
     static {
         LogbackUtils.loadLogbackCli();
@@ -107,15 +107,15 @@ public class ConstantLoadClientMain {
             loadGraph();
         }
 
-        baseOperationIssuer = new ConcurrentOperationIssuer(maxPoolSize, zoneClient);
+        baseOperationIssuer = new ConcurrentOperationPerformer(maxPoolSize, zoneClient);
         if (bulkSize >= 1) {
-            operationIssuer = new BulkOperationIssuer(baseOperationIssuer, bulkSize);
+            operationPerformer = new BulkOperationPerformer(baseOperationIssuer, bulkSize);
         } else {
-            operationIssuer = baseOperationIssuer;
+            operationPerformer = baseOperationIssuer;
         }
         randomOperationIssuer = new RandomOperationIssuer(graph)
                 .withPermissionsProbability(permsProbability)
-                .withOperationIssuer(operationIssuer);
+                .withOperationPerformer(operationPerformer);
 
         String durationSuffix = "";
         if (durationSeconds > 0) {
@@ -181,7 +181,7 @@ public class ConstantLoadClientMain {
         long period = (long) (1e9 / operationsPerSecond);
         scheduledExecutor.scheduleAtFixedRate(() -> {
             try {
-                randomOperationIssuer.perform();
+                randomOperationIssuer.issue();
             } catch (Throwable t) {
                 log.error("Error while performing operation", t);
                 errored.incrementAndGet();
