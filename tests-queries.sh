@@ -24,8 +24,9 @@ clear_redis() {
 
 clear_redises() {
   for ((i = 0; i < COUNT_ZONES; i++)); do
-    clear_redis "${ZONES[i]}"
+    clear_redis "${ZONES[i]}" &
   done
+  wait
 }
 
 load_zones
