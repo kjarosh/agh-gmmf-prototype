@@ -29,6 +29,7 @@ public class GraphGeneratorMain {
         options.addRequiredOption("c", "config", true, "path to config file");
         options.addRequiredOption("o", "output", true, "path to output file");
         options.addOption("n", "nodes-per-zone", true, "demanded nodes per zone");
+        options.addOption("s", "scale", true, "scale the graph");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = parser.parse(options, args);
@@ -38,17 +39,22 @@ public class GraphGeneratorMain {
 
         GraphGenerator g = new GraphGenerator(config);
 
-        if (cmd.hasOption("n")) {
+        if (cmd.hasOption("s")) {
+            int scale = Integer.parseInt(cmd.getOptionValue("s"));
+            config.setZones(scale * config.getZones());
+            config.setSpaces(scale * config.getSpaces());
+            config.setProviders(scale * config.getProviders());
+        } else if (cmd.hasOption("n")) {
             long requiredNodesPerZone = Integer.parseInt(cmd.getOptionValue("n"));
 
             double error;
-            double scaling_factor = 1.0;
+            double scale;
             do {
                 error = Math.abs(1.0 - (double)g.estimateVertices() / (requiredNodesPerZone * config.getZones()));
-                scaling_factor = (double)(requiredNodesPerZone * config.getZones()) / g.estimateVertices();
+                scale = (double)(requiredNodesPerZone * config.getZones()) / g.estimateVertices();
 
-                config.setSpaces((int) (scaling_factor * config.getSpaces()));
-                config.setProviders((int) (scaling_factor * config.getProviders()));
+                config.setSpaces((int) (scale * config.getSpaces()));
+                config.setProviders((int) (scale * config.getProviders()));
             } while (error > 0.03);
         }
 

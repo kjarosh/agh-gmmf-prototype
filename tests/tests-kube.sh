@@ -1,6 +1,4 @@
 #!/bin/bash
-
-# End the idiotic, bughiding properties of bash
 set -e
 
 ####################
@@ -19,8 +17,7 @@ mkdir -p ${results_root}
 
 # file names
 test_config_path=${1:-'test-config.txt'}
-echo -n "Config is: "
-echo "$test_config_path"
+echo "Config is:" "$test_config_path"
 merged_csv_name="merged.csv"
 graph_name="graph.json"
 queries_name="queries.json"
@@ -160,7 +157,7 @@ mkdir_for_whole_test() {
   path_to_plot="${path_for_test}/${plot_name}"
 
   # copy config
-  cp ${test_config_path} "${path_for_test}/test-config.txt"
+  cp "${test_config_path}" "${path_for_test}/test-config.txt"
 
   # create merged_csv file
   touch "${path_to_merged_csv}"
@@ -197,24 +194,25 @@ generate_graph() {
 
   path_to_graph="${path_for_graph}/${graph_name}"
 
-  # path to graph-generation config
+  # graph-generation config
   pgc="${path_for_graph}/graph-config.json"
-  touch "${pgc}"
-  echo "{" >> "${pgc}"
-  echo "  \"providers\": 400," >> "${pgc}"
-  echo "  \"spaces\": 600," >> "${pgc}"
-  echo "  \"zones\": ${COUNT_ZONES}," >> "${pgc}"
-  echo "  \"providersPerSpace\": \"normal(1, 0.5)\"," >> "${pgc}"
-  echo "  \"groupsPerGroup\": \"normal(1.8, 1)\"," >> "${pgc}"
-  echo "  \"usersPerGroup\": \"normal(9, 4)\"," >> "${pgc}"
-  echo "  \"treeDepth\": \"enormal(2.3, 1)\"," >> "${pgc}"
-  echo "  \"differentGroupZoneProb\": 0.${1}," >> "${pgc}"
-  echo "  \"differentUserZoneProb\": 0.${1}," >> "${pgc}"
-  echo "  \"existingUserProb\": 0.25," >> "${pgc}"
-  echo "  \"existingGroupProb\": 0.1" >> "${pgc}"
-  echo "}" >> "${pgc}"
+  cat <<CONFIG > "${pgc}"
+{
+  "providers": 400,
+  "spaces": 600,
+  "zones": ${COUNT_ZONES},
+  "providersPerSpace": "normal(1, 0.5)",
+  "groupsPerGroup": "normal(1.8, 1)",
+  "usersPerGroup": "normal(9, 4)",
+  "treeDepth": "enormal(2.3, 1)",
+  "differentGroupZoneProb": 0.${1},
+  "differentUserZoneProb": 0.${1},
+  "existingUserProb": 0.25,
+  "existingGroupProb": 0.1
+}
+CONFIG
 
-  ./run-main.sh com.github.kjarosh.agh.pp.cli.GraphGeneratorMain -c ${pgc} -o ${path_to_graph} -n ${2}
+  ./run-main.sh com.github.kjarosh.agh.pp.cli.GraphGeneratorMain -c "${pgc}" -o "${path_to_graph}" -n ${2}
 }
 
 generate_queries() {
@@ -266,8 +264,9 @@ clear_redises() {
   my_printf "Clearing redis"
 
   for ((i = 0; i < COUNT_ZONES; i++)); do
-    clear_redis "${ZONES[i]}"
+    clear_redis "${ZONES[i]}" &
   done
+  wait
 }
 
 # POSTGRES
@@ -309,10 +308,13 @@ load_graph() {
   # make sure there is a backup
 
   for ((i = 0; i < COUNT_ZONES; i++)); do
-    kubectl exec "${ZONES[i]}" -- redis-cli save
-    kubectl exec "${ZONES[i]}" -- cp -p /var/lib/redis/dump.rdb /var/lib/redis/graph.rdb
+    (
+      kubectl exec "${ZONES[i]}" -- redis-cli save
+      kubectl exec "${ZONES[i]}" -- cp -p /var/lib/redis/dump.rdb /var/lib/redis/graph.rdb
+    ) &
     my_printf "Redis state snapshoted for ${ZONES[i]}"
   done
+  wait
 }
 
 constant_load() {
@@ -321,7 +323,7 @@ constant_load() {
   # $3 - load
   # $4 - naive
 
-  if [[ ${4} = true ]] ; then
+  if [[ "${4}" = true ]] ; then
     kubectl exec -it "${EXECUTOR}" -- bash \
             -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -b 5 -g ${graph_name} -s ${queries_name} -n ${3} -d ${TEST_TIME} -t 3 --disable-indexation"
   else
