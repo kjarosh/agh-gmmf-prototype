@@ -11,7 +11,7 @@ spec:
                 claimName: gmm-tests-pv-claim
       containers:
       - name: test
-        image: danieljodlos/gmm-tester:latest
+        image: pmarszal/gmm-tester:latest
         volumeMounts:
             - mountPath: "tests--artifacts-and-results/kubernetes"
               name: gmm-tests-pv-storage

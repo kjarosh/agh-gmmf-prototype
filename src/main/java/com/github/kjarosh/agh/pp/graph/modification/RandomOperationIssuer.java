@@ -62,7 +62,7 @@ public class RandomOperationIssuer implements OperationIssuer {
 
         if (!mustAddEdge && random.nextDouble() < permissionsProbability) {
             EdgeId id = RandomUtils.randomElement(random, graph.allEdges()).id();
-            log.debug("Changing permissions of {}", id);
+            log.trace("Changing permissions of {}", id);
             operationPerformer.setPermissions(id.getFrom().owner(), id, randomPermissions(), trace());
             return;
         }
@@ -90,7 +90,7 @@ public class RandomOperationIssuer implements OperationIssuer {
         Edge e = RandomUtils.randomElement(random, removedEdges);
         removedEdges.remove(e);
         graph.addEdge(e);
-        log.debug("Adding edge {}", e);
+        log.trace("Adding edge {}", e);
         operationPerformer.addEdge(e.src().owner(), e.id(), randomPermissions(), trace());
     }
 
@@ -98,7 +98,7 @@ public class RandomOperationIssuer implements OperationIssuer {
         Edge e = RandomUtils.randomElement(random, graph.allEdges());
         graph.removeEdge(e);
         removedEdges.add(e);
-        log.debug("Removing edge {}", e);
+        log.trace("Removing edge {}", e);
         operationPerformer.removeEdge(e.src().owner(), e.id(), trace());
     }
 
