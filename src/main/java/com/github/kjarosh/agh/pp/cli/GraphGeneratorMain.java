@@ -5,6 +5,7 @@ import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.graph.generator.GraphGenerator;
 import com.github.kjarosh.agh.pp.graph.generator.GraphGeneratorConfig;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -19,6 +20,7 @@ import java.nio.file.Paths;
 /**
  * @author Kamil Jarosz
  */
+@Slf4j
 public class GraphGeneratorMain {
     static {
         LogbackUtils.loadLogbackCli();
@@ -41,9 +43,13 @@ public class GraphGeneratorMain {
 
         if (cmd.hasOption("s")) {
             int scale = Integer.parseInt(cmd.getOptionValue("s"));
+            log.info("Scaling graph x" + scale);
             config.setZones(scale * config.getZones());
             config.setSpaces(scale * config.getSpaces());
             config.setProviders(scale * config.getProviders());
+            log.info("Using zones: " + config.getZones());
+            log.info("Using spaces: " + config.getSpaces());
+            log.info("Using providers: " + config.getProviders());
         } else if (cmd.hasOption("n")) {
             long requiredNodesPerZone = Integer.parseInt(cmd.getOptionValue("n"));
 
@@ -58,11 +64,11 @@ public class GraphGeneratorMain {
             } while (error > 0.03);
         }
 
-        System.out.println("Estimated number of vertices: " + g.estimateVertices());
-        System.out.println("Estimated number of edges: " + g.estimateEdges());
+        log.info("Estimated number of vertices: " + g.estimateVertices());
+        log.info("Estimated number of edges: " + g.estimateEdges());
         Graph graph = g.generateGraph();
-        System.out.println("Number of vertices: " + graph.allVertices().size());
-        System.out.println("Number of edges: " + graph.allEdges().size());
+        log.info("Number of vertices: " + graph.allVertices().size());
+        log.info("Number of edges: " + graph.allEdges().size());
         graph.serialize(Files.newOutputStream(Paths.get(cmd.getOptionValue("o"))));
     }
 }
