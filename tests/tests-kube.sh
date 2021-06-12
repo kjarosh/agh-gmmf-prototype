@@ -213,12 +213,15 @@ generate_queries() {
 
   total_operations=$((TEST_TIME * max * 12 / 10))
 
+  echo "Generating queries... n=${total_operations}"
   ./run-main.sh com.github.kjarosh.agh.pp.cli.OperationSequenceGeneratorMain -g ${path_to_graph} -n ${total_operations} -o ${path_to_queries}
+  echo "Queries generated"
 }
 
 # INSTRUMENTATION
 
 clear_instrumentation() {
+  my_printf "Clearing instrumentation in $1"
   kubectl exec "$1" -- touch temp.csv
   kubectl exec "$1" -- cp temp.csv instrumentation.csv
   kubectl exec "$1" -- rm temp.csv
@@ -226,18 +229,23 @@ clear_instrumentation() {
 
 clear_instrumentations() {
   for zone in ${ZONES[*]}; do
-    clear_instrumentation "${zone}"
+    clear_instrumentation "${zone}" &
   done
+  wait
+
+  my_printf "Instrumentation cleared"
 }
 
 get_instrumentation() {
+  my_printf "Downloading artifacts for $1"
   kubectl cp "${ZONES[$1]}":instrumentation.csv "${path_for_repetition}/instrumentation-$1.csv"
 }
 
 get_all_instrumentations() {
   for ((i = 0; i < COUNT_ZONES; i++)); do
-    get_instrumentation "${i}"
+    get_instrumentation "${i}" &
   done
+  wait
 
   my_printf "Artifacts downloaded"
 }
