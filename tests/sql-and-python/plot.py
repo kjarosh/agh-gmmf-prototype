@@ -9,6 +9,7 @@ file_path = sys.argv[1]
 plot_path = sys.argv[2]
 
 data = np.genfromtxt(file_path, delimiter=',', skip_header=1, dtype=np.dtype(object))
+data = np.atleast_2d(data)
 params = np.vstack({tuple(row) for row in data[:,0:2]})
 
 naive = b'naive'
