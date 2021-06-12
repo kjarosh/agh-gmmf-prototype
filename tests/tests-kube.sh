@@ -198,7 +198,9 @@ generate_graph() {
 }
 CONFIG
 
+  echo "Generating graph..."
   ./run-main.sh com.github.kjarosh.agh.pp.cli.GraphGeneratorMain -c "${pgc}" -o "${path_to_graph}" -s ${COUNT_ZONES}
+  echo "Graph generated"
 }
 
 generate_queries() {
@@ -217,9 +219,9 @@ generate_queries() {
 # INSTRUMENTATION
 
 clear_instrumentation() {
-  kubectl exec -it "$1" -- touch temp.csv
-  kubectl exec -it "$1" -- cp temp.csv instrumentation.csv
-  kubectl exec -it "$1" -- rm temp.csv
+  kubectl exec "$1" -- touch temp.csv
+  kubectl exec "$1" -- cp temp.csv instrumentation.csv
+  kubectl exec "$1" -- rm temp.csv
 }
 
 clear_instrumentations() {
@@ -243,7 +245,7 @@ get_all_instrumentations() {
 # REDIS
 
 clear_redis() {
-  kubectl exec -it "$1" -- redis-cli FLUSHALL
+  kubectl exec "$1" -- redis-cli FLUSHALL
 }
 
 clear_redises() {
@@ -287,7 +289,7 @@ load_graph() {
   kubectl cp "${path_to_graph}" "${EXECUTOR}:${graph_name}"
   kubectl cp "${path_to_queries}" "${EXECUTOR}:${queries_name}"
 
-  kubectl exec -it "${EXECUTOR}" -- bash \
+  kubectl exec "${EXECUTOR}" -- bash \
             -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -l -b 5 -g ${graph_name} -n 100 --no-load"
 
 
@@ -310,10 +312,10 @@ constant_load() {
   # $4 - naive
 
   if [[ "${4}" = true ]] ; then
-    kubectl exec -it "${EXECUTOR}" -- bash \
+    kubectl exec "${EXECUTOR}" -- bash \
             -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -b 5 -g ${graph_name} -s ${queries_name} -n ${3} -d ${TEST_TIME} -t 3 --disable-indexation"
   else
-    kubectl exec -it "${EXECUTOR}" -- bash \
+    kubectl exec "${EXECUTOR}" -- bash \
             -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -b 5 -g ${graph_name} -s ${queries_name} -n ${3} -d ${TEST_TIME} -t 3"
   fi
 
