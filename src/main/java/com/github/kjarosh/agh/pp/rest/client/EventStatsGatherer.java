@@ -2,11 +2,11 @@ package com.github.kjarosh.agh.pp.rest.client;
 
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
-import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * @author Kamil Jarosz
@@ -32,7 +32,14 @@ public class EventStatsGatherer implements Supplier<EventStats> {
 
     private EventStats gather() {
         return allZones.stream()
-                .map(client::getEventStats)
+                .flatMap(zone -> {
+                    try {
+                        return Stream.of(client.getEventStats(zone));
+                    } catch (Exception e) {
+                        log.warn("Zone " + zone + " failed to return stats", e);
+                        return Stream.empty();
+                    }
+                })
                 .reduce(EventStats.empty(), EventStats::combine);
     }
 }
