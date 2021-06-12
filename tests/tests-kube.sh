@@ -19,7 +19,7 @@ results_root="results"
 mkdir -p ${results_root}
 
 # file names
-test_config_path=${1:-'test-config.txt'}
+test_config_path=${1:-'test-config.conf'}
 echo "Config is:" "$test_config_path"
 merged_csv_name="merged.csv"
 graph_name="graph.json"
@@ -77,30 +77,7 @@ my_printf() {
 }
 
 parse_config() {
-  counter=0
-  while read -r line; do
-    case ${counter} in
-    0)
-      COUNT_ZONES=${line}
-      ;;
-    1)
-      inter_zone_levels+=("${line}")
-      ;;
-    2)
-      spaces_per_zone+=("${line}")
-      ;;
-    3)
-      IFS=' ' read -r -a loads <<< "${line}"
-      ;;
-    4)
-      TEST_TIME=${line}
-      ;;
-    5)
-      REPETITIONS=${line}
-      ;;
-    esac
-    ((counter++))
-  done <"${test_config_path}"
+  source "${test_config_path}"
 }
 
 # ZONES ON KUBERNETES

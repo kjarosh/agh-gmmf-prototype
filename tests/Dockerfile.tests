@@ -12,7 +12,7 @@ COPY target/agh-pp-simulator-*.jar app.jar
 COPY docker/run-main.sh run-main.sh
 COPY tests/tests-kube.sh entrypoint.sh
 COPY tests/sql-and-python/ sql-and-python/
-COPY tests/configs/*.txt /
+COPY tests/configs/* /
 
 
 ENTRYPOINT ["./entrypoint.sh"]
