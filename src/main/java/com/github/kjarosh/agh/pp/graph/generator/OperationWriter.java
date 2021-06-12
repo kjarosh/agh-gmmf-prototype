@@ -55,6 +55,7 @@ public class OperationWriter implements OperationPerformer {
         Operation op = new Operation(OperationType.SET_PERMISSIONS);
         op.setZoneId(zone);
         op.setEdgeId(id);
+        op.setPermissions(permissions);
         op.setTrace(trace);
         write(op);
     }

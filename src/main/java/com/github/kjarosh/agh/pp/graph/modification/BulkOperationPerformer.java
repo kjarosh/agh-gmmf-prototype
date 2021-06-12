@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -56,6 +57,10 @@ public class BulkOperationPerformer implements OperationPerformer {
 
     @Override
     public void addEdge(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
+        Objects.requireNonNull(zone);
+        Objects.requireNonNull(id);
+        Objects.requireNonNull(permissions);
+        Objects.requireNonNull(trace);
         queue(zone).add(BulkOperationDto.builder()
                 .type(BulkOperationDto.OperationType.ADD_EDGE)
                 .fromId(id.getFrom())
@@ -80,6 +85,9 @@ public class BulkOperationPerformer implements OperationPerformer {
 
     @Override
     public void removeEdge(ZoneId zone, EdgeId id, String trace) {
+        Objects.requireNonNull(zone);
+        Objects.requireNonNull(id);
+        Objects.requireNonNull(trace);
         queue(zone).add(BulkOperationDto.builder()
                 .type(BulkOperationDto.OperationType.REMOVE_EDGE)
                 .fromId(id.getFrom())
@@ -92,6 +100,10 @@ public class BulkOperationPerformer implements OperationPerformer {
 
     @Override
     public void setPermissions(ZoneId zone, EdgeId id, Permissions permissions, String trace) {
+        Objects.requireNonNull(zone);
+        Objects.requireNonNull(id);
+        Objects.requireNonNull(permissions);
+        Objects.requireNonNull(trace);
         queue(zone).add(BulkOperationDto.builder()
                 .type(BulkOperationDto.OperationType.SET_PERMS)
                 .fromId(id.getFrom())
