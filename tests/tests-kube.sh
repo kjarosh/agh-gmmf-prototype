@@ -198,6 +198,9 @@ generate_graph() {
 
   # graph-generation config
   pgc="${path_for_graph}/graph-config.json"
+
+  # ASSUMPTION: 1 space pez zone 'generates' around 30 nodes
+
   cat <<CONFIG > "${pgc}"
 {
   "providers": 400,
@@ -209,8 +212,8 @@ generate_graph() {
   "treeDepth": "enormal(2.3, 1)",
   "differentGroupZoneProb": 0.${1},
   "differentUserZoneProb": 0.${1},
-  "existingUserProb": 0.25,
-  "existingGroupProb": 0.1
+  "existingUserProb": 0.1,
+  "existingGroupProb": 0.05
 }
 CONFIG
 

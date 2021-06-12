@@ -3,7 +3,7 @@
 -- get_report.sql
 
 do $$ begin
-   perform report((select (min(time) + interval '40 second') from dbnotification), (select max(time) from dbnotification));
+   perform report((select (min(time) + interval '20 second') from dbnotification), (select max(time) from dbnotification));
 end $$
 
 -- old version - doesn't ignore launching period
