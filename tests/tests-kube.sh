@@ -1,8 +1,13 @@
 #!/bin/bash
+set -eE -o functrace
 
-# End the idiotic, bughiding properties of bash
-# PM: let this exist for now, some commands do return correct results but still cause this line to crash
-#set -e
+failure() {
+  local lineno=$1
+  local msg=$2
+  echo "Failed at $lineno: $msg"
+  while true; do sleep 100; done
+}
+trap 'failure ${LINENO} "$BASH_COMMAND"' ERR
 
 ####################
 # Global constants #
@@ -356,7 +361,6 @@ constant_load() {
     kubectl exec "${ZONES[i]}" -- redis-server /redis.conf
     my_printf "Redis state restored for ZONE ${ZONES[i]}"
   done
-  restart_zones
 }
 
 ######################
@@ -373,6 +377,7 @@ run_test() {
   clear_instrumentations
   postgres_clear
   my_printf "Postgres: CLEARED"
+  restart_zones
 
   # perform test
   constant_load "${1}" "${2}" "${3}" "${4}"
