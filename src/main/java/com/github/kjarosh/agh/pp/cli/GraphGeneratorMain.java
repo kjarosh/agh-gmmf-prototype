@@ -39,8 +39,6 @@ public class GraphGeneratorMain {
         GraphGeneratorConfig config = new ObjectMapper()
                 .readValue(new File(cmd.getOptionValue("c")), GraphGeneratorConfig.class);
 
-        GraphGenerator g = new GraphGenerator(config);
-
         if (cmd.hasOption("s")) {
             int scale = Integer.parseInt(cmd.getOptionValue("s"));
             log.info("Scaling graph x" + scale);
@@ -56,13 +54,16 @@ public class GraphGeneratorMain {
             double error;
             double scale;
             do {
-                error = Math.abs(1.0 - (double)g.estimateVertices() / (requiredNodesPerZone * config.getZones()));
-                scale = (double)(requiredNodesPerZone * config.getZones()) / g.estimateVertices();
+                long estimateVertices = new GraphGenerator(config).estimateVertices();
+                error = Math.abs(1.0 - (double) estimateVertices / (requiredNodesPerZone * config.getZones()));
+                scale = (double)(requiredNodesPerZone * config.getZones()) / estimateVertices;
 
                 config.setSpaces((int) (scale * config.getSpaces()));
                 config.setProviders((int) (scale * config.getProviders()));
             } while (error > 0.03);
         }
+
+        GraphGenerator g = new GraphGenerator(config);
 
         log.info("Estimated number of vertices: " + g.estimateVertices());
         log.info("Estimated number of edges: " + g.estimateEdges());
