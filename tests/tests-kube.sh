@@ -467,11 +467,11 @@ for interzone_arg in ${inter_zone_levels[*]}; do
       #grep 'Operations per second' "${path_to_average_report}" | cut -d':' -f6 | tr -d ' ' | head -n 1 >> "${path_to_merged_csv}"
       # echo "1" >> "${path_to_merged_csv}"
 
-      calculate_avg_report "${path_for_load}"
+      calculate_avg_report "${path_for_load}" || true
     done
 
     # create plot from merged.csv
-    python3 -W ignore "${sql_py_scripts}/plot.py" "${path_to_merged_csv}" "${path_to_plot}"
+    python3 -W ignore "${sql_py_scripts}/plot.py" "${path_to_merged_csv}" "${path_to_plot}" || true
 
   done
 done
