@@ -3,6 +3,7 @@ kind: Job
 metadata:
   name: gmm-tester
 spec:
+  backoffLimit: 0
   template:
     spec:
       volumes:
