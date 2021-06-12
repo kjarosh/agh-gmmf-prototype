@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # End the idiotic, bughiding properties of bash
-set -e
+#set -e
 
 ####################
 # Global constants #
@@ -452,7 +452,7 @@ done
 
 tar -czvf results.tar.gz "${path_for_test}"
 echo "Tar generated. Copy with:"
-echo "kubectl cp $(kubectl get pods | grep gmm-tester | awk '{ print $1 }'):results.tar gz results.tar.gz"
+echo "kubectl cp $(kubectl get pods | grep gmm-tester | awk '{ print $1 }'):results.tar.gz results.tar.gz"
 
 echo "Tests finished!"
 
