@@ -298,7 +298,7 @@ load_graph() {
   kubectl cp "${path_to_queries}" "${EXECUTOR}:${queries_name}"
 
   kubectl exec "${EXECUTOR}" -- bash \
-            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -l -b 5 -g ${graph_name} -n 100 --no-load"
+            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -l -r 5 -g ${graph_name} -n 100 --no-load"
 
 
   # make sure there is a backup
@@ -321,10 +321,10 @@ constant_load() {
 
   if [[ "${4}" = true ]] ; then
     kubectl exec "${EXECUTOR}" -- bash \
-            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -b 5 -g ${graph_name} -s ${queries_name} -n ${3} -d ${TEST_TIME} -t 3 --disable-indexation"
+            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -r 5 -g ${graph_name} -s ${queries_name} -n ${3} -d ${TEST_TIME} -t 1 --disable-indexation"
   else
     kubectl exec "${EXECUTOR}" -- bash \
-            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -b 5 -g ${graph_name} -s ${queries_name} -n ${3} -d ${TEST_TIME} -t 3"
+            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -r 5 -g ${graph_name} -s ${queries_name} -n ${3} -d ${TEST_TIME} -t 1"
   fi
 
   # restore previous redis state
