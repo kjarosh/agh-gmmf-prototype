@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # End the idiotic, bughiding properties of bash
+# PM: let this exist for now, some commands do return correct results but still cause this line to crash
 #set -e
 
 ####################
@@ -62,7 +63,7 @@ REPETITIONS=0
 inter_zone_levels=()
 
 # nodes per zone
-nodes_per_zone=()
+spaces_per_zone=()
 
 # data points - X coordinates
 loads=()
@@ -86,7 +87,7 @@ parse_config() {
       inter_zone_levels+=("${line}")
       ;;
     2)
-      nodes_per_zone+=("${line}")
+      spaces_per_zone+=("${line}")
       ;;
     3)
       IFS=' ' read -r -a loads <<< "${line}"
@@ -163,7 +164,7 @@ mkdir_for_whole_test() {
 
   # create merged_csv file
   touch "${path_to_merged_csv}"
-  echo 'interzone,nodes_per_zone,target,real,std' >"${path_to_merged_csv}"
+  echo 'interzone,spaces_per_zone,target,real,std' >"${path_to_merged_csv}"
 }
 
 mkdir_for_graph() {
@@ -192,32 +193,35 @@ mkdir_for_repetition() {
 
 generate_graph() {
   # $1 - interzone
-  # $2 - npz
+  # $2 - spz
 
   path_to_graph="${path_for_graph}/${graph_name}"
 
   # graph-generation config
   pgc="${path_for_graph}/graph-config.json"
 
-  # ASSUMPTION: 1 space pez zone 'generates' around 30 nodes
+  # ASSUMPTION: 1 space pez zone 'generates' around 30 nodes per zone
+  local interzone_param=${1}
+  local spaces_param=${2}
+  local providers_param=$((2 * spaces_param / 3))
 
   cat <<CONFIG > "${pgc}"
 {
-  "providers": 400,
-  "spaces": 600,
-  "zones": ${COUNT_ZONES},
+  "providers": ${providers_param},
+  "spaces": ${spaces_param},
+  "zones": 1,
   "providersPerSpace": "normal(1, 0.5)",
   "groupsPerGroup": "normal(1.8, 1)",
   "usersPerGroup": "normal(9, 4)",
   "treeDepth": "enormal(2.3, 1)",
-  "differentGroupZoneProb": 0.${1},
-  "differentUserZoneProb": 0.${1},
+  "differentGroupZoneProb": 0.${interzone_param},
+  "differentUserZoneProb": 0.${interzone_param},
   "existingUserProb": 0.1,
   "existingGroupProb": 0.05
 }
 CONFIG
 
-  ./run-main.sh com.github.kjarosh.agh.pp.cli.GraphGeneratorMain -c "${pgc}" -o "${path_to_graph}" -n ${2}
+  ./run-main.sh com.github.kjarosh.agh.pp.cli.GraphGeneratorMain -c "${pgc}" -o "${path_to_graph}" -s ${COUNT_ZONES}
 }
 
 generate_queries() {
@@ -406,23 +410,23 @@ for interzone_arg in ${inter_zone_levels[*]}; do
   fi
 
   # for each nodes-per-zone..
-  for npz_arg in ${nodes_per_zone[*]}; do
-    mkdir_for_graph "${interzone_arg}" "${npz_arg}"
+  for spz_arg in ${spaces_per_zone[*]}; do
+    mkdir_for_graph "${interzone_arg}" "${spz_arg}"
 
-    # if nodes-per-zone is 'naive' default it to 20k
-    if [[ ${npz_arg} = "naive" ]] ; then
-      npz=20000
+    # if spaces-per-zone is 'naive' default it to 66 ( 2k nodes-per-zone )
+    if [[ ${spz_arg} = "naive" ]] ; then
+      spz=66
     else
-      npz=${npz_arg}
+      spz=${spz_arg}
     fi
 
     naive=false
-    if [[ ${interzone_arg} = "naive" || ${npz_arg} = "naive" ]] ; then
+    if [[ ${interzone_arg} = "naive" || ${spz_arg} = "naive" ]] ; then
       naive=true
     fi
 
     # generate graph and queries to perform
-    generate_graph "${interzone}" "${npz}"
+    generate_graph "${interzone}" "${spz}"
     generate_queries "${path_to_graph}"
 
     # load graph to kubernetes
@@ -433,7 +437,7 @@ for interzone_arg in ${inter_zone_levels[*]}; do
       mkdir_for_load "${load}"
 
       # start new record in merged csv
-      echo -n "${interzone_arg},${npz_arg},${load}," >> "${path_to_merged_csv}"
+      echo -n "${interzone_arg},${spz_arg},${load}," >> "${path_to_merged_csv}"
 
       # repeat test
       for i in $(seq 1 $REPETITIONS); do
