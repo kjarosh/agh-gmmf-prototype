@@ -138,12 +138,12 @@ load_zones() {
 #  EXECUTOR="$(kubectl get pod --field-selector=status.phase=Running -l "zone=zone${COUNT_ZONES}" -o name | sed 's/.*\///')"
 
   for ((i = 0; i < COUNT_ZONES; i++)); do
-    newZone="$(kubectl get pod -l "zone=zone${i}" | grep -w Running | awk '{print $1;}')"
+    newZone="$(kubectl get pod -l "zone=zone${i}" -n "$kubernetes_user_name" | grep -w Running | awk '{print $1;}')"
     my_printf "zone-${i} = ${newZone}"
     ZONES+=("${newZone}")
   done
 
-  EXECUTOR="$(kubectl get pod -l "zone=zone${COUNT_ZONES}" | grep -w Running | awk '{print $1;}')"
+  EXECUTOR="$(kubectl get pod -l "zone=zone${COUNT_ZONES}" -n "$kubernetes_user_name" | grep -w Running | awk '{print $1;}')"
   my_printf "executor = ${EXECUTOR}"
 }
 
