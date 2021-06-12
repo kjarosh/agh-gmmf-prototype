@@ -108,6 +108,7 @@ create_zones() {
 }
 
 load_zones() {
+  ZONES=()
 #  for ((i = 0; i < COUNT_ZONES; i++)); do
 #    ZONES+=("$(kubectl get pod --field-selector=status.phase=Running -l "zone=zone${i}" -o name | sed 's/.*\///')")
 #  done
@@ -122,6 +123,26 @@ load_zones() {
 
   EXECUTOR="$(kubectl get pod -l "zone=zone${COUNT_ZONES}" -n "$kubernetes_user_name" | grep -w Running | awk '{print $1;}')"
   my_printf "executor = ${EXECUTOR}"
+}
+
+restart_zone() {
+  my_printf "Restarting $1"
+  kubectl -n "$kubernetes_user_name" rollout restart deployment "$1"
+  kubectl -n "$kubernetes_user_name" rollout status deployment "$1"
+  my_printf "Restarted $1"
+}
+
+restart_zones() {
+  my_printf "Restarting zones"
+
+  for ((i = 0; i < COUNT_ZONES; i++)); do
+    restart_zone "zone${i}" &
+  done
+  wait
+
+  load_zones
+
+  my_printf "Zones restarted"
 }
 
 # NEW DIRECTORIES
@@ -294,6 +315,7 @@ calculate_avg_report() {
 
 load_graph() {
   clear_redises
+  restart_zones
   kubectl cp "${path_to_graph}" "${EXECUTOR}:${graph_name}"
   kubectl cp "${path_to_queries}" "${EXECUTOR}:${queries_name}"
 
@@ -334,6 +356,7 @@ constant_load() {
     kubectl exec "${ZONES[i]}" -- redis-server /redis.conf
     my_printf "Redis state restored for ZONE ${ZONES[i]}"
   done
+  restart_zones
 }
 
 ######################
