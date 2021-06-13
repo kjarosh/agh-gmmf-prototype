@@ -115,7 +115,7 @@ public class ConstantLoadClientMain {
         if (loadGraph) {
             loadGraph();
 
-            if(skipLoad) {
+            if (skipLoad) {
                 log.info("Skipping constant load part");
                 return;
             }
@@ -134,7 +134,7 @@ public class ConstantLoadClientMain {
             operationIssuer = new SequenceOperationIssuer(is);
         } else {
             operationIssuer = new RandomOperationIssuer(graph)
-                .withPermissionsProbability(permsProbability);
+                    .withPermissionsProbability(permsProbability);
         }
 
         operationIssuer.withOperationPerformer(operationPerformer);
@@ -201,15 +201,23 @@ public class ConstantLoadClientMain {
         if (operationsPerSecond == 0) return;
 
         long period = (long) (1e9 / operationsPerSecond);
+        long atOnce = 1;
+        while (period < TimeUnit.MILLISECONDS.toNanos(50)) {
+            period *= 2;
+            atOnce *= 2;
+        }
+        long atOnceFinal = atOnce;
         scheduledExecutor.scheduleAtFixedRate(() -> {
-            try {
-                operationIssuer.issue();
-            } catch (Throwable t) {
-                log.error("Error while performing operation", t);
-                errored.incrementAndGet();
-                if (exitOnFail) System.exit(1);
+            for (int i = 0; i < atOnceFinal; ++i) {
+                try {
+                    operationIssuer.issue();
+                } catch (Throwable t) {
+                    log.error("Error while performing operation", t);
+                    errored.incrementAndGet();
+                    if (exitOnFail) System.exit(1);
+                }
+                count.incrementAndGet();
             }
-            count.incrementAndGet();
         }, 0, period, TimeUnit.NANOSECONDS);
     }
 
