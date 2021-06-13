@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -47,7 +48,7 @@ public class LoadSimulatorController {
         List<Future<?>> futures = new ArrayList<>();
         for (BulkOperationDto op : operations) {
             try {
-                futures.add(executeOperation(op));
+                executeOperation(futures, op);
             } catch (OkException e) {
                 // ignore
             } catch (Exception e) {
@@ -57,9 +58,7 @@ public class LoadSimulatorController {
         }
 
         for (Future<?> future : futures) {
-            if (future != null) {
-                future.get();
-            }
+            future.get();
         }
 
         if (rethrow != null) {
@@ -67,7 +66,7 @@ public class LoadSimulatorController {
         }
     }
 
-    private Future<?> executeOperation(BulkOperationDto op) {
+    private void executeOperation(List<Future<?>> futures, BulkOperationDto op) throws ExecutionException, InterruptedException {
         switch (op.getType()) {
             case ADD_EDGE:
                 graphModificationController.addEdge(
@@ -76,22 +75,30 @@ public class LoadSimulatorController {
                         op.getPermissions().toString(),
                         op.getTrace(),
                         false);
-                return null;
+                for (Future<?> future : futures) {
+                    future.get();
+                }
+                futures.clear();
+                return;
             case REMOVE_EDGE:
                 graphModificationController.removeEdge(
                         op.getFromId().toString(),
                         op.getToId().toString(),
                         op.getTrace(),
                         false);
-                return null;
+                for (Future<?> future : futures) {
+                    future.get();
+                }
+                futures.clear();
+                return;
             case SET_PERMS:
-                return executor.submit(() -> graphModificationController.setPermissions(
+                Future<?> f = executor.submit(() -> graphModificationController.setPermissions(
                         op.getFromId().toString(),
                         op.getToId().toString(),
                         op.getPermissions().toString(),
                         op.getTrace(),
                         false));
+                futures.add(f);
         }
-        return null;
     }
 }
