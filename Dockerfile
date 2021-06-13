@@ -1,13 +1,14 @@
 FROM openjdk:11
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
-    apt-get install -y redis && \
+    apt-get install -y redis xauth xorg openssh-server && \
     apt-get clean
 
-RUN wget https://github.com/patric-r/jvmtop/releases/download/0.8.0/jvmtop-0.8.0.tar.gz && \
-    mkdir -p /jvmtop && \
-    tar xvf jvmtop-0.8.0.tar.gz -C /jvmtop && \
-    rm -rf jvmtop-0.8.0.tar.gz
+RUN wget https://github.com/oracle/visualvm/releases/download/2.0.7/visualvm_207.zip && \
+    mkdir visualvm && \
+    unzip visualvm_207.zip -d visualvm && \
+    rm -rf visualvm_207.zip
 
 COPY docker/ /
 
