@@ -57,7 +57,9 @@ public class LoadSimulatorController {
         }
 
         for (Future<?> future : futures) {
-            future.get();
+            if (future != null) {
+                future.get();
+            }
         }
 
         if (rethrow != null) {
