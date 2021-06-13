@@ -34,8 +34,8 @@ public class OperationSequenceGeneratorMain {
             var generator = createIssuer(os, graph);
             for (int n = 0; n < count; n++) {
                 generator.issue();
-                if (count % 10_000 == 0) {
-                    log.info("Generated {} operations", count);
+                if (n % 10_000 == 0) {
+                    log.info("Generated {} operations", n);
                 }
             }
         }
