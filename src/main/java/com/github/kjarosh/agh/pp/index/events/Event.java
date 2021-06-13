@@ -58,7 +58,7 @@ public class Event {
         this.trace = trace;
         this.sender = sender;
         this.originalSender = originalSender;
-        this.effectiveVertices = new HashSet<>(effectiveVertices);
+        this.effectiveVertices = effectiveVertices;
     }
 
     @JsonIgnore

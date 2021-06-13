@@ -1,8 +1,10 @@
 package com.github.kjarosh.agh.pp.rest;
 
-import com.github.kjarosh.agh.pp.rest.dto.LoadSimulationRequestDto;
+import com.github.kjarosh.agh.pp.config.Config;
 import com.github.kjarosh.agh.pp.rest.dto.BulkOperationDto;
+import com.github.kjarosh.agh.pp.rest.dto.LoadSimulationRequestDto;
 import com.github.kjarosh.agh.pp.rest.error.OkException;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * @author Kamil Jarosz
@@ -20,6 +26,11 @@ import java.util.List;
 @Slf4j
 @Controller
 public class LoadSimulatorController {
+    private static final ExecutorService executor =
+            Executors.newFixedThreadPool(10, new ThreadFactoryBuilder()
+                    .setNameFormat(Config.ZONE_ID + "-load-simulator-%d")
+                    .build());
+
     @Autowired
     private GraphModificationController graphModificationController;
 
@@ -33,9 +44,10 @@ public class LoadSimulatorController {
         }
 
         Exception rethrow = null;
+        List<Future<?>> futures = new ArrayList<>();
         for (BulkOperationDto op : operations) {
             try {
-                executeOperation(op);
+                futures.add(executeOperation(op));
             } catch (OkException e) {
                 // ignore
             } catch (Exception e) {
@@ -44,12 +56,16 @@ public class LoadSimulatorController {
             }
         }
 
+        for (Future<?> future : futures) {
+            future.get();
+        }
+
         if (rethrow != null) {
             throw rethrow;
         }
     }
 
-    private void executeOperation(BulkOperationDto op) {
+    private Future<?> executeOperation(BulkOperationDto op) {
         switch (op.getType()) {
             case ADD_EDGE:
                 graphModificationController.addEdge(
@@ -58,22 +74,22 @@ public class LoadSimulatorController {
                         op.getPermissions().toString(),
                         op.getTrace(),
                         false);
-                break;
+                return null;
             case REMOVE_EDGE:
                 graphModificationController.removeEdge(
                         op.getFromId().toString(),
                         op.getToId().toString(),
                         op.getTrace(),
                         false);
-                break;
+                return null;
             case SET_PERMS:
-                graphModificationController.setPermissions(
+                return executor.submit(() -> graphModificationController.setPermissions(
                         op.getFromId().toString(),
                         op.getToId().toString(),
                         op.getPermissions().toString(),
                         op.getTrace(),
-                        false);
-                break;
+                        false));
         }
+        return null;
     }
 }
