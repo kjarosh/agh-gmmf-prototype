@@ -2,6 +2,7 @@ package com.github.kjarosh.agh.pp.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
@@ -18,7 +19,7 @@ public class JsonLinesWriter {
     }
 
     public JsonLinesWriter(OutputStream os, ObjectMapper mapper) {
-        this.os = os;
+        this.os = new BufferedOutputStream(os);
         this.mapper = mapper;
     }
 
