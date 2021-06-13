@@ -16,4 +16,5 @@ spec:
           volumeMounts:
             - mountPath: "tests--artifacts-and-results/kubernetes"
               name: gmm-tests-pv-storage
+          imagePullPolicy: Always
       restartPolicy: Never
