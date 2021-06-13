@@ -478,7 +478,7 @@ done
 
 tar -czvf results.tar.gz "${path_for_test}"
 echo "Tar generated. Copy with:"
-echo "kubectl cp $(kubectl get pods | grep gmm-tester | awk '{ print $1 }'):results.tar.gz results.tar.gz"
+echo "kubectl -n ${kubernetes_user_name} cp $(kubectl get pods | grep gmm-tester | awk '{ print $1 }'):results.tar.gz results.tar.gz"
 
 echo "Tests finished!"
 
