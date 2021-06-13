@@ -248,9 +248,7 @@ generate_queries() {
 
 clear_instrumentation() {
   my_printf "Clearing instrumentation in $1"
-  kubectl exec "$1" -- touch temp.csv
-  kubectl exec "$1" -- cp temp.csv instrumentation.csv
-  kubectl exec "$1" -- rm temp.csv
+  kubectl exec "$1" -- truncate -s 0 instrumentation.csv
 }
 
 clear_instrumentations() {
@@ -348,10 +346,10 @@ constant_load() {
 
   if [[ "${4}" = true ]] ; then
     kubectl exec "${EXECUTOR}" -- bash \
-            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -r 5 -g ${graph_name} -s ${queries_name} -n ${3} -d ${TEST_TIME} -t 1 --disable-indexation"
+            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -r 5 -g ${graph_name} -s ${queries_name} -n ${3} -d ${TEST_TIME} -t 10 --disable-indexation"
   else
     kubectl exec "${EXECUTOR}" -- bash \
-            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -r 5 -g ${graph_name} -s ${queries_name} -n ${3} -d ${TEST_TIME} -t 1"
+            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -r 5 -g ${graph_name} -s ${queries_name} -n ${3} -d ${TEST_TIME} -t 10"
   fi
 
   # restore previous redis state
@@ -377,7 +375,6 @@ run_test() {
   clear_instrumentations
   postgres_clear
   my_printf "Postgres: CLEARED"
-  restart_zones
 
   # perform test
   constant_load "${1}" "${2}" "${3}" "${4}"
@@ -390,6 +387,8 @@ run_test() {
   # perform report and write final results to '${merged_csv_name}'
   postgres_report
   my_printf "Postgres: REPORT OBTAINED"
+
+  restart_zones
 }
 
 ####################
