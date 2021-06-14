@@ -85,11 +85,28 @@ parse_config() {
   source "${test_config_path}"
 }
 
+sync_pod_dir() {
+  local pod=$1
+  local source=$2
+  local destination=$3
+
+  devspace sync --pod="${pod}" \
+    --namespace="${kubernetes_user_name}" \
+    --container-path="${source}" \
+    --local-path="${destination}" \
+    --download-only \
+    --no-watch \
+    --verbose
+}
+
 # ZONES ON KUBERNETES
 
 create_zones() {
   total_zones=$((COUNT_ZONES + 1))
-  ./run-main.sh com.github.kjarosh.agh.pp.cli.KubernetesClient -z ${total_zones} -c ${path_to_kubernetes_config} -n ${kubernetes_user_name} -i danieljodlos/gmm-indexer-fork
+  ./run-main.sh com.github.kjarosh.agh.pp.cli.KubernetesClient \
+    -z ${total_zones} \
+    -c ${path_to_kubernetes_config} \
+    -n ${kubernetes_user_name}
 
   # local variables
   local incomings=1
