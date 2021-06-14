@@ -87,16 +87,17 @@ parse_config() {
 
 sync_pod_dir() {
   local pod=$1
-  local source=$2
-  local destination=$3
+  local remote_path=$2
+  local local_path=$3
+  local opts=$4
 
   devspace sync --pod="${pod}" \
     --namespace="${kubernetes_user_name}" \
-    --container-path="${source}" \
-    --local-path="${destination}" \
-    --download-only \
+    --container-path="${remote_path}" \
+    --local-path="${local_path}" \
     --no-watch \
-    --verbose
+    --verbose \
+    ${opts}
 }
 
 # ZONES ON KUBERNETES
@@ -279,7 +280,12 @@ clear_instrumentations() {
 
 get_instrumentation() {
   my_printf "Downloading artifacts for $1"
-  kubectl cp "${ZONES[$1]}":instrumentation.csv "${path_for_repetition}/instrumentation-$1.csv"
+  kubectl exec "${ZONES[$1]}" -- rm -rf /sync
+  kubectl exec "${ZONES[$1]}" -- mkdir /sync
+  kubectl exec "${ZONES[$1]}" -- cp instrumentation.csv "/sync/instrumentation-$1.csv"
+  sync_pod_dir "${ZONES[$1]}" "/sync" "${path_for_repetition}" --download-only
+  kubectl exec "${ZONES[$1]}" -- rm -rf /sync
+  my_printf "Downloaded artifacts for $1"
 }
 
 get_all_instrumentations() {
@@ -336,8 +342,12 @@ calculate_avg_report() {
 load_graph() {
   clear_redises
   restart_zones
-  kubectl cp "${path_to_graph}" "${EXECUTOR}:${graph_name}"
-  kubectl cp "${path_to_queries}" "${EXECUTOR}:${queries_name}"
+  kubectl exec "${EXECUTOR}" -- rm -rf /upload
+  kubectl exec "${EXECUTOR}" -- mkdir -p /upload
+  sync_pod_dir "${EXECUTOR}" "/upload" "${path_for_graph}" --upload-only
+  kubectl exec "${EXECUTOR}" -- mv "/upload/${graph_name}" "${graph_name}"
+  kubectl exec "${EXECUTOR}" -- mv "/upload/${queries_name}" "${queries_name}"
+  kubectl exec "${EXECUTOR}" -- rm -rf /upload
 
   kubectl exec "${EXECUTOR}" -- bash \
             -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -l -r 5 -g ${graph_name} -n 100 --no-load"
@@ -493,8 +503,11 @@ for interzone_arg in ${inter_zone_levels[*]}; do
 done
 
 tar -czvf results.tar.gz "${path_for_test}"
+mkdir -p /download-results
+mv results.tar.gz /download-results
 echo "Tar generated. Copy with:"
-echo "kubectl -n ${kubernetes_user_name} cp $(kubectl get pods | grep gmm-tester | awk '{ print $1 }'):results.tar.gz results.tar.gz"
+echo "kubectl -n ${kubernetes_user_name} cp $(kubectl get pods | grep gmm-tester | awk '{ print $1 }'):download-results/results.tar.gz results.tar.gz"
+echo "devspace sync --namespace=${kubernetes_user_name} --pod=$(kubectl get pods | grep gmm-tester | awk '{ print $1 }') --container-path=download-results --download-only --no-watch"
 
 echo "Tests finished!"
 
