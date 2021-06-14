@@ -292,12 +292,7 @@ clear_instrumentations() {
 
 get_instrumentation() {
   my_printf "Downloading artifacts for $1"
-  kubectl exec "${ZONES[$1]}" -- rm -rf /sync
-  kubectl exec "${ZONES[$1]}" -- mkdir /sync
-  kubectl exec "${ZONES[$1]}" -- cp instrumentation.csv "/sync/instrumentation-$1.csv"
-  sync_pod_dir "${ZONES[$1]}" "/sync" "${path_for_repetition}" --download-only
-  kubectl exec "${ZONES[$1]}" -- rm -rf /sync
-  my_printf "Downloaded artifacts for $1"
+  kubectl cp "${ZONES[$1]}":instrumentation.csv "${path_for_repetition}/instrumentation-$1.csv"
 }
 
 get_all_instrumentations() {
@@ -354,12 +349,8 @@ calculate_avg_report() {
 load_graph() {
   clear_redises
   restart_zones
-  kubectl exec "${EXECUTOR}" -- rm -rf /upload
-  kubectl exec "${EXECUTOR}" -- mkdir -p /upload
-  sync_pod_dir "${EXECUTOR}" "/upload" "${path_for_graph}" --upload-only
-  kubectl exec "${EXECUTOR}" -- mv "/upload/${graph_name}" "${graph_name}"
-  kubectl exec "${EXECUTOR}" -- mv "/upload/${queries_name}" "${queries_name}"
-  kubectl exec "${EXECUTOR}" -- rm -rf /upload
+  kubectl cp "${path_to_graph}" "${EXECUTOR}:${graph_name}"
+  kubectl cp "${path_to_queries}" "${EXECUTOR}:${queries_name}"
 
   kubectl exec "${EXECUTOR}" -- bash \
             -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -l -r 5 -g ${graph_name} -n 100 --no-load"
