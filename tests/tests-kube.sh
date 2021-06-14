@@ -292,7 +292,9 @@ clear_instrumentations() {
 
 get_instrumentation() {
   my_printf "Downloading artifacts for $1"
-  kubectl cp "${ZONES[$1]}":instrumentation.csv "${path_for_repetition}/instrumentation-$1.csv"
+  while ! kubectl cp "${ZONES[$1]}":instrumentation.csv "${path_for_repetition}/instrumentation-$1.csv"; do
+    rm -f "${path_for_repetition}/instrumentation-$1.csv"
+  done
 }
 
 get_all_instrumentations() {
