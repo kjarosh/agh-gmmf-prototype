@@ -256,8 +256,8 @@ CONFIG
 generate_queries() {
   path_to_queries="${path_for_graph}/${queries_name}"
 
-  if [[ -f "/init/queries.json" ]]; then
-    cp "/init/queries.json" "${path_to_queries}"
+  if [[ -f "/init/queries.json.gz" ]]; then
+    gunzip -c "/init/queries.json.gz" > "${path_to_queries}"
     my_printf "Operations already generated, skipping"
     return
   fi
