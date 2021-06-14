@@ -6,6 +6,12 @@ RUN curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packa
     apt-get install -y python3 python3-pip postgresql kubectl tree && \
     apt-get clean
 
+RUN curl -s -L "https://github.com/loft-sh/devspace/releases/latest" | \
+      sed -nE 's!.*"([^"]*devspace-linux-amd64)".*!https://github.com\1!p' | \
+      xargs -n 1 curl -L -o devspace && \
+    chmod +x devspace && \
+    install devspace /usr/local/bin
+
 RUN pip3 install numpy matplotlib
 
 COPY target/agh-pp-simulator-*.jar app.jar
