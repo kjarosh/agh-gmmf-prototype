@@ -100,7 +100,7 @@ public class RandomOperationIssuer implements OperationIssuer {
     }
 
     private void removeEdge() {
-        Edge e = RandomUtils.randomElement(random, graph.allEdges());
+        Edge e = RandomUtils.randomElement(random, allEdges);
         graph.removeEdge(e);
         allEdges.remove(e);
         removedEdges.add(e);
