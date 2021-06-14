@@ -218,6 +218,12 @@ generate_graph() {
 
   path_to_graph="${path_for_graph}/${graph_name}"
 
+  if [[ -f "/init/graph.json" ]]; then
+    cp "/init/graph.json" "${path_to_graph}"
+    my_printf "Graph already generated, skipping"
+    return
+  fi
+
   # graph-generation config
   pgc="${path_for_graph}/graph-config.json"
 
@@ -249,6 +255,12 @@ CONFIG
 
 generate_queries() {
   path_to_queries="${path_for_graph}/${queries_name}"
+
+  if [[ -f "/init/queries.json" ]]; then
+    cp "/init/queries.json" "${path_to_queries}"
+    my_printf "Operations already generated, skipping"
+    return
+  fi
 
   max=${loads[0]}
   for n in "${loads[@]}" ; do
