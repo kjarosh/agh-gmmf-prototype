@@ -28,7 +28,7 @@ public class RandomOperationIssuer implements OperationIssuer {
     private final AtomicLong traceCounter = new AtomicLong();
 
     // config
-    private double permissionsProbability = 0.8;
+    private double permissionsProbability = 0.9;
     private OperationPerformer operationPerformer = new ZoneClient();
 
     public RandomOperationIssuer(Graph graph) {
