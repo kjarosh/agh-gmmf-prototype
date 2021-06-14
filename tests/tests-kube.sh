@@ -292,7 +292,14 @@ clear_instrumentations() {
 
 get_instrumentation() {
   my_printf "Downloading artifacts for $1"
+  local count=0
   while ! kubectl cp "${ZONES[$1]}":instrumentation.csv "${path_for_repetition}/instrumentation-$1.csv"; do
+    count=$((count + 1))
+    if [[ $count -gt 10 ]]; then
+      return
+    fi
+
+    my_printf "Retrying download for $1"
     rm -f "${path_for_repetition}/instrumentation-$1.csv"
   done
 }
