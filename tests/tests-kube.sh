@@ -411,6 +411,9 @@ run_test() {
   # perform test
   constant_load "${1}" "${2}" "${3}" "${4}"
 
+  # wait a bit for instrumentation
+  sleep 10
+
   # load results to postgres
   get_all_instrumentations
   postgres_import
