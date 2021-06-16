@@ -344,11 +344,11 @@ postgres_clear() {
 
 postgres_report() {
   database /dev/stdin <<PSQL > "${path_to_report}" 2>&1
-do $$ begin
+do \$\$ begin
   perform report(
     (select (min(time) + interval '${WARMUP_TIME} second') from dbnotification),
     (select (min(time) + interval '$((WARMUP_TIME + TEST_TIME)) second') from dbnotification));
-end $$
+end \$\$
 PSQL
 }
 
