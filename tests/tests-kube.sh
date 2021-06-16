@@ -56,7 +56,7 @@ COUNT_ZONES=0
 ZONES=()
 EXECUTOR=""
 
-# number of repetition
+WARMUP_TIME=0
 TEST_TIME=0
 REPETITIONS=0
 
@@ -267,7 +267,7 @@ generate_queries() {
       ((n > max)) && max=$n
   done
 
-  total_operations=$((TEST_TIME * max * 12 / 10))
+  total_operations=$(((WARMUP_TIME + TEST_TIME) * max * 12 / 10))
 
   echo "Generating queries... n=${total_operations}"
   ./run-main.sh com.github.kjarosh.agh.pp.cli.OperationSequenceGeneratorMain -g ${path_to_graph} -n ${total_operations} -o ${path_to_queries}
@@ -343,7 +343,13 @@ postgres_clear() {
 }
 
 postgres_report() {
-  database ${sql_py_scripts}/get_report.sql > "${path_to_report}" 2>&1
+  database /dev/stdin <<PSQL > "${path_to_report}" 2>&1
+do $$ begin
+  perform report(
+    (select (min(time) + interval '${WARMUP_TIME} second') from dbnotification),
+    (select (min(time) + interval '$((WARMUP_TIME + TEST_TIME)) second') from dbnotification));
+end $$
+PSQL
 }
 
 postgres_import() {
@@ -387,13 +393,15 @@ constant_load() {
   # $3 - load
   # $4 - naive
 
+  local additional_opts=""
   if [[ "${4}" = true ]] ; then
-    kubectl exec "${EXECUTOR}" -- bash \
-            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -r 5 -g ${graph_name} -s ${queries_name} -n ${3} -d ${TEST_TIME} -t 10 --disable-indexation"
-  else
-    kubectl exec "${EXECUTOR}" -- bash \
-            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -r 5 -g ${graph_name} -s ${queries_name} -n ${3} -d ${TEST_TIME} -t 10"
+    additional_opts="--disable-indexation"
   fi
+
+  kubectl exec "${EXECUTOR}" -- bash \
+          -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain \
+                -r 5 -g ${graph_name} -s ${queries_name} -n ${3} \
+                -d $((WARMUP_TIME + TEST_TIME)) -t 10 ${additional_opts}"
 
   # restore previous redis state
   for ((i = 0; i < COUNT_ZONES; i++)); do
@@ -425,7 +433,7 @@ run_test() {
   constant_load "${1}" "${2}" "${3}" "${4}"
 
   # wait a bit for instrumentation
-  sleep 10
+  sleep 5
 
   # load results to postgres
   get_all_instrumentations
