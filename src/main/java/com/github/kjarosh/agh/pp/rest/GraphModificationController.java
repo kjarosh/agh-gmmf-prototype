@@ -11,6 +11,8 @@ import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.index.Inbox;
 import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventType;
+import com.github.kjarosh.agh.pp.instrumentation.Instrumentation;
+import com.github.kjarosh.agh.pp.instrumentation.Notification;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.rest.dto.BulkEdgeCreationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.BulkVertexCreationRequestDto;
@@ -49,6 +51,8 @@ public class GraphModificationController {
 
     @Autowired
     private Inbox inbox;
+
+    private final Instrumentation instrumentation = Instrumentation.getInstance();
 
     @RequestMapping(method = RequestMethod.POST, path = "graph/edges")
     @ResponseBody
@@ -249,22 +253,28 @@ public class GraphModificationController {
         Graph graph = graphLoader.getGraph();
         Set<VertexId> subjects = new HashSet<>();
         if (successive) {
-            if (permissionsChangedOnly) {
-                // no need to propagate
-                return;
-            }
-
             subjects.addAll(graph.getVertex(edgeId.getTo())
                     .index()
                     .getEffectiveParentsSet());
             subjects.add(edgeId.getTo());
-            inbox.post(edgeId.getFrom(), Event.builder()
+            Event event = Event.builder()
                     .trace(trace)
                     .type(delete ? EventType.PARENT_REMOVE : EventType.PARENT_CHANGE)
                     .effectiveVertices(subjects)
                     .sender(edgeId.getTo())
                     .originalSender(edgeId.getTo())
-                    .build(), start);
+                    .build();
+
+            if (permissionsChangedOnly) {
+                // no need to propagate, but inform about it
+                VertexId id = edgeId.getFrom();
+                instrumentation.notify(Notification.queued(id, event));
+                instrumentation.notify(Notification.startProcessing(id, event));
+                instrumentation.notify(Notification.endProcessing(id, event));
+                return;
+            }
+
+            inbox.post(edgeId.getFrom(), event, start);
         } else {
             subjects.addAll(graph.getVertex(edgeId.getFrom())
                     .index()
