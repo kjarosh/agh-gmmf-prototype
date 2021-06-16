@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.Instant;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -89,7 +89,7 @@ public class GraphModificationController {
         }
 
         graph.addEdge(edge);
-        postChangeEvent(start, successive, trace, edgeId, false);
+        postChangeEvent(start, successive, trace, edgeId, false, false);
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "graph/edges/bulk")
@@ -118,7 +118,7 @@ public class GraphModificationController {
             VertexId dst = new VertexId(bulkRequest.getDestinationZone(), request.getToName());
             Edge edge = new Edge(src, dst, new Permissions(request.getPermissions()));
             graph.addEdge(edge);
-            postChangeEvent(start, bulkRequest.isSuccessive(), request.getTrace(), edge.id(), false);
+            postChangeEvent(start, bulkRequest.isSuccessive(), request.getTrace(), edge.id(), false, false);
         }
     }
 
@@ -154,7 +154,7 @@ public class GraphModificationController {
         }
 
         graph.setPermissions(edgeId, permissions);
-        postChangeEvent(start, successive, trace, edgeId, false);
+        postChangeEvent(start, successive, trace, edgeId, false, true);
     }
 
     @RequestMapping(method = RequestMethod.POST, path = "graph/edges/delete")
@@ -187,7 +187,7 @@ public class GraphModificationController {
         }
 
         graph.removeEdge(edge);
-        postChangeEvent(start, successive, trace, edgeId, true);
+        postChangeEvent(start, successive, trace, edgeId, true, true);
     }
 
     private void optionallyForwardRequest(
@@ -243,28 +243,37 @@ public class GraphModificationController {
             boolean successive,
             String trace,
             EdgeId edgeId,
-            boolean delete) {
+            boolean delete,
+            boolean permissionsChangedOnly) {
         Objects.requireNonNull(trace);
         Graph graph = graphLoader.getGraph();
+        Set<VertexId> subjects = new HashSet<>();
         if (successive) {
-            Set<VertexId> subjects = graph.getVertex(edgeId.getTo())
+            if (permissionsChangedOnly) {
+                // no need to propagate
+                return;
+            }
+
+            subjects.addAll(graph.getVertex(edgeId.getTo())
                     .index()
-                    .getEffectiveParentsSet();
+                    .getEffectiveParentsSet());
+            subjects.add(edgeId.getTo());
             inbox.post(edgeId.getFrom(), Event.builder()
                     .trace(trace)
                     .type(delete ? EventType.PARENT_REMOVE : EventType.PARENT_CHANGE)
-                    .effectiveVertices(delete ? Collections.emptySet() : subjects)
+                    .effectiveVertices(subjects)
                     .sender(edgeId.getTo())
                     .originalSender(edgeId.getTo())
                     .build(), start);
         } else {
-            Set<VertexId> subjects = graph.getVertex(edgeId.getFrom())
+            subjects.addAll(graph.getVertex(edgeId.getFrom())
                     .index()
-                    .getEffectiveChildrenSet();
+                    .getEffectiveChildrenSet());
+            subjects.add(edgeId.getFrom());
             inbox.post(edgeId.getTo(), Event.builder()
                     .trace(trace)
                     .type(delete ? EventType.CHILD_REMOVE : EventType.CHILD_CHANGE)
-                    .effectiveVertices(delete ? Collections.emptySet() : subjects)
+                    .effectiveVertices(subjects)
                     .sender(edgeId.getFrom())
                     .originalSender(edgeId.getFrom())
                     .build(), start);

@@ -17,16 +17,14 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Class responsible for processing {@link Event}s and
@@ -107,31 +105,25 @@ public class EventProcessor {
         Graph graph = graphLoader.getGraph();
 
         VertexIndex index = graph.getVertex(id).index();
-
-        AtomicBoolean propagate = new AtomicBoolean(false);
-        AtomicReference<EventType> eventType = new AtomicReference<>(event.getType());
-        if (delete) {
-            VertexId toRemove = event.getOriginalSender();
-            index.getEffectiveParent(toRemove).ifPresent(effectiveVertex -> {
-                effectiveVertex.removeIntermediateVertex(event.getSender(), () -> propagate.set(true));
-                if (effectiveVertex.getIntermediateVertices().isEmpty()) {
-                    index.removeEffectiveParent(toRemove);
-                } else {
-                    eventType.set(EventType.PARENT_CHANGE);
-                }
-            });
-        } else {
-            for (VertexId subjectId : event.getAllSubjects()) {
-                EffectiveVertex effectiveVertex = index.getOrAddEffectiveParent(subjectId, () -> propagate.set(true));
-                effectiveVertex.addIntermediateVertex(event.getSender(), () -> propagate.set(true));
+        Set<VertexId> effectiveParents = new ConcurrentSkipListSet<>();
+        for (VertexId subjectId : event.getEffectiveVertices()) {
+            if (delete) {
+                index.getEffectiveParent(subjectId).ifPresent(effectiveVertex -> {
+                    effectiveVertex.removeIntermediateVertex(event.getSender());
+                    if (effectiveVertex.getIntermediateVertices().isEmpty()) {
+                        index.removeEffectiveParent(subjectId);
+                        effectiveParents.add(subjectId);
+                    }
+                });
+            } else {
+                EffectiveVertex effectiveVertex = index.getOrAddEffectiveParent(subjectId, () -> effectiveParents.add(subjectId));
+                effectiveVertex.addIntermediateVertex(event.getSender(), () -> effectiveParents.add(subjectId));
             }
         }
 
-        if (propagate.get()) {
-            Set<VertexId> effectiveParents = eventType.get() == EventType.PARENT_REMOVE ?
-                    Collections.emptySet() : index.getEffectiveParentsSet();
+        if (!effectiveParents.isEmpty()) {
             Set<VertexId> recipients = graph.getSourcesByDestination(id);
-            propagateEvent(id, recipients, event, effectiveParents, eventType.get());
+            propagateEvent(id, recipients, event, effectiveParents, event.getType());
         }
     }
 
@@ -141,43 +133,41 @@ public class EventProcessor {
         VertexIndex index = graph.getVertex(id).index();
         Set<Edge> edgesToCalculate = graph.getEdgesByDestination(id);
 
-        AtomicBoolean propagate = new AtomicBoolean(false);
-        AtomicReference<EventType> eventType = new AtomicReference<>(event.getType());
-        if (delete) {
-            VertexId toRemove = event.getOriginalSender();
-            index.getEffectiveChild(toRemove).ifPresent(effectiveVertex -> {
-                effectiveVertex.removeIntermediateVertex(event.getSender(), () -> propagate.set(true));
-                if (effectiveVertex.getIntermediateVertices().isEmpty()) {
-                    index.removeEffectiveChild(toRemove);
-                } else {
-                    eventType.set(EventType.CHILD_CHANGE);
-                    recalculatePermissions(event, edgesToCalculate, toRemove, effectiveVertex);
-                }
-            });
-        } else {
-            ExecutorService executor = GlobalExecutors.getCalculationExecutor();
-            List<Future<?>> futures = new ArrayList<>();
-            Set<VertexId> allSubjects = event.getAllSubjects();
-            for (VertexId subjectId : allSubjects) {
-                Runnable job = () -> {
-                    EffectiveVertex effectiveVertex = index.getOrAddEffectiveChild(subjectId, () -> propagate.set(true));
-                    effectiveVertex.addIntermediateVertex(event.getSender(), () -> propagate.set(true));
+        Set<VertexId> effectiveChildren = new ConcurrentSkipListSet<>();
+        ExecutorService executor = GlobalExecutors.getCalculationExecutor();
+        List<Future<?>> futures = new ArrayList<>();
+        for (VertexId subjectId : event.getEffectiveVertices()) {
+            Runnable job;
+            if (delete) {
+                job = () -> {
+                    index.getEffectiveChild(subjectId).ifPresent(effectiveVertex -> {
+                        effectiveVertex.removeIntermediateVertex(event.getSender());
+                        if (effectiveVertex.getIntermediateVertices().isEmpty()) {
+                            index.removeEffectiveChild(subjectId);
+                            effectiveChildren.add(subjectId);
+                        } else {
+                            recalculatePermissions(event, edgesToCalculate, subjectId, effectiveVertex);
+                        }
+                    });
+                };
+            } else {
+                job = () -> {
+                    EffectiveVertex effectiveVertex = index.getOrAddEffectiveChild(subjectId, () -> effectiveChildren.add(subjectId));
+                    effectiveVertex.addIntermediateVertex(event.getSender(), () -> effectiveChildren.add(subjectId));
                     recalculatePermissions(event, edgesToCalculate, subjectId, effectiveVertex);
                 };
-                if (executor != null) {
-                    futures.add(executor.submit(job));
-                } else {
-                    job.run();
-                }
             }
-            waitForAll(futures);
+            if (executor != null) {
+                futures.add(executor.submit(job));
+            } else {
+                job.run();
+            }
         }
+        waitForAll(futures);
 
-        if (propagate.get()) {
-            Set<VertexId> effectiveChildren = eventType.get() == EventType.CHILD_REMOVE ?
-                    Collections.emptySet() : index.getEffectiveChildrenSet();
+        if (!effectiveChildren.isEmpty()) {
             Set<VertexId> recipients = graph.getDestinationsBySource(id);
-            propagateEvent(id, recipients, event, effectiveChildren, eventType.get());
+            propagateEvent(id, recipients, event, effectiveChildren, event.getType());
         }
     }
 
