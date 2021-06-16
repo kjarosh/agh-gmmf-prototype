@@ -4,8 +4,12 @@ import com.github.kjarosh.agh.pp.cli.utils.LogbackUtils;
 import com.github.kjarosh.agh.pp.instrumentation.Notification;
 import com.github.kjarosh.agh.pp.instrumentation.jpa.DbNotification;
 import com.google.common.io.CharStreams;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.text.StringEscapeUtils;
+import org.hibernate.Session;
+import org.postgresql.copy.CopyManager;
+import org.postgresql.core.BaseConnection;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -14,6 +18,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PipedReader;
+import java.io.PipedWriter;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,7 +30,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 
 /**
  * @author Kamil Jarosz
@@ -67,10 +75,7 @@ public class PostgresImportMain {
 
             em.getTransaction().begin();
             em.createQuery("delete from DbNotification n").executeUpdate();
-            for (Path csvFile : csvFiles) {
-                log.info("Importing {}", csvFile);
-                importCsv(csvFile, em);
-            }
+            importCsvsNew(csvFiles, em);
             log.info("Committing transaction");
             em.getTransaction().commit();
 
@@ -105,7 +110,57 @@ public class PostgresImportMain {
         }
     }
 
-    private static void importCsv(Path csv, EntityManager em) {
+    @SneakyThrows
+    private static void importCsvsNew(List<Path> csvFiles, EntityManager em) {
+        PipedReader pipedReader = new PipedReader();
+        PipedWriter pipedWriter = new PipedWriter();
+        pipedWriter.connect(pipedReader);
+
+        new Thread(() -> {
+            for (Path csv : csvFiles) {
+                log.info("Importing {}", csv);
+                try (Stream<String> lines = Files.lines(csv)) {
+                    lines.map(line -> "\"" + UUID.randomUUID() + "\"," + line)
+                            .forEach(line -> {
+                                try {
+                                    pipedWriter.write(line.toCharArray());
+                                    pipedWriter.write('\n');
+                                } catch (IOException e) {
+                                    throw new UncheckedIOException(e);
+                                }
+                            });
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+            try {
+                pipedWriter.close();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }).start();
+
+        Session session = em.unwrap(Session.class);
+        session.doWork(connection -> {
+            try {
+                long rowsInserted = new CopyManager((BaseConnection) connection)
+                        .copyIn("COPY dbnotification (id,zone,time,thread,type,trace,eventId,eventType,vertex,sender,originalSender,forkChildren)" +
+                                " FROM STDIN (FORMAT csv)", pipedReader);
+                log.info("{} row(s) imported", rowsInserted);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
+    }
+
+    private static void importCsvsOld(List<Path> csvFiles, EntityManager em) {
+        for (Path csvFile : csvFiles) {
+            log.info("Importing {}", csvFile);
+            importCsvOld(csvFile, em);
+        }
+    }
+
+    private static void importCsvOld(Path csv, EntityManager em) {
         long total;
         try (BufferedReader reader = Files.newBufferedReader(csv)) {
             total = reader.lines().count();
