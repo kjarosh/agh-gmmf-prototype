@@ -184,5 +184,29 @@ public class IntegrationTest extends IntegrationTestBase {
                 .containsExactlyInAnyOrder(
                         c1a.toString(), c1b.toString(), c1c.toString(),
                         c2a.toString(), c2b.toString());
+
+        client.setPermissions(zone, EdgeId.of(c1c, c2a), p1, "testJoinSplit-6");
+        waitForIndex();
+
+        assertThat(effectivePermissions(c1a, c2a)).isEqualTo(p1.toString());
+        assertThat(effectivePermissions(c1a, c2b)).isEqualTo(p3.toString());
+        assertThat(effectivePermissions(c1c, c2b)).isEqualTo(p3.toString());
+        assertThat(effectivePermissions(c1c, c2a)).isEqualTo(p1.toString());
+        assertThat(effectivePermissions(c1c, c2c)).isEqualTo(p4.toString());
+        assertThat(effectivePermissions(c1a, c2c)).isEqualTo(p4.toString());
+
+        client.removeEdge(zone, EdgeId.of(c1c, c2a), "testJoinSplit-7");
+        waitForIndex();
+
+        assertThat(effectivePermissions(c1a, c2a)).isNull();
+        assertThat(effectivePermissions(c1a, c2b)).isNull();
+        assertThat(effectivePermissions(c1c, c2b)).isNull();
+        assertThat(effectivePermissions(c1c, c2a)).isNull();
+
+        assertThat(effectivePermissions(c1a, c1b)).isEqualTo(p1.toString());
+        assertThat(effectivePermissions(c1b, c1c)).isEqualTo(p2.toString());
+
+        assertThat(members(c2c))
+                .containsExactlyInAnyOrder(c2a.toString(), c2b.toString());
     }
 }
