@@ -414,6 +414,8 @@ run_test() {
   # $3 - load
   # $4 - naive (true/false)
 
+  restart_zones
+
   # clear csv and postgres
   clear_instrumentations
   postgres_clear
@@ -433,8 +435,6 @@ run_test() {
   # perform report and write final results to '${merged_csv_name}'
   postgres_report
   my_printf "Postgres: REPORT OBTAINED"
-
-  restart_zones
 }
 
 ####################
