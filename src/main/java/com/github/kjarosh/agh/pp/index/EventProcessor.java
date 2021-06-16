@@ -175,10 +175,10 @@ public class EventProcessor {
         effectiveVertex.recalculatePermissions(edgesToCalculate).thenAccept(result -> {
             if (result == RecalculationResult.DIRTY) {
                 instrumentation.notify(Notification.markedDirty(subjectId, event));
-                log.warn("Marking vertex {} as dirty", subjectId);
+                log.debug("Marking vertex {} as dirty", subjectId);
             } else if (result == RecalculationResult.CLEANED) {
                 instrumentation.notify(Notification.markedClean(subjectId, event));
-                log.info("Marking vertex {} as not dirty", subjectId);
+                log.debug("Marking vertex {} as not dirty", subjectId);
             }
         });
     }
