@@ -22,8 +22,10 @@ public class SimulatorContainer extends GenericContainer<SimulatorContainer> {
                 .withNetworkAliases(zoneId)
                 .withLabel("gmm.zone", zoneId)
                 .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger(zoneId)))
-                .waitingFor(new HttpWaitStrategy().forPath("/healthcheck"))
+                .waitingFor(new HttpWaitStrategy()
+                        .forPort(80)
+                        .forPath("/healthcheck"))
                 .withStartupTimeout(Duration.ofMinutes(5))
-                .withExposedPorts(80);
+                .withExposedPorts(80, 8080);
     }
 }
