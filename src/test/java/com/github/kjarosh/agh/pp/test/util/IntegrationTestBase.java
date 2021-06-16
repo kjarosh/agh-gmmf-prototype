@@ -68,7 +68,7 @@ public abstract class IntegrationTestBase {
 
         afterSetup();
 
-        client.waitForIndex(zone, Duration.ofMinutes(1));
+        waitForIndex();
     }
 
     @AfterAll
@@ -94,5 +94,10 @@ public abstract class IntegrationTestBase {
 
     public EdgeId eid(String from, String to) {
         return new EdgeId(new VertexId(from), new VertexId(to));
+    }
+
+    @SneakyThrows
+    public void waitForIndex() {
+        client.waitForIndex(zone, Duration.ofMinutes(1));
     }
 }

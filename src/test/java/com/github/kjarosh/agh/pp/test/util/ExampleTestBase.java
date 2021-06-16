@@ -4,18 +4,15 @@ import com.github.kjarosh.agh.pp.config.Config;
 import com.github.kjarosh.agh.pp.config.ZoneConfig;
 import lombok.SneakyThrows;
 import org.testcontainers.containers.Network;
+import org.testcontainers.lifecycle.Startables;
 
 import java.util.HashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.stream.Stream;
 
 /**
  * @author Kamil Jarosz
  */
 public abstract class ExampleTestBase extends IntegrationTestBase {
-    private static final ExecutorService executor = Executors.newFixedThreadPool(2);
-
     private SimulatorContainer zone0;
     private SimulatorContainer zone1;
 
@@ -39,10 +36,7 @@ public abstract class ExampleTestBase extends IntegrationTestBase {
                 .withEnv("REDIS", redis)
                 .withNetwork(network);
 
-        Future<?> zone0Future = executor.submit(() -> zone0.start());
-        Future<?> zone1Future = executor.submit(() -> zone1.start());
-        zone0Future.get();
-        zone1Future.get();
+        Startables.deepStart(Stream.of(zone0, zone1)).get();
     }
 
     @SneakyThrows
