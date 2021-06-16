@@ -41,6 +41,10 @@ public interface EffectiveVertex {
         }
     }
 
+    default void removeIntermediateVertex(VertexId id) {
+        removeIntermediateVertex(id, () -> {});
+    }
+
     default void removeIntermediateVertex(VertexId id, Runnable modifyListener) {
         removeIntermediateVertices(Collections.singleton(id), modifyListener);
     }
