@@ -59,7 +59,7 @@ public class Inbox {
     }
 
     @SneakyThrows
-    public void post(VertexId id, Event event, Notification queueNotification) {
+    private void post(VertexId id, Event event, Notification queueNotification) {
         if (!id.owner().equals(Config.ZONE_ID)) {
             Outbox.forZone(id.owner()).postEvent(id, event);
             return;
