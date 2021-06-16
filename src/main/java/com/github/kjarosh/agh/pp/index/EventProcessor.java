@@ -116,7 +116,7 @@ public class EventProcessor {
                     }
                 });
             } else {
-                EffectiveVertex effectiveVertex = index.getOrAddEffectiveParent(subjectId, () -> effectiveParents.add(subjectId));
+                EffectiveVertex effectiveVertex = index.getOrAddEffectiveParent(subjectId);
                 effectiveVertex.addIntermediateVertex(event.getSender(), () -> effectiveParents.add(subjectId));
             }
         }
@@ -152,7 +152,7 @@ public class EventProcessor {
                 };
             } else {
                 job = () -> {
-                    EffectiveVertex effectiveVertex = index.getOrAddEffectiveChild(subjectId, () -> effectiveChildren.add(subjectId));
+                    EffectiveVertex effectiveVertex = index.getOrAddEffectiveChild(subjectId);
                     effectiveVertex.addIntermediateVertex(event.getSender(), () -> effectiveChildren.add(subjectId));
                     recalculatePermissions(event, edgesToCalculate, subjectId, effectiveVertex);
                 };

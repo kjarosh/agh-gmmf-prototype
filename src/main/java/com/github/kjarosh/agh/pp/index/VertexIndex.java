@@ -25,6 +25,10 @@ public interface VertexIndex {
         return getEffectiveParents().keySet();
     }
 
+    default EffectiveVertex getOrAddEffectiveParent(VertexId id) {
+        return getOrAddEffectiveParent(id, () -> {});
+    }
+
     EffectiveVertex getOrAddEffectiveParent(VertexId id, Runnable createListener);
 
     default Optional<EffectiveVertex> getEffectiveParent(VertexId id) {
@@ -33,6 +37,10 @@ public interface VertexIndex {
 
     default void removeEffectiveParent(VertexId subjectId) {
         getEffectiveParents().remove(subjectId);
+    }
+
+    default EffectiveVertex getOrAddEffectiveChild(VertexId id) {
+        return getOrAddEffectiveChild(id, () -> {});
     }
 
     EffectiveVertex getOrAddEffectiveChild(VertexId id, Runnable createListener);
