@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -34,6 +35,8 @@ public class ConcurrentOperationPerformer implements OperationPerformer {
     private final AtomicDouble saturation = new AtomicDouble();
     private final AtomicDouble requestTime = new AtomicDouble();
     private final AtomicInteger failed = new AtomicInteger();
+    private final AtomicInteger succeeded = new AtomicInteger();
+    private final Map<ZoneId, AtomicInteger> succeededByZone = new ConcurrentHashMap<>();
     private final int maxPoolSize;
 
     public ConcurrentOperationPerformer(int maxPoolSize, OperationPerformer delegate) {
@@ -56,6 +59,14 @@ public class ConcurrentOperationPerformer implements OperationPerformer {
 
     public int getFailed() {
         return failed.get();
+    }
+
+    public int getSucceeded() {
+        return succeeded.get();
+    }
+
+    public Map<ZoneId, AtomicInteger> getSucceededByZone() {
+        return succeededByZone;
     }
 
     @Override
@@ -97,10 +108,10 @@ public class ConcurrentOperationPerformer implements OperationPerformer {
     private void submit(ZoneId zone, Runnable op) {
         ThreadPoolExecutor executor = getExecutor(zone);
         if (executor == null) {
-            execute(op);
+            execute(zone, op);
             return;
         }
-        executor.submit(() -> execute(op));
+        executor.submit(() -> execute(zone, op));
         refreshSaturation();
     }
 
@@ -121,10 +132,12 @@ public class ConcurrentOperationPerformer implements OperationPerformer {
         });
     }
 
-    private void execute(Runnable op) {
+    private void execute(ZoneId zone, Runnable op) {
         long time = System.nanoTime();
         try {
             op.run();
+            succeeded.incrementAndGet();
+            succeededByZone.computeIfAbsent(zone, i -> new AtomicInteger(0)).incrementAndGet();
         } catch (Exception e) {
             log.debug("Error while issuing an operation", e);
             failed.incrementAndGet();

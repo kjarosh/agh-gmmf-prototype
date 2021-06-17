@@ -29,6 +29,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
@@ -95,8 +96,11 @@ public class ConstantLoadClientMain {
             throw new RuntimeException("-b and -r defined simultaneously");
         } else if (requestsPerSecond != -1) {
             bulkSize = operationsPerSecond / requestsPerSecond;
+            log.info("Running {} requests per second", requestsPerSecond);
+            log.info("For {} operations per second it gives bulk size = {}", operationsPerSecond, bulkSize);
         } else if (bulkSize == -1) {
             bulkSize = 1;
+            log.info("Bulk size is {}", bulkSize);
         }
         maxPoolSize = Integer.parseInt(cmd.getOptionValue("t", "0"));
         graph = GraphLoader.loadGraph(cmd.getOptionValue("g"));
@@ -131,8 +135,10 @@ public class ConstantLoadClientMain {
         if (cmd.hasOption("s")) {
             String sequenceFile = cmd.getOptionValue("s");
             InputStream is = Files.newInputStream(Paths.get(sequenceFile));
+            log.info("Reading requests from {}", sequenceFile);
             operationIssuer = new SequenceOperationIssuer(is);
         } else {
+            log.info("Generating requests on the fly");
             operationIssuer = new RandomOperationIssuer(graph)
                     .withPermissionsProbability(permsProbability);
         }
@@ -172,19 +178,32 @@ public class ConstantLoadClientMain {
             }
 
             Instant now = Instant.now();
+            double iterationTimeInSec = (double) Duration.ofSeconds(1).toMillis() / Duration.between(last, now).toMillis();
+            last = now;
 
             EventStats stats = eventStatsGatherer.get();
             int currentCount = count.getAndSet(0);
             total += currentCount;
-            double gps = (double) currentCount / Duration.between(last, now).toMillis() * Duration.ofSeconds(1).toMillis();
-            last = now;
-            log.info("{}  (gps={}, err={}, tot={}, sat={}, rt={})",
+            double gps = currentCount * iterationTimeInSec;
+
+            Map<ZoneId, AtomicInteger> succeededByZone = baseOperationIssuer.getSucceededByZone();
+            StringBuilder succeededByZoneString = new StringBuilder();
+            succeededByZone.entrySet()
+                    .stream()
+                    .sorted(Map.Entry.comparingByKey())
+                    .forEach(e -> {
+                        succeededByZoneString.append(e.getValue().get());
+                        succeededByZoneString.append(",");
+                    });
+            log.info("{}  (gps={}, succ={}, err={}, tot={}, sat={}, rt={})  per zone: {}",
                     stats.toString(),
                     fd(gps),
+                    baseOperationIssuer.getSucceeded(),
                     errored.get() + baseOperationIssuer.getFailed(),
                     total,
                     fd(baseOperationIssuer.getSaturation()),
-                    fd(baseOperationIssuer.getRequestTime()));
+                    fd(baseOperationIssuer.getRequestTime()),
+                    succeededByZoneString);
         }
 
         log.info("Shutting down gracefully...");

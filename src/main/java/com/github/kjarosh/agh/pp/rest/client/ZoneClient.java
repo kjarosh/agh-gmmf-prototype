@@ -18,6 +18,7 @@ import com.github.kjarosh.agh.pp.rest.dto.LoadSimulationRequestDto;
 import com.github.kjarosh.agh.pp.rest.dto.MembersResponseDto;
 import com.github.kjarosh.agh.pp.rest.dto.ReachesResponseDto;
 import com.github.kjarosh.agh.pp.util.StringList;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -34,6 +35,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * @author Kamil Jarosz
  */
+@Slf4j
 public class ZoneClient implements OperationPerformer {
     private static final RestTemplate restTemplate = new RestTemplate();
 
@@ -248,10 +250,15 @@ public class ZoneClient implements OperationPerformer {
                 .path("events/stats")
                 .build()
                 .toUriString();
-        ResponseEntity<EventStats> response = restTemplate.getForEntity(url, EventStats.class);
-        checkResponse(response);
+        try {
+            ResponseEntity<EventStats> response = restTemplate.getForEntity(url, EventStats.class);
+            checkResponse(response);
 
-        return response.getBody();
+            return response.getBody();
+        } catch (RestClientException e) {
+            log.debug("Failed to receive event stats: {}", e.getMessage());
+            return EventStats.empty();
+        }
     }
 
     public DependentZonesDto getDependentZones(ZoneId zone) {
