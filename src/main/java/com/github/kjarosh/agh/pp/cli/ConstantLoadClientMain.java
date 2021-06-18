@@ -149,7 +149,7 @@ public class ConstantLoadClientMain {
         if (durationSeconds > 0) {
             durationSuffix = " for " + durationSeconds + " seconds";
         }
-        log.info("Running constant load: {} requests per second{}", operationsPerSecond, durationSuffix);
+        log.info("Running constant load: {} operations per second{}", operationsPerSecond, durationSuffix);
         runRandomOperations();
     }
 

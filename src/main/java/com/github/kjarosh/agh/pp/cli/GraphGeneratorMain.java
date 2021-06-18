@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 
 /**
  * @author Kamil Jarosz
@@ -70,6 +71,6 @@ public class GraphGeneratorMain {
         Graph graph = g.generateGraph();
         log.info("Number of vertices: " + graph.allVertices().size());
         log.info("Number of edges: " + graph.allEdges().size());
-        graph.serialize(Files.newOutputStream(Paths.get(cmd.getOptionValue("o"))));
+        graph.serialize(Files.newOutputStream(Paths.get(cmd.getOptionValue("o")), StandardOpenOption.CREATE_NEW));
     }
 }
