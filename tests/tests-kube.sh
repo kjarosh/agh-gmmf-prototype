@@ -363,6 +363,52 @@ calculate_avg_report() {
   echo "$result" >> "${path_to_merged_csv}"
 }
 
+time_to_seconds() {
+  awk -F: '{ print ($1 * 3600) + ($2 * 60) + $3 }'
+}
+
+gather_dat() {
+  results_dat="${path_for_test}/results.dat"
+  printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
+    "load" \
+    "queued" \
+    "throughput" \
+    "queued_events" \
+    "events" \
+    "op_duration_avg" \
+    "op_duration_max" \
+    "event_duration_avg" \
+    "event_duration_max" \
+    "event_queue_wait_avg" \
+    "event_queue_wait_max" > "$results_dat"
+
+  for load in $(find "${path_for_graph}" -maxdepth 1 -mindepth 1 -type d -printf "%f\n" | sort -h); do
+    report="${path_for_graph}/$load/1/report.txt"
+    queued=$(sed -n -e 17p "$report" | cut -d':' -f6)
+    throughput=$(sed -n -e 16p "$report" | cut -d':' -f6)
+    queued_events=$(sed -n -e 23p "$report" | cut -d':' -f6)
+    events=$(sed -n -e 22p "$report" | cut -d':' -f6)
+    op_duration_avg=$(sed -n -e 26p "$report" | cut -c 36- | time_to_seconds)
+    op_duration_max=$(sed -n -e 27p "$report" | cut -c 36- | time_to_seconds)
+    event_duration_avg=$(sed -n -e 34p "$report" | cut -c 36- | time_to_seconds)
+    event_duration_max=$(sed -n -e 35p "$report" | cut -c 36- | time_to_seconds)
+    event_queue_wait_avg=$(sed -n -e 30p "$report" | cut -c 36- | time_to_seconds)
+    event_queue_wait_max=$(sed -n -e 31p "$report" | cut -c 36- | time_to_seconds)
+    printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
+      "$load" \
+      "$queued" \
+      "$throughput" \
+      "$queued_events" \
+      "$events" \
+      "$op_duration_avg" \
+      "$op_duration_max" \
+      "$event_duration_avg" \
+      "$event_duration_max" \
+      "$event_queue_wait_avg" \
+      "$event_queue_wait_max" >> "$results_dat"
+  done
+}
+
 # CONSTANT LOAD
 
 load_graph() {
@@ -443,6 +489,9 @@ run_test() {
   # perform report and write final results to '${merged_csv_name}'
   postgres_report
   my_printf "Postgres: REPORT OBTAINED"
+
+  gather_dat
+  my_printf "Report generated"
 }
 
 ####################
