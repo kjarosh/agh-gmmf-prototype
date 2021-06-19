@@ -350,6 +350,16 @@ do \$\$ begin
     (select (min(time) + interval '$((WARMUP_TIME + TEST_TIME)) second') from dbnotification));
 end \$\$
 PSQL
+  database /dev/stdin <<PSQL > "${path_for_repetition}/time_plot_5sec.txt" 2>&1
+do $$ declare
+	t timestamp;
+	u timestamp;
+begin
+	t := (select min(time) from dbnotification);
+	u := (select max(time) from dbnotification);
+	perform time_plot(t, u, interval '5 seconds');
+end $$
+PSQL
 }
 
 postgres_import() {
