@@ -351,14 +351,14 @@ do \$\$ begin
 end \$\$
 PSQL
   database /dev/stdin <<PSQL > "${path_for_repetition}/time_plot_5sec.txt" 2>&1
-do $$ declare
+do \$\$ declare
 	t timestamp;
 	u timestamp;
 begin
 	t := (select min(time) from dbnotification);
 	u := (select max(time) from dbnotification);
 	perform time_plot(t, u, interval '5 seconds');
-end $$
+end \$\$
 PSQL
 }
 
