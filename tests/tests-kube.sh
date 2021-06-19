@@ -447,7 +447,7 @@ constant_load() {
   kubectl exec "${EXECUTOR}" -- bash \
           -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain \
                 -r 5 -g ${graph_name} -s ${queries_name} -n ${3} \
-                -d $((WARMUP_TIME + TEST_TIME)) -t 10 ${additional_opts}"
+                -d $((WARMUP_TIME + TEST_TIME + 5)) -t 10 ${additional_opts}"
 
   # restore previous redis state
   for ((i = 0; i < COUNT_ZONES; i++)); do
