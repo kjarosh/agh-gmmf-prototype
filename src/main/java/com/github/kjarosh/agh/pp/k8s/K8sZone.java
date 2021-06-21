@@ -76,6 +76,10 @@ public class K8sZone {
         nodeMap.put(12, "k8s-one-node-12");
         nodeMap.put(13, "k8s-one-node-14");
         nodeMap.put(14, "k8s-one-node-15");
+        nodeMap.put(15, "k8s-one-node-performance-1");
+        nodeMap.put(16, "k8s-one-node-performance-2");
+        nodeMap.put(17, "k8s-one-node-performance-3");
+        nodeMap.put(18, "k8s-one-node-performance-4");
         int nodeNumber = Integer.parseInt(zoneId.replaceAll("zone", ""));
 
         if (!nodeMap.containsKey(nodeNumber)) {
