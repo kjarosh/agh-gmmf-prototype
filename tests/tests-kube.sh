@@ -588,12 +588,14 @@ for interzone_arg in ${inter_zone_levels[*]}; do
   done
 done
 
-tar -czvf results.tar.gz "${path_for_test}"
+tester_pod=$(kubectl get pods | grep gmm-tester | awk '{ print $1 }')
 mkdir -p /download-results
-mv results.tar.gz /download-results
+tar -czvf /download-results/results.tar.gz "${path_for_test}"
+find "${path_for_test}" -name "merged.csv" -o -name "*.png" -o -name "*.txt" | tar -czvf /download-results/results-small.tar.gz -T -
+md5sum /download-results/*
 echo "Tar generated. Copy with:"
-echo "kubectl -n ${kubernetes_user_name} cp $(kubectl get pods | grep gmm-tester | awk '{ print $1 }'):download-results/results.tar.gz results.tar.gz"
-echo "devspace sync --namespace=${kubernetes_user_name} --pod=$(kubectl get pods | grep gmm-tester | awk '{ print $1 }') --container-path=download-results --download-only --no-watch"
+echo "kubectl -n ${kubernetes_user_name} cp $tester_pod:download-results/results.tar.gz results.tar.gz"
+echo "devspace sync --namespace=${kubernetes_user_name} --pod=$tester_pod --container-path=download-results --download-only --no-watch"
 
 echo "Tests finished!"
 
