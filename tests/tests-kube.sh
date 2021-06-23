@@ -339,7 +339,9 @@ database() {
 }
 
 postgres_clear() {
-  database ${sql_py_scripts}/truncate.sql
+  database /dev/stdin <<PSQL
+  delete from dbnotification;
+PSQL
 }
 
 postgres_report() {
@@ -509,9 +511,9 @@ run_test() {
 ####################
 service postgresql start
 runuser -l postgres -c 'cd / && createuser --superuser root && createdb root'
-service postgresql restart >> logs.txt
-psql -f ${sql_py_scripts}/set_postgres_passwd.sql >> logs.txt 
-service postgresql restart >> logs.txt
+service postgresql restart
+psql -f ${sql_py_scripts}/set_postgres_passwd.sql
+service postgresql restart
 
 # read config file
 parse_config
