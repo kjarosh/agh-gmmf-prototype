@@ -1,9 +1,9 @@
 package com.github.kjarosh.agh.pp.rest.dto;
 
-import com.github.kjarosh.agh.pp.graph.model.Vertex;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -44,7 +44,7 @@ class EdgeCreationRequestDtoTest {
     }
 
     @Test
-    void serializeDeserialize() throws JsonProcessingException {
+    void serializeDeserialize() throws IOException {
         EdgeCreationRequestDto dto = EdgeCreationRequestDto.builder()
                 .fromName("f")
                 .toName("t")

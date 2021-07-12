@@ -1,9 +1,9 @@
 package com.github.kjarosh.agh.pp.rest.dto;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.testcontainers.shaded.com.fasterxml.jackson.core.JsonProcessingException;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class BulkVertexCreationRequestDtoTest {
     @Test
-    void serializeDeserialize() throws JsonProcessingException {
+    void serializeDeserialize() throws IOException {
         List<VertexCreationRequestDto> vertices = Arrays.asList(
                 VertexCreationRequestDto.fromString("SPACE/a"),
                 VertexCreationRequestDto.fromString("USER/b"));
