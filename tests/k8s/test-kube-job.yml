@@ -10,11 +10,16 @@ spec:
         - name: gmm-tests-pv-storage
           persistentVolumeClaim:
             claimName: gmm-tests-pv-claim
+        - name: gmm-tests-config
+          configMap:
+            name: gmm-tests-config
       containers:
         - name: test
           image: kjarosh/ms-graph-simulator-tester:latest
           volumeMounts:
             - mountPath: "tests--artifacts-and-results/kubernetes"
               name: gmm-tests-pv-storage
+            - name: gmm-tests-config
+              mountPath: /configs
           imagePullPolicy: Always
       restartPolicy: Never
