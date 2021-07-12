@@ -18,14 +18,12 @@ path_to_kubernetes_config="$HOME/.kube/student-k8s-cyf.yaml"
 kubernetes_user_name=$(kubectl config view --minify | grep namespace: | cut -d':' -f2)
 
 # constant paths
-sql_py_scripts="sql-and-python"
 results_root="results"
 
 mkdir -p ${results_root}
 
 # file names
-test_config_path=${1:-'test-config.conf'}
-echo "Config is:" "$test_config_path"
+test_config_path=${1:-'configs/test-config.conf'}
 merged_csv_name="merged.csv"
 graph_name="graph.json"
 queries_name="queries.json"
@@ -82,22 +80,11 @@ my_printf() {
 }
 
 parse_config() {
+  echo "Config:"
+  echo "========== $test_config_path"
+  cat "${test_config_path}"
+  echo "=========="
   source "${test_config_path}"
-}
-
-sync_pod_dir() {
-  local pod=$1
-  local remote_path=$2
-  local local_path=$3
-  local opts=$4
-
-  devspace sync --pod="${pod}" \
-    --namespace="${kubernetes_user_name}" \
-    --container-path="${remote_path}" \
-    --local-path="${local_path}" \
-    --no-watch \
-    --verbose \
-    ${opts}
 }
 
 # ZONES ON KUBERNETES
@@ -181,7 +168,7 @@ mkdir_for_whole_test() {
   path_to_plot="${path_for_test}/${plot_name}"
 
   # copy config
-  cp "${test_config_path}" "${path_for_test}/test-config.txt"
+  cp "${test_config_path}" "${path_for_test}/test-config.conf"
 
   # create merged_csv file
   touch "${path_to_merged_csv}"
@@ -368,13 +355,6 @@ postgres_import() {
   ./run-main.sh com.github.kjarosh.agh.pp.cli.PostgresImportMain ${path_for_repetition}
 }
 
-calculate_avg_report() {
-  # $1 = folder z wynikami testu
-  echo "TODO"
-  result=$(python3 sql-and-python/calculate_avg_report.py $1)
-  echo "$result" >> "${path_to_merged_csv}"
-}
-
 time_to_seconds() {
   awk -F: '{ print ($1 * 3600) + ($2 * 60) + $3 }'
 }
@@ -512,7 +492,7 @@ run_test() {
 service postgresql start
 runuser -l postgres -c 'cd / && createuser --superuser root && createdb root'
 service postgresql restart
-psql -f ${sql_py_scripts}/set_postgres_passwd.sql
+psql -f sql/set_postgres_passwd.sql
 service postgresql restart
 
 # read config file
@@ -573,27 +553,14 @@ for interzone_arg in ${inter_zone_levels[*]}; do
         mkdir_for_repetition "${i}"
         run_test "${graph_name}" "${queries_name}" "${load}" ${naive}
       done
-
-      # TODO calculate average report
-      #...
-
-      # TODO get value from average report to merged csv
-      #grep 'Operations per second' "${path_to_average_report}" | cut -d':' -f6 | tr -d ' ' | head -n 1 >> "${path_to_merged_csv}"
-      # echo "1" >> "${path_to_merged_csv}"
-
-      calculate_avg_report "${path_for_load}" || true
     done
-
-    # create plot from merged.csv
-    python3 -W ignore "${sql_py_scripts}/plot.py" "${path_to_merged_csv}" "${path_to_plot}" || true
-
   done
 done
 
 tester_pod=$(kubectl get pods | grep gmm-tester | awk '{ print $1 }')
 mkdir -p /download-results
 tar -czvf /download-results/results.tar.gz "${path_for_test}"
-find "${path_for_test}" -name "merged.csv" -o -name "*.png" -o -name "*.txt" | tar -czvf /download-results/results-small.tar.gz -T -
+find "${path_for_test}" -size -4096c | tar -czvf /download-results/results-small.tar.gz -T -
 md5sum /download-results/*
 echo "Tar generated. Copy with:"
 echo "kubectl -n ${kubernetes_user_name} cp $tester_pod:download-results/results.tar.gz results.tar.gz"

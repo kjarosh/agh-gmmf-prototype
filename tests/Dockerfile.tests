@@ -4,21 +4,11 @@ RUN curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packa
     echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list && \
     apt-get update && \
     apt-get install -y python3 python3-pip postgresql kubectl tree && \
-    apt-get clean
+    apt-get clean && \
+    pip3 install numpy matplotlib
 
-RUN curl -s -L "https://github.com/loft-sh/devspace/releases/latest" | \
-      sed -nE 's!.*"([^"]*devspace-linux-amd64)".*!https://github.com\1!p' | \
-      xargs -n 1 curl -L -o devspace && \
-    chmod +x devspace && \
-    install devspace /usr/local/bin
-
-RUN pip3 install numpy matplotlib
-
-COPY target/agh-pp-simulator-*.jar app.jar
 COPY docker/run-main.sh run-main.sh
-COPY tests/tests-kube.sh tests-kube.sh
-COPY tests/sql-and-python/ sql-and-python/
-COPY tests/configs/* /
-
+COPY target/agh-pp-simulator-*.jar app.jar
+COPY tests/docker/ /
 
 ENTRYPOINT ["./tests-kube.sh"]
