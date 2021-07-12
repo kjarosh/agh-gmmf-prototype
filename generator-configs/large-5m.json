@@ -1,9 +1,0 @@
-{
-  "providers": 12,
-  "spaces": 40,
-  "zones": 3,
-  "providersPerSpace": "normal(4, 3)",
-  "groupsPerGroup": "normal(4, 2)",
-  "usersPerGroup": "normal(30, 15)",
-  "treeDepth": "normal(6, 1)"
-}
