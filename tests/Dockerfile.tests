@@ -1,4 +1,5 @@
 FROM openjdk:11
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg && \
     echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list && \
@@ -7,8 +8,8 @@ RUN curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packa
     apt-get clean && \
     pip3 install numpy matplotlib
 
-COPY docker/run-main.sh run-main.sh
-COPY target/agh-pp-simulator-*.jar app.jar
+COPY zone-simulator/docker/run-main.sh run-main.sh
+COPY zone-simulator/target/zone-simulator-*.jar app.jar
 COPY tests/docker/ /
 
 ENTRYPOINT ["./tests-kube.sh"]
