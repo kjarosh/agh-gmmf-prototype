@@ -1,0 +1,12 @@
+resources:
+  - pv-claim.yml
+  - pv-volume.yml
+  - job-test-kube.yml
+configMapGenerator:
+  - name: gmm-tests-config
+    files:
+      - config/test-config.conf
+  - name: gmm-tests-init
+    files:
+      - config/graph.json
+      - config/queries.json.gz
