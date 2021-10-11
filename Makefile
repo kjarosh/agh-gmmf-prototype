@@ -3,7 +3,7 @@ _all: docker
 
 docker:
 	docker build zone-simulator -t kjarosh/agh-gmmf-prototype:latest
-	docker build . -f tests/Dockerfile.tests -t kjarosh/agh-gmmf-prototype-tester:latest
+	docker build . -f tests-k8s/Dockerfile.tests -t kjarosh/agh-gmmf-prototype-tester:latest
 
 push: docker
 	docker push kjarosh/agh-gmmf-prototype:latest

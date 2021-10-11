@@ -10,6 +10,6 @@ RUN curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packa
 
 COPY zone-simulator/docker/run-main.sh run-main.sh
 COPY zone-simulator/target/zone-simulator-*.jar app.jar
-COPY tests/docker/ /
+COPY tests-k8s/docker/ /
 
 ENTRYPOINT ["./tests-kube.sh"]
