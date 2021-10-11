@@ -311,7 +311,7 @@ public class GatherResultsMain {
     @SneakyThrows
     private static void runSaved() {
         log.info("Starting containers from the saved state");
-        executeOnAllZones("cd /home/ubuntu/kjarosz && ./run.sh kjarosh/ms-graph-simulator:saved false");
+        executeOnAllZones("cd /home/ubuntu/kjarosz && ./run.sh kjarosh/agh-gmmf-prototype:saved false");
         int secsWait = 10;
         log.info("Containers are up and running, waiting " + secsWait + " seconds for application startup");
         Thread.sleep(secsWait * 1000);

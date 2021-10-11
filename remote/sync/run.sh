@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-image=${1:-kjarosh/ms-graph-simulator:latest}
+image=${1:-kjarosh/agh-gmmf-prototype:latest}
 pull=${2:-true}
 
 zone_id=$(./zone_id.sh)

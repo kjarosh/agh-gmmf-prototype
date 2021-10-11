@@ -30,7 +30,7 @@ import java.util.Optional;
  * @author Kamil Jarosz
  */
 public class K8sZone {
-    public static final String DEFAULT_IMAGE = "kjarosh/ms-graph-simulator";
+    public static final String DEFAULT_IMAGE = "kjarosh/agh-gmmf-prototype";
 
     private static final AppsV1Api appsApi = new AppsV1Api();
     private static final CoreV1Api coreApi = new CoreV1Api();

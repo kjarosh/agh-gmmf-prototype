@@ -1,7 +1,7 @@
 version: '3'
 services:
   zone0:
-    image: kjarosh/ms-graph-simulator:latest
+    image: kjarosh/agh-gmmf-prototype:latest
     command: server
     environment:
       ZONE_ID: zone0
@@ -13,7 +13,7 @@ services:
       - 9010:9010
 
   zone1:
-    image: kjarosh/ms-graph-simulator:latest
+    image: kjarosh/agh-gmmf-prototype:latest
     command: server
     environment:
       ZONE_ID: zone1
@@ -25,7 +25,7 @@ services:
       - 9011:9010
 
   zone2:
-    image: kjarosh/ms-graph-simulator:latest
+    image: kjarosh/agh-gmmf-prototype:latest
     command: server
     environment:
       ZONE_ID: zone2
@@ -37,7 +37,7 @@ services:
       - 9012:9010
 
   client:
-    image: kjarosh/ms-graph-simulator:latest
+    image: kjarosh/agh-gmmf-prototype:latest
     command: client
     stdin_open: true
     tty: true

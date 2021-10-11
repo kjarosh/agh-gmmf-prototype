@@ -55,7 +55,7 @@ public class K8sConstantLoadClient {
     private V1Container buildContainer() {
         return new V1ContainerBuilder()
                 .withName("constant-load-client")
-                .withImage("kjarosh/ms-graph-simulator")
+                .withImage("kjarosh/agh-gmmf-prototype")
                 .withCommand("/run-main.sh", "com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain")
                 .withArgs("-g", "/graph/graph.json")
                 .addToArgs(constantLoadOpts.split("\\s+"))

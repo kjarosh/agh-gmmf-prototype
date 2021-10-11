@@ -12,5 +12,5 @@ else
   exit 1
 fi
 
-docker commit "${container_name}" kjarosh/ms-graph-simulator:saved
+docker commit "${container_name}" kjarosh/agh-gmmf-prototype:saved
 docker start "${container_name}"

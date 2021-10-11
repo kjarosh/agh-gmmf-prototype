@@ -2,11 +2,11 @@
 _all: docker
 
 docker:
-	docker build zone-simulator -t kjarosh/ms-graph-simulator:latest
-	docker build . -f tests/Dockerfile.tests -t kjarosh/ms-graph-simulator-tester:latest
+	docker build zone-simulator -t kjarosh/agh-gmmf-prototype:latest
+	docker build . -f tests/Dockerfile.tests -t kjarosh/agh-gmmf-prototype-tester:latest
 
 push: docker
-	docker push kjarosh/ms-graph-simulator:latest
-	docker push kjarosh/ms-graph-simulator-tester:latest
+	docker push kjarosh/agh-gmmf-prototype:latest
+	docker push kjarosh/agh-gmmf-prototype-tester:latest
 
 .PHONY: _all docker push
