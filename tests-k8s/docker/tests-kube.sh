@@ -14,8 +14,8 @@ trap 'failure ${LINENO} "$BASH_COMMAND"' ERR
 ####################
 
 # kubernetes
-path_to_kubernetes_config="$HOME/.kube/student-k8s-cyf.yaml"
-kubernetes_user_name=$(kubectl config view --minify | grep namespace: | cut -d':' -f2)
+KUBECONFIG="kubeconfig.yaml"
+k8s_namespace=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
 
 # constant paths
 results_root="results"
@@ -52,7 +52,6 @@ path_to_queries=""
 # pods
 COUNT_ZONES=0
 ZONES=()
-EXECUTOR=""
 
 WARMUP_TIME=0
 TEST_TIME=0
@@ -79,6 +78,31 @@ my_printf() {
   printf "[tests-kube] %s\n" "$1"
 }
 
+init_kubeconfig() {
+  cat <<CONFIG > "${KUBECONFIG}"
+apiVersion: v1
+clusters:
+- cluster:
+    insecure-skip-tls-verify: true
+    server: https://nsdev.onedata.uk.to:6443
+  name: k8s-cyfronet-1
+contexts:
+- context:
+    cluster: k8s-cyfronet-1
+    namespace: ${k8s_namespace}
+    user: k8s-cyfronet-1-user
+  name: student-k8s-cyf.yaml
+current-context: student-k8s-cyf.yaml
+kind: Config
+preferences:
+  colors: true
+users:
+- name: k8s-cyfronet-1-user
+  user:
+    token: student#student@gmail.com
+CONFIG
+}
+
 parse_config() {
   echo "Config:"
   echo "========== $test_config_path"
@@ -90,11 +114,11 @@ parse_config() {
 # ZONES ON KUBERNETES
 
 create_zones() {
-  total_zones=$((COUNT_ZONES + 1))
   ./run-main.sh com.github.kjarosh.agh.pp.cli.KubernetesClient \
-    -z ${total_zones} \
-    -c ${path_to_kubernetes_config} \
-    -n ${kubernetes_user_name}
+    -z ${COUNT_ZONES} \
+    -c ${KUBECONFIG} \
+    -n ${k8s_namespace} \
+    -i ${ZONE_IMAGE}
 
   # local variables
   local incomings=1
@@ -103,7 +127,7 @@ create_zones() {
   local runnings=0
 
   # loop
-  while [[ ${incomings} -gt 0 || ${runnings} -ne ${total_zones} ]]; do
+  while [[ ${incomings} -gt 0 || ${runnings} -ne ${COUNT_ZONES} ]]; do
     # sleep
     sleep 5
 
@@ -112,33 +136,26 @@ create_zones() {
     creatings="$(kubectl get pod | grep -w ContainerCreating | wc -l)"
     incomings="$((pendings+creatings))"
 
-    # check number of pods that are running now
+    # check number of pods that are running now (excluding gmm-tester job's pod)
     runnings="$(kubectl get pod | grep -w Running | wc -l)"
+    runnings="$((runnings-1))"
   done
 }
 
 load_zones() {
   ZONES=()
-#  for ((i = 0; i < COUNT_ZONES; i++)); do
-#    ZONES+=("$(kubectl get pod --field-selector=status.phase=Running -l "zone=zone${i}" -o name | sed 's/.*\///')")
-#  done
-#
-#  EXECUTOR="$(kubectl get pod --field-selector=status.phase=Running -l "zone=zone${COUNT_ZONES}" -o name | sed 's/.*\///')"
 
   for ((i = 0; i < COUNT_ZONES; i++)); do
-    newZone="$(kubectl get pod -l "zone=zone${i}" -n "$kubernetes_user_name" | grep -w Running | awk '{print $1;}')"
+    newZone="$(kubectl get pod -l "zone=zone${i}" -n "$k8s_namespace" | grep -w Running | awk '{print $1;}')"
     my_printf "zone-${i} = ${newZone}"
     ZONES+=("${newZone}")
   done
-
-  EXECUTOR="$(kubectl get pod -l "zone=zone${COUNT_ZONES}" -n "$kubernetes_user_name" | grep -w Running | awk '{print $1;}')"
-  my_printf "executor = ${EXECUTOR}"
 }
 
 restart_zone() {
   my_printf "Restarting $1"
-  kubectl -n "$kubernetes_user_name" rollout restart deployment "$1"
-  kubectl -n "$kubernetes_user_name" rollout status deployment "$1"
+  kubectl -n "$k8s_namespace" rollout restart deployment "$1"
+  kubectl -n "$k8s_namespace" rollout status deployment "$1"
   my_printf "Restarted $1"
 }
 
@@ -406,15 +423,10 @@ gather_dat() {
 load_graph() {
   clear_redises
   restart_zones
-  kubectl cp "${path_to_graph}" "${EXECUTOR}:${graph_name}"
-  kubectl cp "${path_to_queries}" "${EXECUTOR}:${queries_name}"
 
-  kubectl exec "${EXECUTOR}" -- bash \
-            -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -l -r 5 -g ${graph_name} -n 100 --no-load"
-
+  ./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -l -r 5 -g "${path_to_graph}" -n 100 --no-load
 
   # make sure there is a backup
-
   for ((i = 0; i < COUNT_ZONES; i++)); do
     (
       kubectl exec "${ZONES[i]}" -- redis-cli save
@@ -426,20 +438,17 @@ load_graph() {
 }
 
 constant_load() {
-  # $1 - graph
-  # $2 - queries
-  # $3 - load
-  # $4 - naive
+  # $1 - load
+  # $2 - naive
 
   local additional_opts=""
-  if [[ "${4}" = true ]] ; then
+  if [[ "${2}" = true ]] ; then
     additional_opts="--disable-indexation"
   fi
 
-  kubectl exec "${EXECUTOR}" -- bash \
-          -c "./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain \
-                -r 5 -g ${graph_name} -s ${queries_name} -n ${3} \
-                -d $((WARMUP_TIME + TEST_TIME + 5)) -t 10 ${additional_opts}"
+  ./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain \
+                  -r 5 -g ${path_to_graph} -s ${path_to_queries} -n "${1}" \
+                  -d $((WARMUP_TIME + TEST_TIME + 5)) -t 10 ${additional_opts}
 
   # restore previous redis state
   for ((i = 0; i < COUNT_ZONES; i++)); do
@@ -455,10 +464,8 @@ constant_load() {
 ######################
 
 run_test() {
-  # $1 - graph
-  # $2 - queries
-  # $3 - load
-  # $4 - naive (true/false)
+  # $1 - load
+  # $2 - naive (true/false)
 
   restart_zones
 
@@ -468,7 +475,7 @@ run_test() {
   my_printf "Postgres: CLEARED"
 
   # perform test
-  constant_load "${1}" "${2}" "${3}" "${4}"
+  constant_load "${1}" "${2}"
 
   # wait a bit for instrumentation
   sleep 5
@@ -489,6 +496,8 @@ run_test() {
 ####################
 # SCRIPT EXECUTION #
 ####################
+init_kubeconfig
+
 service postgresql start
 runuser -l postgres -c 'cd / && createuser --superuser root && createdb root'
 service postgresql restart
@@ -497,16 +506,16 @@ service postgresql restart
 
 # read config file
 parse_config
-echo "Config read"
+my_printf "Config read"
 
 # create pods and obtain references to them
-# create_zones
+create_zones
 load_zones
-echo "Zones loaded"
+my_printf "Zones loaded"
 
 ## initialize new directory for test's results, including merged_csv file
 mkdir_for_whole_test
-echo "Directory structure created"
+my_printf "Directory structure created"
 
 # for each interzone..
 for interzone_arg in ${inter_zone_levels[*]}; do
@@ -551,20 +560,26 @@ for interzone_arg in ${inter_zone_levels[*]}; do
       # repeat test
       for i in $(seq 1 $REPETITIONS); do
         mkdir_for_repetition "${i}"
-        run_test "${graph_name}" "${queries_name}" "${load}" ${naive}
+        run_test "${load}" ${naive}
       done
     done
   done
 done
 
-tester_pod=$(kubectl get pods | grep gmm-tester | awk '{ print $1 }')
+### delete zones
+for ((i = 0; i < COUNT_ZONES; i++)); do
+  kubectl delete deployment zone${i}
+done
+
+### prepare results to be downloaded
+tester_pod=$(kubectl get pod | grep '^gmm-tester-[a-z0-9]* *1/1 *Running' | awk '{print $1;}')
 mkdir -p /download-results
 tar -czvf /download-results/results.tar.gz "${path_for_test}"
 find "${path_for_test}" -size -4096c | tar -czvf /download-results/results-small.tar.gz -T -
 md5sum /download-results/*
 echo "Tar generated. Copy with:"
-echo "kubectl -n ${kubernetes_user_name} cp $tester_pod:download-results/results.tar.gz results.tar.gz"
-echo "devspace sync --namespace=${kubernetes_user_name} --pod=$tester_pod --container-path=download-results --download-only --no-watch"
+echo "kubectl -n ${k8s_namespace} cp $tester_pod:download-results/results.tar.gz results.tar.gz"
+echo "devspace sync --namespace=${k8s_namespace} --pod=$tester_pod --container-path=download-results --download-only --no-watch"
 
 echo "Tests finished!"
 

@@ -20,7 +20,7 @@ spec:
         - name: test
           image: kjarosh/agh-gmmf-prototype-tester:latest
           volumeMounts:
-            - mountPath: "tests--artifacts-and-results/kubernetes"
+            - mountPath: /results
               name: gmm-tests-pv-storage
             - name: gmm-tests-config
               mountPath: /configs
