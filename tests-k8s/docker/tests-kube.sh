@@ -36,18 +36,18 @@ avg_report_name="avg-report.txt"
 ####################
 
 # paths (yet to be determined) to navigate over results
-path_for_test=""
-path_for_graph=""
-path_for_load=""
-path_for_repetition=""
+test_dir_path=""
+graph_dir_path=""
+load_dir_path=""
+repetition_dir_path=""
 
-path_to_merged_csv=""
-path_to_plot=""
-path_to_report=""
-path_to_average_report=""
+merged_csv_path=""
+plot_path=""
+report_path=""
+avg_report_path=""
 
-path_to_graph=""
-path_to_queries=""
+graph_file_path=""
+queries_file_path=""
 
 # pods
 COUNT_ZONES=0
@@ -61,7 +61,7 @@ REPETITIONS=0
 # Graphs and loads #
 ####################
 
-# interzone levels
+# inter-zone levels
 inter_zone_levels=()
 
 # nodes per zone
@@ -177,62 +177,62 @@ restart_zones() {
 mkdir_for_whole_test() {
   # create new directory
   timestamp=$(date +"D%Y-%m-%dT%T" | tr : -)
-  path_for_test="${results_root}/test--${timestamp}"
-  mkdir "${path_for_test}"
+  test_dir_path="${results_root}/test--${timestamp}"
+  mkdir "${test_dir_path}"
 
   # prepare paths
-  path_to_merged_csv="${path_for_test}/${merged_csv_name}"
-  path_to_plot="${path_for_test}/${plot_name}"
+  merged_csv_path="${test_dir_path}/${merged_csv_name}"
+  plot_path="${test_dir_path}/${plot_name}"
 
   # copy config
-  cp "${test_config_path}" "${path_for_test}/test-config.conf"
+  cp "${test_config_path}" "${test_dir_path}/test-config.conf"
 
   # create merged_csv file
-  touch "${path_to_merged_csv}"
-  echo 'interzone,spaces_per_zone,target,real,std' >"${path_to_merged_csv}"
+  touch "${merged_csv_path}"
+  echo 'interzone,spaces_per_zone,target,real,std' >"${merged_csv_path}"
 }
 
 mkdir_for_graph() {
   # remove file extension from name of the directory
-  path_for_graph="${path_for_test}/graph--${1}-${2}"
-  mkdir "${path_for_graph}"
+  graph_dir_path="${test_dir_path}/graph--${1}-${2}"
+  mkdir "${graph_dir_path}"
 }
 
 mkdir_for_load() {
-  path_for_load="${path_for_graph}/${1}"
-  mkdir "${path_for_load}"
+  load_dir_path="${graph_dir_path}/${1}"
+  mkdir "${load_dir_path}"
 
-  path_to_average_report="${path_for_load}/${avg_report_name}"
-  touch "${path_to_average_report}"
+  avg_report_path="${load_dir_path}/${avg_report_name}"
+  touch "${avg_report_path}"
 }
 
 mkdir_for_repetition() {
-  path_for_repetition="${path_for_load}/${1}"
-  mkdir "${path_for_repetition}"
+  repetition_dir_path="${load_dir_path}/${1}"
+  mkdir "${repetition_dir_path}"
 
-  path_to_report="${path_for_repetition}/${report_name}"
-  touch "${path_to_report}"
+  report_path="${repetition_dir_path}/${report_name}"
+  touch "${report_path}"
 }
 
 # GENERATE GRAPHS AND QUERIES
 
 generate_graph() {
-  # $1 - interzone
+  # $1 - inter-zone
   # $2 - spz
 
-  path_to_graph="${path_for_graph}/${graph_name}"
+  graph_file_path="${graph_dir_path}/${graph_name}"
 
   if [[ -f "/init/graph.json" ]]; then
-    cp "/init/graph.json" "${path_to_graph}"
+    cp "/init/graph.json" "${graph_file_path}"
     my_printf "Graph already generated, skipping"
     return
   fi
 
   # graph-generation config
-  pgc="${path_for_graph}/graph-config.json"
+  pgc="${graph_dir_path}/graph-config.json"
 
   # ASSUMPTION: 1 space pez zone 'generates' around 30 nodes per zone
-  local interzone_param=${1}
+  local inter_zone_param=${1}
   local spaces_param=${2}
   local providers_param=$((2 * spaces_param / 3))
 
@@ -245,23 +245,23 @@ generate_graph() {
   "groupsPerGroup": "normal(1.8, 1)",
   "usersPerGroup": "normal(9, 4)",
   "treeDepth": "enormal(2.3, 1)",
-  "differentGroupZoneProb": 0.${interzone_param},
-  "differentUserZoneProb": 0.${interzone_param},
+  "differentGroupZoneProb": 0.${inter_zone_param},
+  "differentUserZoneProb": 0.${inter_zone_param},
   "existingUserProb": 0.1,
   "existingGroupProb": 0.05
 }
 CONFIG
 
   echo "Generating graph..."
-  ./run-main.sh com.github.kjarosh.agh.pp.cli.GraphGeneratorMain -c "${pgc}" -o "${path_to_graph}" -s ${COUNT_ZONES}
+  ./run-main.sh com.github.kjarosh.agh.pp.cli.GraphGeneratorMain -c "${pgc}" -o "${graph_file_path}" -s ${COUNT_ZONES}
   echo "Graph generated"
 }
 
 generate_queries() {
-  path_to_queries="${path_for_graph}/${queries_name}"
+  queries_file_path="${graph_dir_path}/${queries_name}"
 
   if [[ -f "/init/queries.json.gz" ]]; then
-    gunzip -c "/init/queries.json.gz" > "${path_to_queries}"
+    gunzip -c "/init/queries.json.gz" > "${queries_file_path}"
     my_printf "Operations already generated, skipping"
     return
   fi
@@ -274,7 +274,8 @@ generate_queries() {
   total_operations=$(((WARMUP_TIME + TEST_TIME) * max * 12 / 10))
 
   echo "Generating queries... n=${total_operations}"
-  ./run-main.sh com.github.kjarosh.agh.pp.cli.OperationSequenceGeneratorMain -g ${path_to_graph} -n ${total_operations} -o ${path_to_queries}
+  ./run-main.sh com.github.kjarosh.agh.pp.cli.OperationSequenceGeneratorMain \
+                  -g ${graph_file_path} -n ${total_operations} -o ${queries_file_path}
   echo "Queries generated"
 }
 
@@ -298,18 +299,18 @@ get_instrumentation() {
   my_printf "Downloading artifacts for $1"
   kubectl exec "${ZONES[$1]}" -- gzip -k instrumentation.csv
   local count=0
-  while ! kubectl cp "${ZONES[$1]}":instrumentation.csv.gz "${path_for_repetition}/instrumentation-$1.csv.gz"; do
+  while ! kubectl cp "${ZONES[$1]}":instrumentation.csv.gz "${repetition_dir_path}/instrumentation-$1.csv.gz"; do
     count=$((count + 1))
     if [[ $count -gt 10 ]]; then
       return
     fi
 
     my_printf "Retrying download for $1"
-    rm -f "${path_for_repetition}/instrumentation-$1.csv"
+    rm -f "${repetition_dir_path}/instrumentation-$1.csv"
   done
 
-  gunzip -c "${path_for_repetition}/instrumentation-$1.csv.gz" > "${path_for_repetition}/instrumentation-$1.csv"
-  rm "${path_for_repetition}/instrumentation-$1.csv.gz"
+  gunzip -c "${repetition_dir_path}/instrumentation-$1.csv.gz" > "${repetition_dir_path}/instrumentation-$1.csv"
+  rm "${repetition_dir_path}/instrumentation-$1.csv.gz"
 }
 
 get_all_instrumentations() {
@@ -349,14 +350,14 @@ PSQL
 }
 
 postgres_report() {
-  database /dev/stdin <<PSQL > "${path_to_report}" 2>&1
+  database /dev/stdin <<PSQL > "${report_path}" 2>&1
 do \$\$ begin
   perform report(
     (select (min(time) + interval '${WARMUP_TIME} second') from dbnotification),
     (select (min(time) + interval '$((WARMUP_TIME + TEST_TIME)) second') from dbnotification));
 end \$\$
 PSQL
-  database /dev/stdin <<PSQL > "${path_for_repetition}/time_plot_5sec.txt" 2>&1
+  database /dev/stdin <<PSQL > "${repetition_dir_path}/time_plot_5sec.txt" 2>&1
 do \$\$ declare
 	t timestamp;
 	u timestamp;
@@ -369,7 +370,7 @@ PSQL
 }
 
 postgres_import() {
-  ./run-main.sh com.github.kjarosh.agh.pp.cli.PostgresImportMain ${path_for_repetition}
+  ./run-main.sh com.github.kjarosh.agh.pp.cli.PostgresImportMain ${repetition_dir_path}
 }
 
 time_to_seconds() {
@@ -377,7 +378,7 @@ time_to_seconds() {
 }
 
 gather_dat() {
-  results_dat="${path_for_test}/results.dat"
+  results_dat="${test_dir_path}/results.dat"
   printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
     "load" \
     "queued" \
@@ -391,8 +392,8 @@ gather_dat() {
     "event_queue_wait_avg" \
     "event_queue_wait_max" > "$results_dat"
 
-  for load in $(find "${path_for_graph}" -maxdepth 1 -mindepth 1 -type d -printf "%f\n" | sort -h); do
-    report="${path_for_graph}/$load/1/report.txt"
+  for load in $(find "${graph_dir_path}" -maxdepth 1 -mindepth 1 -type d -printf "%f\n" | sort -h); do
+    report="${graph_dir_path}/$load/1/report.txt"
     queued=$(sed -n -e 17p "$report" | cut -d':' -f6)
     throughput=$(sed -n -e 16p "$report" | cut -d':' -f6)
     queued_events=$(sed -n -e 23p "$report" | cut -d':' -f6)
@@ -424,7 +425,7 @@ load_graph() {
   clear_redises
   restart_zones
 
-  ./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -l -r 5 -g "${path_to_graph}" -n 100 --no-load
+  ./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -l -r 5 -g "${graph_file_path}" -n 100 --no-load
 
   # make sure there is a backup
   for ((i = 0; i < COUNT_ZONES; i++)); do
@@ -447,7 +448,7 @@ constant_load() {
   fi
 
   ./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain \
-                  -r 5 -g ${path_to_graph} -s ${path_to_queries} -n "${1}" \
+                  -r 5 -g ${graph_file_path} -s ${queries_file_path} -n "${1}" \
                   -d $((WARMUP_TIME + TEST_TIME + 5)) -t 10 ${additional_opts}
 
   # restore previous redis state
@@ -516,19 +517,19 @@ my_printf "Zones loaded"
 mkdir_for_whole_test
 my_printf "Directory structure created"
 
-# for each interzone..
-for interzone_arg in ${inter_zone_levels[*]}; do
+# for each inter-zone lvl..
+for inter_zone_arg in ${inter_zone_levels[*]}; do
 
-  # if interzone is 'naive' default it to 10%
-  if [[ ${interzone_arg} = "naive" ]] ; then
-    interzone=10
+  # if inter-zone is 'naive' then default it to 10%
+  if [[ ${inter_zone_arg} = "naive" ]] ; then
+    inter_zone_lvl=10
   else
-    interzone=${interzone_arg}
+    inter_zone_lvl=${inter_zone_arg}
   fi
 
-  # for each nodes-per-zone..
+  # for each spaces-per-zone value..
   for spz_arg in ${spaces_per_zone[*]}; do
-    mkdir_for_graph "${interzone_arg}" "${spz_arg}"
+    mkdir_for_graph "${inter_zone_arg}" "${spz_arg}"
 
     # if spaces-per-zone is 'naive' default it to 66 ( 2k nodes-per-zone )
     if [[ ${spz_arg} = "naive" ]] ; then
@@ -538,13 +539,13 @@ for interzone_arg in ${inter_zone_levels[*]}; do
     fi
 
     naive=false
-    if [[ ${interzone_arg} = "naive" || ${spz_arg} = "naive" ]] ; then
+    if [[ ${inter_zone_arg} = "naive" || ${spz_arg} = "naive" ]] ; then
       naive=true
     fi
 
     # generate graph and queries to perform
-    generate_graph "${interzone}" "${spz}"
-    generate_queries "${path_to_graph}"
+    generate_graph "${inter_zone_lvl}" "${spz}"
+    generate_queries "${graph_file_path}"
 
     # load graph to kubernetes
     load_graph
@@ -554,7 +555,7 @@ for interzone_arg in ${inter_zone_levels[*]}; do
       mkdir_for_load "${load}"
 
       # start new record in merged csv
-      echo -n "${interzone_arg},${spz_arg},${load}," >> "${path_to_merged_csv}"
+      echo -n "${inter_zone_arg},${spz_arg},${load}," >> "${merged_csv_path}"
 
       # repeat test
       for i in $(seq 1 $REPETITIONS); do
@@ -573,8 +574,8 @@ done
 ### prepare results to be downloaded
 tester_pod=$(kubectl get pod | grep '^gmm-tester-[a-z0-9]* *1/1 *Running' | awk '{print $1;}')
 mkdir -p /download-results
-tar -czvf /download-results/results.tar.gz "${path_for_test}"
-find "${path_for_test}" -size -4096c | tar -czvf /download-results/results-small.tar.gz -T -
+tar -czvf /download-results/results.tar.gz "${test_dir_path}"
+find "${test_dir_path}" -size -4096c | tar -czvf /download-results/results-small.tar.gz -T -
 md5sum /download-results/*
 echo "Tar generated. Copy with:"
 echo "kubectl -n ${k8s_namespace} cp $tester_pod:download-results/results.tar.gz results.tar.gz"
