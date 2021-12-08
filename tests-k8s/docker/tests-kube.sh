@@ -120,33 +120,31 @@ create_zones() {
     -n ${k8s_namespace} \
     -i ${ZONE_IMAGE}
 
-  # local variables
-  local incomings=1
-  local pendings=1
-  local creatings=1
-  local runnings=0
-
-  # loop
-  while [[ ${incomings} -gt 0 || ${runnings} -ne ${COUNT_ZONES} ]]; do
-    # sleep
-    sleep 5
-
-    # check status of pods that will be run later
-    pendings="$(kubectl get pod | grep -w Pending | wc -l)"
-    creatings="$(kubectl get pod | grep -w ContainerCreating | wc -l)"
-    incomings="$((pendings+creatings))"
-
-    # check number of pods that are running now (excluding gmm-tester job's pod)
-    runnings="$(kubectl get pod | grep -w Running | wc -l)"
-    runnings="$((runnings-1))"
-  done
+  my_printf "Zones created by KubernetesClient"
 }
 
 load_zones() {
-  ZONES=()
+  # wait for pods to be in 'Running' state
+  local zones_ready=0
+  my_printf "Waiting for zones' readiness"
+  while [[ ${zones_ready} -eq 0 ]]; do
+    sleep 5
 
+    local incoming=$(kubectl get pod | grep ' \(ContainerCreating|Pending\) ' | wc -l)
+    local running=$(kubectl get pod | grep "^zone[a-z0-9-]* *1/1 *Running" | wc -l)
+
+    if [[ ${incoming} -eq 0 && ${running} -eq ${COUNT_ZONES} ]]; then
+      zones_ready=1
+    else
+      my_printf "Zones not ready yet: incoming=${incoming}, running=${running}"
+    fi
+  done
+  my_printf "Zones ready. Saving pods IDs"
+
+  # save IDs of pods
+  ZONES=()
   for ((i = 0; i < COUNT_ZONES; i++)); do
-    newZone="$(kubectl get pod -l "zone=zone${i}" -n "$k8s_namespace" | grep -w Running | awk '{print $1;}')"
+    local newZone="$(kubectl get pod -l "zone=zone${i}" -n "$k8s_namespace" | grep -w Running | awk '{print $1;}')"
     my_printf "zone-${i} = ${newZone}"
     ZONES+=("${newZone}")
   done
