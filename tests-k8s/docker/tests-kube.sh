@@ -422,8 +422,8 @@ gather_dat() {
 # CONSTANT LOAD
 
 load_graph() {
-  clear_redises
   restart_zones
+  clear_redises
 
   ./run-main.sh com.github.kjarosh.agh.pp.cli.ConstantLoadClientMain -l -r 5 -g "${graph_file_path}" -n 100 --no-load
 
