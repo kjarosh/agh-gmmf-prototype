@@ -130,7 +130,7 @@ load_zones() {
   while [[ ${zones_ready} -eq 0 ]]; do
     sleep 5
 
-    local incoming=$(kubectl get pod | grep ' \(ContainerCreating|Pending\) ' | wc -l)
+    local incoming=$(kubectl get pod | grep -w 'ContainerCreating\|Pending' | wc -l)
     local running=$(kubectl get pod | grep "^zone[a-z0-9-]* *1/1 *Running" | wc -l)
 
     if [[ ${incoming} -eq 0 && ${running} -eq ${COUNT_ZONES} ]]; then
