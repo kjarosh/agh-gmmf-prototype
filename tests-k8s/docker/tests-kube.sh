@@ -564,17 +564,26 @@ for inter_zone_arg in ${inter_zone_levels[*]}; do
   done
 done
 
-### delete zones
-for ((i = 0; i < COUNT_ZONES; i++)); do
-  kubectl delete deployment zone${i}
-done
-
 ### prepare results to be downloaded
 tester_pod=$(kubectl get pod | grep '^gmm-tester-[a-z0-9]* *1/1 *Running' | awk '{print $1;}')
 mkdir -p /download-results
 tar -czvf /download-results/results.tar.gz "${test_dir_path}"
 find "${test_dir_path}" -size -4096c | tar -czvf /download-results/results-small.tar.gz -T -
 md5sum /download-results/*
+
+### clean up - delete zones
+for ((i = 0; i < COUNT_ZONES; i++)); do
+  kubectl delete deployment zone${i} &
+done
+wait
+
+### clean up - delete pvc-s
+for ((i = 0; i < COUNT_ZONES; i++)); do
+  kubectl delete pvc zone${i}-pvc &
+done
+wait
+
+### farewell message
 echo "Tar generated. Copy with:"
 echo "kubectl -n ${k8s_namespace} cp $tester_pod:download-results/results.tar.gz results.tar.gz"
 echo "devspace sync --namespace=${k8s_namespace} --pod=$tester_pod --container-path=download-results --download-only --no-watch"
