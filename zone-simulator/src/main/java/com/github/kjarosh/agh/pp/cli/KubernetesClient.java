@@ -38,6 +38,7 @@ public class KubernetesClient {
         options.addOption("z", "zones", true, "number of zones");
         options.addOption("g", "graph", true, "path to the graph to use");
         options.addOption("i", "image", true, "desired docker image");
+        options.addOption("a", "additional-image", true, "desired docker image for additional client");
         options.addOption(null, "require-cpu", true, "cpu requirement for k8s");
         options.addOption(null, "require-memory", true, "memory requirement for k8s");
         options.addOption(null, "constant-load-opts", true, "run constant load with these options");
@@ -55,6 +56,10 @@ public class KubernetesClient {
             if (cmd.hasOption("z")) {
                 int zones = Integer.parseInt(cmd.getOptionValue("z"));
                 setupZones(cmd.getOptionValue("i", K8sZone.DEFAULT_IMAGE), zones);
+
+                if (cmd.hasOption("a")) {
+                    new K8sZone(cmd.getOptionValue("a", K8sZone.DEFAULT_IMAGE), namespace, "zone" + zones, resourceCpu, resourceMemory).apply();
+                }
             }
 
             if (cmd.hasOption("g") && cmd.hasOption("constant-load-opts")) {
