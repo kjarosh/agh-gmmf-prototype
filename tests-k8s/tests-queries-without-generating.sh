@@ -37,6 +37,6 @@ kubectl cp ./queries_members.json ${ZONES[COUNT_ZONES - 1]}:/queries_members.jso
 kubectl cp ./queries_reaches_exist.json ${ZONES[COUNT_ZONES - 1]}:/queries_reaches_exist.json
 kubectl cp ./queries_reaches_nonexist.json ${ZONES[COUNT_ZONES - 1]}:/queries_reaches_nonexist.json
 kubectl cp ./queries_ep.json ${ZONES[COUNT_ZONES - 1]}:/queries_ep.json
-kubectl cp ./queries_caller_without_generating.sh ${ZONES[COUNT_ZONES - 1]}:/queries_caller_without_generating.sh
+kubectl cp ./tests-k8s/queries_caller_without_generating.sh ${ZONES[COUNT_ZONES - 1]}:/queries_caller_without_generating.sh
 kubectl exec -it "${ZONES[COUNT_ZONES - 1]}" -- bash -c "chmod 777 ./queries_caller_without_generating.sh"
 kubectl exec -it "${ZONES[COUNT_ZONES - 1]}" -- bash -c "./queries_caller_without_generating.sh"

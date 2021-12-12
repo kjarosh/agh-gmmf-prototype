@@ -34,6 +34,6 @@ clear_redises
 
 kubectl exec -it "${ZONES[COUNT_ZONES - 1]}" -- bash -c "rm -f ./queriesResults.json"
 kubectl cp "$graph_path" ${ZONES[COUNT_ZONES - 1]}:/graph.json
-kubectl cp ./queries_caller.sh ${ZONES[COUNT_ZONES - 1]}:/queries_caller.sh
+kubectl cp ./tests-k8s/queries_caller.sh ${ZONES[COUNT_ZONES - 1]}:/queries_caller.sh
 kubectl exec -it "${ZONES[COUNT_ZONES - 1]}" -- bash -c "chmod 777 ./queries_caller.sh"
 kubectl exec -it "${ZONES[COUNT_ZONES - 1]}" -- bash -c "./queries_caller.sh"
