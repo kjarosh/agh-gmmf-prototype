@@ -60,31 +60,31 @@ public class K8sZone {
     }
 
     private V1Deployment buildDeployment(V1Deployment old) {
-        Map<Integer, String> nodeMap = new HashMap<>();
-        nodeMap.put(0, "k8s-one-node-16");
-        nodeMap.put(1, "k8s-one-node-1");
-        nodeMap.put(2, "k8s-one-node-2");
-        nodeMap.put(3, "k8s-one-node-3");
-        nodeMap.put(4, "k8s-one-node-4");
-        nodeMap.put(5, "k8s-one-node-5");
-        nodeMap.put(6, "k8s-one-node-6");
-        nodeMap.put(7, "k8s-one-node-7");
-        nodeMap.put(8, "k8s-one-node-13");
-        nodeMap.put(9, "k8s-one-node-9");
-        nodeMap.put(10, "k8s-one-node-10");
-        nodeMap.put(11, "k8s-one-node-11");
-        nodeMap.put(12, "k8s-one-node-12");
-        nodeMap.put(13, "k8s-one-node-14");
-        nodeMap.put(14, "k8s-one-node-15");
-        nodeMap.put(15, "k8s-one-node-performance-1");
-        nodeMap.put(16, "k8s-one-node-performance-2");
-        nodeMap.put(17, "k8s-one-node-performance-3");
-        nodeMap.put(18, "k8s-one-node-performance-4");
-        int nodeNumber = Integer.parseInt(zoneId.replaceAll("zone", ""));
+//         Map<Integer, String> nodeMap = new HashMap<>();
+//         nodeMap.put(0, "k8s-one-node-16");
+//         nodeMap.put(1, "k8s-one-node-1");
+//         nodeMap.put(2, "k8s-one-node-2");
+//         nodeMap.put(3, "k8s-one-node-3");
+//         nodeMap.put(4, "k8s-one-node-4");
+//         nodeMap.put(5, "k8s-one-node-5");
+//         nodeMap.put(6, "k8s-one-node-6");
+//         nodeMap.put(7, "k8s-one-node-7");
+//         nodeMap.put(8, "k8s-one-node-13");
+//         nodeMap.put(9, "k8s-one-node-9");
+//         nodeMap.put(10, "k8s-one-node-10");
+//         nodeMap.put(11, "k8s-one-node-11");
+//         nodeMap.put(12, "k8s-one-node-12");
+//         nodeMap.put(13, "k8s-one-node-14");
+//         nodeMap.put(14, "k8s-one-node-15");
+//         nodeMap.put(15, "k8s-one-node-performance-1");
+//         nodeMap.put(16, "k8s-one-node-performance-2");
+//         nodeMap.put(17, "k8s-one-node-performance-3");
+//         nodeMap.put(18, "k8s-one-node-performance-4");
+//         int nodeNumber = Integer.parseInt(zoneId.replaceAll("zone", ""));
 
-        if (!nodeMap.containsKey(nodeNumber)) {
-            throw new RuntimeException("" + nodeNumber);
-        }
+//         if (!nodeMap.containsKey(nodeNumber)) {
+//             throw new RuntimeException("" + nodeNumber);
+//         }
 
         return new V1DeploymentBuilder(old)
                 .withApiVersion("apps/v1")
@@ -103,7 +103,7 @@ public class K8sZone {
                 .withLabels(labels)
                 .endMetadata()
                 .editOrNewSpec()
-                .addToNodeSelector("kubernetes.io/hostname", nodeMap.get(nodeNumber))
+//                 .addToNodeSelector("kubernetes.io/hostname", nodeMap.get(nodeNumber))
                 .withContainers(buildContainer(Optional.of(old)
                         .map(V1Deployment::getSpec)
                         .map(V1DeploymentSpec::getTemplate)
