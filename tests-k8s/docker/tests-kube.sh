@@ -178,16 +178,8 @@ mkdir_for_whole_test() {
   test_dir_path="${results_root}/test--${timestamp}"
   mkdir "${test_dir_path}"
 
-  # prepare paths
-  merged_csv_path="${test_dir_path}/${merged_csv_name}"
-  plot_path="${test_dir_path}/${plot_name}"
-
   # copy config
   cp "${test_config_path}" "${test_dir_path}/test-config.conf"
-
-  # create merged_csv file
-  touch "${merged_csv_path}"
-  echo 'interzone,spaces_per_zone,target,real,std' >"${merged_csv_path}"
 }
 
 mkdir_for_graph() {
@@ -199,9 +191,6 @@ mkdir_for_graph() {
 mkdir_for_load() {
   load_dir_path="${graph_dir_path}/${1}"
   mkdir "${load_dir_path}"
-
-  avg_report_path="${load_dir_path}/${avg_report_name}"
-  touch "${avg_report_path}"
 }
 
 mkdir_for_repetition() {
@@ -516,30 +505,11 @@ mkdir_for_whole_test
 my_printf "Directory structure created"
 
 # for each inter-zone lvl..
-for inter_zone_arg in ${inter_zone_levels[*]}; do
-
-  # if inter-zone is 'naive' then default it to 10%
-  if [[ ${inter_zone_arg} = "naive" ]] ; then
-    inter_zone_lvl=10
-  else
-    inter_zone_lvl=${inter_zone_arg}
-  fi
-
+for inter_zone_lvl in ${inter_zone_levels[*]}; do
   # for each spaces-per-zone value..
-  for spz_arg in ${spaces_per_zone[*]}; do
-    mkdir_for_graph "${inter_zone_arg}" "${spz_arg}"
+  for spz in ${spaces_per_zone[*]}; do
 
-    # if spaces-per-zone is 'naive' default it to 66 ( 2k nodes-per-zone )
-    if [[ ${spz_arg} = "naive" ]] ; then
-      spz=66
-    else
-      spz=${spz_arg}
-    fi
-
-    naive=false
-    if [[ ${inter_zone_arg} = "naive" || ${spz_arg} = "naive" ]] ; then
-      naive=true
-    fi
+    mkdir_for_graph "${inter_zone_lvl}" "${spz}"
 
     # generate graph and queries to perform
     generate_graph "${inter_zone_lvl}" "${spz}"
@@ -551,9 +521,6 @@ for inter_zone_arg in ${inter_zone_levels[*]}; do
     # for each load..
     for load in ${loads[*]}; do
       mkdir_for_load "${load}"
-
-      # start new record in merged csv
-      echo -n "${inter_zone_arg},${spz_arg},${load}," >> "${merged_csv_path}"
 
       # repeat test
       for i in $(seq 1 $REPETITIONS); do
