@@ -64,6 +64,6 @@ public class RedissonEffectiveVertex extends RedisEffectiveVertex {
         batch.getBucket(keyEffectivePermissions(), Codecs.PERMISSIONS)
                 .setAsync(result.getCalculated());
         batch.executeAsync();
-        return wasDirty.syncUninterruptibly().getNow() != 0;
+        return wasDirty.toCompletableFuture().join() != 0;
     }
 }
