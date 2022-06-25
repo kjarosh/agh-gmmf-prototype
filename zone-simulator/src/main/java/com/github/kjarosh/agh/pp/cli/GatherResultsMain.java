@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.connection.channel.direct.Session;
 import net.schmizz.sshj.sftp.SFTPClient;
+import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import org.apache.maven.shared.invoker.DefaultInvocationRequest;
 import org.apache.maven.shared.invoker.DefaultInvoker;
 import org.apache.maven.shared.invoker.InvocationOutputHandler;
@@ -372,7 +373,7 @@ public class GatherResultsMain {
     private static SSHClient connectToZone(String zone) {
         SSHClient ssh = new SSHClient();
         ssh.loadKnownHosts();
-        ssh.addHostKeyVerifier((hostname, port, key) -> true);
+        ssh.addHostKeyVerifier(new PromiscuousVerifier());
         ssh.connect(config.getZones().get(zone).getAddress().split(":", 2)[0]);
         ssh.authPublickey("ubuntu", ssh.loadKeys(keysPath));
         return ssh;
@@ -395,11 +396,11 @@ public class GatherResultsMain {
 
         Invoker invoker = new DefaultInvoker();
         if (oh != null) {
-            invoker.setOutputHandler(s -> {
+            request.setOutputHandler(s -> {
                 System.out.println("[maven/stdout] " + s);
                 oh.consumeLine("[stdout] " + s);
             });
-            invoker.setErrorHandler(s -> {
+            request.setErrorHandler(s -> {
                 System.out.println("[maven/stderr] " + s);
                 oh.consumeLine("[stderr] " + s);
             });
