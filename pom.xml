@@ -31,10 +31,13 @@
         <lettuce.version>6.1.8.RELEASE</lettuce.version>
         <spring.version>5.3.21</spring.version>
         <spring-boot-starter.version>2.7.1</spring-boot-starter.version>
+        <jackson.version>2.13.3</jackson.version>
     </properties>
 
     <modules>
-        <module>zone-simulator</module>
+        <module>gmmf-model</module>
+        <module>gmmf-persistence</module>
+        <module>gmmf-zone-simulator</module>
     </modules>
 
     <repositories>
@@ -58,6 +61,11 @@
                 <version>${spring-boot-starter.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>1.7.30</version>
+            </dependency>
+            <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>1.18.24</version>
@@ -65,12 +73,22 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
-                <version>2.13.3</version>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-jsr310</artifactId>
-                <version>2.13.3</version>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>info.picocli</groupId>

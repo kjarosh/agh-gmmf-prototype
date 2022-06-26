@@ -14,7 +14,8 @@ which represent autonomous organizations in a decentralized network.
   (customized for the specific setup used in the article),
 * `tests-k8s` &mdash; scripts and configuration used to benchmark the prototype in Kubernetes,
 * `util` &mdash; utility scripts,
-* `zone-simulator`  &mdash; the application source code,
+* `gmmf-*` &mdash; the application source code divided into modules,
+* `gmmf-zone-simulator` &mdash; the main module which represents the zone,
 * `docker-compose.yml` &mdash; Compose configuration with an exemplary 3-node setup,
 * `docker-compose.util.yml` &mdash; Compose configuration for utility images (neo4j, Postgres, etc.).
 

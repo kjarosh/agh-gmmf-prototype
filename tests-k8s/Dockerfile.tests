@@ -8,8 +8,8 @@ RUN curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packa
     apt-get clean && \
     pip3 install numpy matplotlib
 
-COPY zone-simulator/docker/run-main.sh run-main.sh
-COPY zone-simulator/target/zone-simulator-*.jar app.jar
+COPY gmmf-zone-simulator/docker/run-main.sh run-main.sh
+COPY gmmf-zone-simulator/target/gmmf-zone-simulator-*.jar app.jar
 COPY tests-k8s/docker/ /
 
 ENTRYPOINT ["./tests-kube.sh"]
