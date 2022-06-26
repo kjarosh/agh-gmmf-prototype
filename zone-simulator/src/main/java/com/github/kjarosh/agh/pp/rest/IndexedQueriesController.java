@@ -12,7 +12,6 @@ import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.rest.dto.EffectivePermissionsResponseDto;
 import com.github.kjarosh.agh.pp.rest.dto.MembersResponseDto;
 import com.github.kjarosh.agh.pp.rest.dto.ReachesResponseDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,8 +29,11 @@ import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
  */
 @Controller
 public class IndexedQueriesController {
-    @Autowired
-    private GraphLoader graphLoader;
+    private final GraphLoader graphLoader;
+
+    public IndexedQueriesController(GraphLoader graphLoader) {
+        this.graphLoader = graphLoader;
+    }
 
     @RequestMapping(method = RequestMethod.POST, path = "indexed/reaches")
     @ResponseBody

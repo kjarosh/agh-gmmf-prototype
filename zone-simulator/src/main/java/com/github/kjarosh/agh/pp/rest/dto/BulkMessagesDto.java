@@ -1,7 +1,6 @@
 package com.github.kjarosh.agh.pp.rest.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;

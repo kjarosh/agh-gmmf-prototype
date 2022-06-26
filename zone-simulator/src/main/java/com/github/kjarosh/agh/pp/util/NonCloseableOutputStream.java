@@ -1,7 +1,6 @@
 package com.github.kjarosh.agh.pp.util;
 
 import java.io.FilterOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -13,7 +12,7 @@ public class NonCloseableOutputStream extends FilterOutputStream {
     }
 
     @Override
-    public void close() throws IOException {
+    public void close() {
         // non-closeable
     }
 }

@@ -8,7 +8,6 @@ import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.rest.dto.BulkMessagesDto;
 import com.github.kjarosh.agh.pp.rest.dto.MessageDto;
 import com.github.kjarosh.agh.pp.rest.error.TooManyEventsException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,11 +22,14 @@ import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
  */
 @Controller
 public class InboxOutboxController {
-    @Autowired
-    private Inbox inbox;
+    private final Inbox inbox;
 
-    @Autowired
-    private InboxProcessor inboxProcessor;
+    private final InboxProcessor inboxProcessor;
+
+    public InboxOutboxController(Inbox inbox, InboxProcessor inboxProcessor) {
+        this.inbox = inbox;
+        this.inboxProcessor = inboxProcessor;
+    }
 
     @RequestMapping(method = RequestMethod.POST, path = "events")
     @ResponseBody

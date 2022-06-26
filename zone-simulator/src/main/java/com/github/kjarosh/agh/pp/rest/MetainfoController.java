@@ -7,7 +7,6 @@ import com.github.kjarosh.agh.pp.index.InboxProcessor;
 import com.github.kjarosh.agh.pp.instrumentation.Instrumentation;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.rest.dto.DependentZonesDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,14 +24,17 @@ import java.util.Set;
  */
 @Controller
 public class MetainfoController {
-    @Autowired
-    private InboxProcessor inboxProcessor;
+    private final InboxProcessor inboxProcessor;
 
-    @Autowired
-    private GraphLoader graphLoader;
+    private final GraphLoader graphLoader;
 
-    @Autowired
-    private Inbox inbox;
+    private final Inbox inbox;
+
+    public MetainfoController(Inbox inbox, InboxProcessor inboxProcessor, GraphLoader graphLoader) {
+        this.inbox = inbox;
+        this.inboxProcessor = inboxProcessor;
+        this.graphLoader = graphLoader;
+    }
 
     @RequestMapping(method = RequestMethod.GET, path = "healthcheck")
     @ResponseBody

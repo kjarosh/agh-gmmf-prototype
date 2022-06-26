@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_PASSWORD: admin
     ports:
-      - 5432:5432
+      - "5432:5432"
 
   postgres-admin:
     image: dpage/pgadmin4
@@ -13,7 +13,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: admin@example.com
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
-      - 5433:80
+      - "5433:80"
     depends_on:
       - postgres
 
@@ -22,5 +22,5 @@ services:
     environment:
       NEO4J_AUTH: neo4j/admin
     ports:
-      - 7687:7687
-      - 7474:7474
+      - "7687:7687"
+      - "7474:7474"

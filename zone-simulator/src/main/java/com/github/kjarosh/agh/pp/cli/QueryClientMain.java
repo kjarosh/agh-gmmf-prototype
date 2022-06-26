@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
@@ -56,8 +55,8 @@ public class QueryClientMain {
     private static boolean naive;
     private static int existing = 0;
 
-    private static List<Duration> times = new ArrayList<>();
-    private static List<Integer> results = new ArrayList<>();
+    private static final List<Duration> times = new ArrayList<>();
+    private static final List<Integer> results = new ArrayList<>();
     private static double existingRatio;
 
     private static JsonLinesReader reader = null;
@@ -69,7 +68,7 @@ public class QueryClientMain {
         LogbackUtils.loadLogbackCli();
     }
 
-    public static void main(String[] args) throws ParseException, TimeoutException, IOException {
+    public static void main(String[] args) throws ParseException, IOException {
         Options options = new Options();
         options.addRequiredOption("g", "graph", true, "path to graph");
         options.addOption("t", "op-type", true, "operation type");
@@ -163,7 +162,7 @@ public class QueryClientMain {
         log.info("  max {}", max);
 
         if (toSave) {
-            resultsWriter.put(convertType(), naive, (Object) max, avg, label);
+            resultsWriter.put(convertType(), naive, max, avg, label);
         }
     }
 

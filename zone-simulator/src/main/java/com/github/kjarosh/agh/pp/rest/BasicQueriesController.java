@@ -4,11 +4,9 @@ import com.github.kjarosh.agh.pp.graph.GraphLoader;
 import com.github.kjarosh.agh.pp.graph.model.Edge;
 import com.github.kjarosh.agh.pp.graph.model.EdgeId;
 import com.github.kjarosh.agh.pp.graph.model.Graph;
-import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import com.github.kjarosh.agh.pp.graph.model.ZoneId;
 import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -25,8 +23,11 @@ import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
  */
 @Controller
 public class BasicQueriesController {
-    @Autowired
-    private GraphLoader graphLoader;
+    private final GraphLoader graphLoader;
+
+    public BasicQueriesController(GraphLoader graphLoader) {
+        this.graphLoader = graphLoader;
+    }
 
     @RequestMapping(method = RequestMethod.POST, path = "is_adjacent")
     @ResponseBody

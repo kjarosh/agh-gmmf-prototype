@@ -9,7 +9,6 @@ import com.github.kjarosh.agh.pp.index.events.Event;
 import com.github.kjarosh.agh.pp.index.events.EventStats;
 import com.github.kjarosh.agh.pp.util.ClockX60;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -44,14 +43,17 @@ public class InboxProcessor {
 
     private final Meter eventsMeter = new Meter(new SlidingTimeWindowMovingAverages(new ClockX60()));
 
-    @Autowired
-    private Inbox inbox;
+    private final Inbox inbox;
 
-    @Autowired
-    private GraphLoader graphLoader;
+    private final GraphLoader graphLoader;
 
-    @Autowired
-    private EventProcessor eventProcessor;
+    private final EventProcessor eventProcessor;
+
+    public InboxProcessor(Inbox inbox, GraphLoader graphLoader, EventProcessor eventProcessor) {
+        this.inbox = inbox;
+        this.graphLoader = graphLoader;
+        this.eventProcessor = eventProcessor;
+    }
 
     @PostConstruct
     public void init() {

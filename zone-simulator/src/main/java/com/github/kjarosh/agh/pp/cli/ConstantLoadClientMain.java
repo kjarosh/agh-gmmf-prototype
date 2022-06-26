@@ -34,7 +34,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -67,7 +66,7 @@ public class ConstantLoadClientMain {
         LogbackUtils.loadLogbackCli();
     }
 
-    public static void main(String[] args) throws ParseException, TimeoutException, IOException {
+    public static void main(String[] args) throws ParseException, IOException {
         Options options = new Options();
         options.addRequiredOption("n", "operations", true, "number of operations per second");
         options.addRequiredOption("g", "graph", true, "path to graph");

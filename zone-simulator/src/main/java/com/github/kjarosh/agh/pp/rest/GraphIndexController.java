@@ -8,7 +8,6 @@ import com.github.kjarosh.agh.pp.index.EffectiveVertex;
 import com.github.kjarosh.agh.pp.index.VertexIndex;
 import com.github.kjarosh.agh.pp.rest.dto.IndexDto;
 import com.github.kjarosh.agh.pp.rest.dto.IndexDto.EffectiveVertexDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -26,8 +25,11 @@ import java.util.stream.Stream;
  */
 @Controller
 public class GraphIndexController {
-    @Autowired
-    private GraphLoader graphLoader;
+    private final GraphLoader graphLoader;
+
+    public GraphIndexController(GraphLoader graphLoader) {
+        this.graphLoader = graphLoader;
+    }
 
     @RequestMapping(method = RequestMethod.GET, path = "index")
     @ResponseBody

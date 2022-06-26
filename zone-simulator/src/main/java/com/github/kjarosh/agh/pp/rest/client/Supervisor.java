@@ -58,7 +58,7 @@ public class Supervisor extends Thread {
                 message.append(lastStats);
             }
 
-            System.out.println(message.toString());
+            System.out.println(message);
         }
     }
 

@@ -7,8 +7,6 @@ import com.github.kjarosh.agh.pp.rest.dto.EffectivePermissionsResponseDto;
 import com.github.kjarosh.agh.pp.rest.dto.MembersResponseDto;
 import com.github.kjarosh.agh.pp.rest.dto.ReachesResponseDto;
 
-import java.util.List;
-
 /**
  * @author Kamil Jarosz
  */

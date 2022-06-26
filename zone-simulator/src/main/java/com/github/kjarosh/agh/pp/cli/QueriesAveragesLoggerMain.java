@@ -19,25 +19,25 @@ public class QueriesAveragesLoggerMain {
     private static BufferedReader fileReader;
     private static final ObjectReader objectReader = new ObjectMapper().readerFor(QueryClientResults.class);
 
-    private static List<Duration> indexedMaxMembers = new ArrayList<>();
-    private static List<Duration> naiveMaxMembers = new ArrayList<>();
-    private static List<Duration> indexedAvgMembers = new ArrayList<>();
-    private static List<Duration> naiveAvgMembers = new ArrayList<>();
+    private static final List<Duration> indexedMaxMembers = new ArrayList<>();
+    private static final List<Duration> naiveMaxMembers = new ArrayList<>();
+    private static final List<Duration> indexedAvgMembers = new ArrayList<>();
+    private static final List<Duration> naiveAvgMembers = new ArrayList<>();
 
-    private static List<Duration> indexedMaxReachesExist = new ArrayList<>();
-    private static List<Duration> naiveMaxReachesExist = new ArrayList<>();
-    private static List<Duration> indexedAvgReachesExist = new ArrayList<>();
-    private static List<Duration> naiveAvgReachesExist = new ArrayList<>();
+    private static final List<Duration> indexedMaxReachesExist = new ArrayList<>();
+    private static final List<Duration> naiveMaxReachesExist = new ArrayList<>();
+    private static final List<Duration> indexedAvgReachesExist = new ArrayList<>();
+    private static final List<Duration> naiveAvgReachesExist = new ArrayList<>();
 
-    private static List<Duration> indexedMaxReachesNonexist = new ArrayList<>();
-    private static List<Duration> naiveMaxReachesNonexist = new ArrayList<>();
-    private static List<Duration> indexedAvgReachesNonexist = new ArrayList<>();
-    private static List<Duration> naiveAvgReachesNonexist = new ArrayList<>();
+    private static final List<Duration> indexedMaxReachesNonexist = new ArrayList<>();
+    private static final List<Duration> naiveMaxReachesNonexist = new ArrayList<>();
+    private static final List<Duration> indexedAvgReachesNonexist = new ArrayList<>();
+    private static final List<Duration> naiveAvgReachesNonexist = new ArrayList<>();
 
-    private static List<Duration> indexedMaxEp = new ArrayList<>();
-    private static List<Duration> naiveMaxEp = new ArrayList<>();
-    private static List<Duration> indexedAvgEp = new ArrayList<>();
-    private static List<Duration> naiveAvgEp = new ArrayList<>();
+    private static final List<Duration> indexedMaxEp = new ArrayList<>();
+    private static final List<Duration> naiveMaxEp = new ArrayList<>();
+    private static final List<Duration> indexedAvgEp = new ArrayList<>();
+    private static final List<Duration> naiveAvgEp = new ArrayList<>();
 
     private static synchronized QueryClientResults next() throws IOException {
         var str = fileReader.readLine();
@@ -59,7 +59,7 @@ public class QueriesAveragesLoggerMain {
         fileReader = new BufferedReader(new InputStreamReader(Files.newInputStream(path)));
 
         try {
-            while (true) {
+            while (!Thread.interrupted()) {
                 QueryClientResults next = next();
 
                 switch (next.getType()) {
@@ -154,7 +154,7 @@ public class QueriesAveragesLoggerMain {
     }
 
     private static long getField(Object obj, String field) {
-        return ((Integer) (((LinkedHashMap) obj).get(field))).longValue();
+        return ((Integer) (((LinkedHashMap<?, ?>) obj).get(field))).longValue();
     }
 
     private static Duration getDuration(long nano, long seconds) {

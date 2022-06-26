@@ -87,7 +87,7 @@ public class RandomOperationIssuer implements OperationIssuer {
     }
 
     String trace() {
-        return "generated-" + String.format("%05d", traceCounter.getAndIncrement()) + "-" + UUID.randomUUID().toString();
+        return "generated-" + String.format("%05d", traceCounter.getAndIncrement()) + "-" + UUID.randomUUID();
     }
 
     private void addEdge() {

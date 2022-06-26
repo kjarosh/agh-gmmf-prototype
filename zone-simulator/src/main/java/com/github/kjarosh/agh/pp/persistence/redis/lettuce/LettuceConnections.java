@@ -1,12 +1,10 @@
 package com.github.kjarosh.agh.pp.persistence.redis.lettuce;
 
-import com.github.kjarosh.agh.pp.config.AppConfig;
 import com.github.kjarosh.agh.pp.graph.model.Permissions;
 import com.github.kjarosh.agh.pp.graph.model.VertexId;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.resource.ClientResources;
 
 import java.nio.ByteBuffer;
 

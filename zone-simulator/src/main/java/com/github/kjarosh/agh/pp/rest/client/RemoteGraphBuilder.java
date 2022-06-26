@@ -180,7 +180,7 @@ public class RemoteGraphBuilder {
                 .parallel()
                 .forEach(e -> {
                     int n = edgesBuilt.getAndIncrement();
-                    String trace = "builder-edge-" + String.format("%05d", n) + "-" + UUID.randomUUID().toString();
+                    String trace = "builder-edge-" + String.format("%05d", n) + "-" + UUID.randomUUID();
                     client.addEdge(e.src().owner(), e.id(), e.permissions(), trace);
                 });
     }

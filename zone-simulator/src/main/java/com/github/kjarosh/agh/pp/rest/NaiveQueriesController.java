@@ -11,7 +11,6 @@ import com.github.kjarosh.agh.pp.rest.client.ZoneClient;
 import com.github.kjarosh.agh.pp.rest.dto.EffectivePermissionsResponseDto;
 import com.github.kjarosh.agh.pp.rest.dto.MembersResponseDto;
 import com.github.kjarosh.agh.pp.rest.dto.ReachesResponseDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -30,11 +29,14 @@ import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
  */
 @Controller
 public class NaiveQueriesController {
-    @Autowired
-    private GraphLoader graphLoader;
+    private final GraphLoader graphLoader;
 
-    @Autowired
-    private BasicQueriesController basicQueriesController;
+    private final BasicQueriesController basicQueriesController;
+
+    public NaiveQueriesController(GraphLoader graphLoader, BasicQueriesController basicQueriesController) {
+        this.graphLoader = graphLoader;
+        this.basicQueriesController = basicQueriesController;
+    }
 
     @RequestMapping(method = RequestMethod.POST, path = "naive/reaches")
     @ResponseBody

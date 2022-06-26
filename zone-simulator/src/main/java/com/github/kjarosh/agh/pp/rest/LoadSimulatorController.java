@@ -7,7 +7,6 @@ import com.github.kjarosh.agh.pp.rest.error.OkException;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,8 +31,11 @@ public class LoadSimulatorController {
                     .setNameFormat(Config.ZONE_ID + "-load-simulator-%d")
                     .build());
 
-    @Autowired
-    private GraphModificationController graphModificationController;
+    private final GraphModificationController graphModificationController;
+
+    public LoadSimulatorController(GraphModificationController graphModificationController) {
+        this.graphModificationController = graphModificationController;
+    }
 
     @SneakyThrows
     @RequestMapping(method = RequestMethod.POST, path = "simulate_load")

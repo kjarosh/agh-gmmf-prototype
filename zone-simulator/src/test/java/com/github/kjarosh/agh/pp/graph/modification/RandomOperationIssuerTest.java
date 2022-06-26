@@ -4,9 +4,6 @@ import com.github.kjarosh.agh.pp.graph.model.Graph;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.util.Arrays;
-import java.util.Random;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**

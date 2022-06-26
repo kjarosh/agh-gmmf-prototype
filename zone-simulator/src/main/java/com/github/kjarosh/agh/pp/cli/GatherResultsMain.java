@@ -19,7 +19,6 @@ import org.apache.maven.shared.invoker.DefaultInvoker;
 import org.apache.maven.shared.invoker.InvocationOutputHandler;
 import org.apache.maven.shared.invoker.InvocationRequest;
 import org.apache.maven.shared.invoker.Invoker;
-import org.apache.maven.shared.invoker.MavenInvocationException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -122,7 +121,7 @@ public class GatherResultsMain {
                 .clientThreads(12);
     }
 
-    public static void main(String[] args) throws IOException, MavenInvocationException {
+    public static void main(String[] args) throws IOException {
         try {
             Path resultsPath = Paths.get("results").resolve("results-" + Instant.now());
             Files.createDirectory(resultsPath);
@@ -390,11 +389,10 @@ public class GatherResultsMain {
         props.setProperty("exec.args", args);
         props.setProperty("exec.cleanupDaemonThreads", "false");
         if (userProps != null) {
-            userProps.forEach(props::put);
+            props.putAll(userProps);
         }
         request.setProperties(props);
 
-        Invoker invoker = new DefaultInvoker();
         if (oh != null) {
             request.setOutputHandler(s -> {
                 System.out.println("[maven/stdout] " + s);
@@ -405,6 +403,7 @@ public class GatherResultsMain {
                 oh.consumeLine("[stderr] " + s);
             });
         }
+        Invoker invoker = new DefaultInvoker();
         invoker.execute(request);
     }
 

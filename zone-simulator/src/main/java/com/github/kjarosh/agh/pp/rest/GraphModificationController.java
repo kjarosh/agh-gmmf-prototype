@@ -24,7 +24,6 @@ import com.github.kjarosh.agh.pp.rest.error.VertexNotFoundException;
 import com.github.kjarosh.agh.pp.rest.utils.GraphOperationPropagator;
 import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,13 +45,16 @@ import static com.github.kjarosh.agh.pp.config.Config.ZONE_ID;
 @Slf4j
 @Controller
 public class GraphModificationController {
-    @Autowired
-    private GraphLoader graphLoader;
+    private final GraphLoader graphLoader;
 
-    @Autowired
-    private Inbox inbox;
+    private final Inbox inbox;
 
     private final Instrumentation instrumentation = Instrumentation.getInstance();
+
+    public GraphModificationController(GraphLoader graphLoader, Inbox inbox) {
+        this.graphLoader = graphLoader;
+        this.inbox = inbox;
+    }
 
     @RequestMapping(method = RequestMethod.POST, path = "graph/edges")
     @ResponseBody

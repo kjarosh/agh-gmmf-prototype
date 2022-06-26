@@ -8,9 +8,9 @@ services:
     networks:
       intranet:
     ports:
-      - 8080:80
-      - 8780:8080
-      - 9010:9010
+      - "8080:80"
+      - "8780:8080"
+      - "9010:9010"
 
   zone1:
     image: kjarosh/agh-gmmf-prototype:latest
@@ -20,9 +20,9 @@ services:
     networks:
       intranet:
     ports:
-      - 8081:80
-      - 8781:8080
-      - 9011:9010
+      - "8081:80"
+      - "8781:8080"
+      - "9011:9010"
 
   zone2:
     image: kjarosh/agh-gmmf-prototype:latest
@@ -32,9 +32,9 @@ services:
     networks:
       intranet:
     ports:
-      - 8082:80
-      - 8782:8080
-      - 9012:9010
+      - "8082:80"
+      - "8782:8080"
+      - "9012:9010"
 
   client:
     image: kjarosh/agh-gmmf-prototype:latest

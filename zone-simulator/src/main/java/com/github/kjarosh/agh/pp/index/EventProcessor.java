@@ -10,7 +10,6 @@ import com.github.kjarosh.agh.pp.index.events.EventType;
 import com.github.kjarosh.agh.pp.instrumentation.Instrumentation;
 import com.github.kjarosh.agh.pp.instrumentation.Notification;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -37,15 +36,18 @@ import java.util.concurrent.atomic.AtomicLong;
 public class EventProcessor {
     private final Instrumentation instrumentation = Instrumentation.getInstance();
 
-    @Autowired
-    private GraphLoader graphLoader;
+    private final GraphLoader graphLoader;
 
-    @Autowired
-    private Inbox inbox;
+    private final Inbox inbox;
 
-    private AtomicLong totalTime = new AtomicLong();
-    private AtomicLong count = new AtomicLong();
+    private final AtomicLong totalTime = new AtomicLong();
+    private final AtomicLong count = new AtomicLong();
     private Instant lastReset = Instant.now();
+
+    public EventProcessor(Inbox inbox, GraphLoader graphLoader) {
+        this.inbox = inbox;
+        this.graphLoader = graphLoader;
+    }
 
     public void process(VertexId id, Event event) {
         long start = System.nanoTime();
