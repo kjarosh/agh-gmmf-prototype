@@ -19,7 +19,7 @@
         <picocli.version>4.6.3</picocli.version>
         <neo4j-java-driver.version>4.3.3</neo4j-java-driver.version>
         <commons-text.version>1.9</commons-text.version>
-        <postgresql.version>42.4.0</postgresql.version>
+        <postgresql.version>42.4.1</postgresql.version>
         <commons-cli.version>1.4</commons-cli.version>
         <redisson.version>3.17.4</redisson.version>
         <netty.version>4.1.78.Final</netty.version>
