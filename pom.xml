@@ -20,15 +20,15 @@
         <neo4j-java-driver.version>4.3.3</neo4j-java-driver.version>
         <commons-text.version>1.10.0</commons-text.version>
         <postgresql.version>42.5.0</postgresql.version>
-        <commons-cli.version>1.4</commons-cli.version>
+        <commons-cli.version>1.5.0</commons-cli.version>
         <redisson.version>3.17.7</redisson.version>
         <netty.version>4.1.84.Final</netty.version>
         <assertj-core.version>3.23.1</assertj-core.version>
-        <mockito-core.version>4.6.1</mockito-core.version>
-        <sshj.version>0.33.0</sshj.version>
+        <mockito-core.version>4.8.0</mockito-core.version>
+        <sshj.version>0.34.0</sshj.version>
         <maven-invoker.version>3.2.0</maven-invoker.version>
         <k8s-client.version>12.0.2</k8s-client.version>
-        <lettuce.version>6.1.8.RELEASE</lettuce.version>
+        <lettuce.version>6.2.1.RELEASE</lettuce.version>
         <spring.version>5.3.23</spring.version>
         <spring-boot-starter.version>2.7.4</spring-boot-starter.version>
         <jackson.version>2.13.3</jackson.version>
